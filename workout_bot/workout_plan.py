@@ -84,7 +84,7 @@ class WeekRoutine:
     def to_text_message(self):
         text = "*" + \
                escape_text("Неделя {} - {}".format(self.start_date,
-                                                     self.end_date)) + \
+                                                   self.end_date)) + \
                "*\n"
         workout_number = 0
         homework_number = 0
