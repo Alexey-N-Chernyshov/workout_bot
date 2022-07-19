@@ -22,6 +22,17 @@ class Excercise:
     description: str
     reps_window: str = ''
 
+    def to_text_message():
+        text = ""
+        if excercise.reps_window:
+            text += escape_text("\n- {}, {}"
+                                .format(excercise.description,
+                                        excercise.reps_window))
+        else:
+            text += escape_text("\n- {}"
+                                .format(excercise.description))
+        return text
+
 
 @dataclass
 class Set:
@@ -37,13 +48,7 @@ class Set:
         if self.description:
             text += escape_text('\n{}'.format(self.description))
         for excercise in self.excersises:
-            if excercise.reps_window:
-                text += escape_text("\n- {}, {}"
-                                    .format(excercise.description,
-                                            excercise.reps_window))
-            else:
-                text += escape_text("\n- {}"
-                                    .format(excercise.description))
+            text += excercise.to_text_message()
         return text
 
 
