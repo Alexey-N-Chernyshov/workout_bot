@@ -1,4 +1,3 @@
-import pytest
 from workout_bot.workout_plan import Excercise
 from workout_bot.workout_plan import Set
 from workout_bot.workout_plan import Workout
@@ -38,7 +37,6 @@ def test_workout_to_text_message():
     set = Set("", 1, [Excercise("stretching")])
     workout = Workout("first workout", [set], 1, 1)
 
-    text = workout.to_text_message()
     expected = (
         "*Тренировка 1*\n"
         "\n"
@@ -56,7 +54,6 @@ def test_workout_no_number_to_text_message():
     set = Set("", 1, [Excercise("stretching")])
     workout = Workout("first workout", [set], 1)
 
-    text = workout.to_text_message()
     expected = (
         "*Промежуточная тренировка*\n"
         "\n"
