@@ -4,11 +4,13 @@ import time
 import threading
 import os.path
 
+
 def scheduler():
     schedule.every().day.at("03:00").do(telegram_bot.update_workout_library)
     while True:
         schedule.run_pending()
         time.sleep(1)
+
 
 if __name__ == '__main__':
     # print version

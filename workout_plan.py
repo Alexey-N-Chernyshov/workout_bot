@@ -3,22 +3,25 @@ from datetime import date
 from dataclasses import dataclass
 from typing import List
 
+
 def escape_text(text):
     """
     Escape text for MarkdownV2
     """
     text = text.replace('\\', '\\\\')
-    text = text.replace('(', '\(')
-    text = text.replace(')', '\)')
-    text = text.replace('-', '\-')
-    text = text.replace('+', '\+')
-    text = text.replace('.', '\.')
+    text = text.replace('(', '\\(')
+    text = text.replace(')', '\\)')
+    text = text.replace('-', '\\-')
+    text = text.replace('+', '\\+')
+    text = text.replace('.', '\\.')
     return text
+
 
 @dataclass
 class Excercise:
     description: str
     reps_window: str = ''
+
 
 @dataclass
 class Set:
@@ -26,6 +29,7 @@ class Set:
     number: int
     excersises: List[Excercise]
     rounds: int = 0
+
 
 @dataclass
 class Workout:
@@ -54,6 +58,7 @@ class Workout:
                 text += escape_text("- {}, {}\n"
                     .format(excercise.description, excercise.reps_window))
         return text
+
 
 @dataclass
 class WeekRoutine:
