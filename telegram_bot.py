@@ -75,7 +75,7 @@ def change_plan_prompt(chat_id):
 def start(message):
     global total_commands
     total_commands += 1
-    user_context = get_user_context(message.from_user.id)
+    get_user_context(message.from_user.id)
     change_plan_prompt(message.chat.id)
 
 
