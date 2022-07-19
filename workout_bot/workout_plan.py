@@ -22,6 +22,17 @@ class Excercise:
     description: str
     reps_window: str = ''
 
+    def to_text_message(self):
+        text = ""
+        if self.reps_window:
+            text += escape_text("\n- {}, {}"
+                                .format(self.description,
+                                        self.reps_window))
+        else:
+            text += escape_text("\n- {}"
+                                .format(self.description))
+        return text
+
 
 @dataclass
 class Set:
@@ -29,6 +40,16 @@ class Set:
     number: int
     excersises: List[Excercise]
     rounds: int = 0
+
+    def to_text_message(self):
+        text = "Сет {}".format(self.number)
+        if self.rounds != 0:
+            text += ', количество раундов: {}'.format(self.rounds)
+        if self.description:
+            text += escape_text('\n{}'.format(self.description))
+        for excercise in self.excersises:
+            text += excercise.to_text_message()
+        return text
 
 
 @dataclass
@@ -41,23 +62,14 @@ class Workout:
     def to_text_message(self):
         text = ''
         if self.number == 0:
-            text = '*Промежуточная тренировка*\n'
+            text = '*Промежуточная тренировка*\n\n'
         else:
-            text = '*Тренировка {}*\n'.format(self.number)
+            text = '*Тренировка {}*\n\n'.format(self.number)
         if self.description:
             text += escape_text(
-                '\n{}\n'.format(self.description.replace('\n', ' ')))
+                '{}\n\n'.format(self.description.replace('\n', ' ')))
         for set in self.sets:
-            if set.number != 0:
-                text += '\nСет {}'.format(set.number)
-            if set.rounds != 0:
-                text += ', количество раундов: {}\n'.format(set.rounds)
-            if set.description:
-                text += escape_text('{}\n'.format(set.description))
-            for excercise in set.excersises:
-                text += escape_text("- {}, {}\n"
-                                    .format(excercise.description,
-                                            excercise.reps_window))
+            text += set.to_text_message()
         return text
 
 

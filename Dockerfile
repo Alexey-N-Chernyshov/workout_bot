@@ -7,6 +7,7 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
-COPY . .
+COPY workout_bot .
+COPY git_commit_version.txt git_commit_version.txt
 
 CMD ["python3",  "app.py"]
