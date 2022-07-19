@@ -18,6 +18,7 @@ def load_workouts(spreadsheet_id, pagenames):
     library.update_workout_plans(workout_plans)
     return library
 
+
 def load_table_page(spreadsheet_id, pagename):
     """
     Parses google sheet with training program.
@@ -25,7 +26,7 @@ def load_table_page(spreadsheet_id, pagename):
     """
 
     (merges, values) = google_sheets_feeder.get_values(spreadsheet_id,
-        pagename)
+                                                       pagename)
     start_week_date = date.today()
     end_week_date = date.today()
     week_workouts = []

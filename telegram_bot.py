@@ -105,8 +105,8 @@ def get_text_messages(message):
         plans = workout_library.get_plan_names()
         if plan in plans:
             user_context.current_plan = plan
-            user_context.current_week = workout_library
-                .get_week_number(user_context.current_plan) - 1
+            user_context.current_week = workout_library.get_week_number(
+                                            user_context.current_plan) - 1
             user_context.current_workout = 0
             bot.send_message(message.chat.id, 'Программа выбрана.')
             send_week_schedule(message.chat.id, user_context)
