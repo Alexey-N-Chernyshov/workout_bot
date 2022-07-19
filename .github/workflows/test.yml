@@ -1,4 +1,4 @@
-name: Lint with flake8
+name: Run tests
 
 on: [push]
 
