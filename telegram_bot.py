@@ -116,7 +116,8 @@ def get_text_messages(message):
     if message.text.strip().lower() == "далее":
         send_workout(message.chat.id, user_context)
         if user_context.current_workout < workout_library
-                .get_workout_number(user_context.current_plan, user_context.current_week) - 1:
+                .get_workout_number(user_context.current_plan,
+                                    user_context.current_week) - 1:
             user_context.current_workout += 1
         elif user_context.current_week < workout_library
                 .get_week_number(user_context.current_plan) - 1:
