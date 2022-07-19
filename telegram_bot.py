@@ -3,7 +3,7 @@
 import telebot
 import google_sheets_adapter
 import yaml
-from  workout_plan import WorkoutLibrary
+from workout_plan import WorkoutLibrary
 from user import UserContext
 
 telegram_bot_token_file = 'secrets/telegram_token.txt'
