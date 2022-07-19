@@ -42,7 +42,7 @@ class Set:
     rounds: int = 0
 
     def to_text_message(self):
-        text = "Сет {}".format(self.number)
+        text = "\nСет {}".format(self.number)
         if self.rounds != 0:
             text += ', количество раундов: {}'.format(self.rounds)
         if self.description:
@@ -62,12 +62,12 @@ class Workout:
     def to_text_message(self):
         text = ''
         if self.number == 0:
-            text = '*Промежуточная тренировка*\n\n'
+            text = '*Промежуточная тренировка*\n'
         else:
-            text = '*Тренировка {}*\n\n'.format(self.number)
+            text = '*Тренировка {}*\n'.format(self.number)
         if self.description:
             text += escape_text(
-                '{}\n\n'.format(self.description.replace('\n', ' ')))
+                '\n{}\n'.format(self.description.replace('\n', ' ')))
         for set in self.sets:
             text += set.to_text_message()
         return text
