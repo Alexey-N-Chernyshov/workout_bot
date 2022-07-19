@@ -44,17 +44,19 @@ def send_week_schedule(chat_id, user_context):
     key_next = telebot.types.KeyboardButton(text='Далее')
     keyboard.add(key_next)
     bot.send_message(chat_id, text, reply_markup=keyboard,
-        parse_mode="MarkdownV2")
+                     parse_mode="MarkdownV2")
 
 
 def send_workout(chat_id, user_context):
-    text = workout_library.get_workout_text_message(user_context.current_plan,
-        user_context.current_week,user_context.current_workout)
+    text = \
+        workout_library.get_workout_text_message(user_context.current_plan,
+                                                 user_context.current_week,
+                                                 user_context.current_workout)
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     key_next = telebot.types.KeyboardButton(text='Далее')
     keyboard.add(key_next)
     bot.send_message(chat_id, text, reply_markup=keyboard,
-        parse_mode="MarkdownV2")
+                     parse_mode="MarkdownV2")
 
 
 def change_plan_prompt(chat_id):
@@ -95,8 +97,8 @@ def get_text_messages(message):
     total_requests += 1
     user_context = get_user_context(message.from_user.id)
 
-    if (message.text.strip().lower() == 'выбрать программу' \
-            or message.text.strip().lower() == 'сменить программу' \
+    if (message.text.strip().lower() == 'выбрать программу'
+            or message.text.strip().lower() == 'сменить программу'
             or message.text.strip().lower() == 'поменять программу'):
         change_plan_prompt(message.chat.id)
 
@@ -106,7 +108,7 @@ def get_text_messages(message):
         if plan in plans:
             user_context.current_plan = plan
             user_context.current_week = workout_library.get_week_number(
-                                            user_context.current_plan) - 1
+                user_context.current_plan) - 1
             user_context.current_workout = 0
             bot.send_message(message.chat.id, 'Программа выбрана.')
             send_week_schedule(message.chat.id, user_context)
@@ -135,7 +137,7 @@ def get_text_messages(message):
             or message.text.strip().lower() == "крайняя неделя" \
             or message.text.strip().lower() == "текущая неделя":
         user_context.current_week = workout_library \
-                .get_week_number(user_context.current_plan) - 1
+            .get_week_number(user_context.current_plan) - 1
         send_week_schedule(message.chat.id, user_context)
         user_context.current_workout = 0
 

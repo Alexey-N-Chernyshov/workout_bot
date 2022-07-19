@@ -69,8 +69,10 @@ class WeekRoutine:
     workouts: List[Workout]
 
     def to_text_message(self):
-        text = "*" + escape_text("Неделя {} - {}\n"
-                        .format(self.start_date, self.end_date)) + "*"
+        text = "*" + \
+               escape_text("Неделя {} - {}\n".format(self.start_date,
+                                                     self.end_date)) + \
+               "*"
         workout_number = 0
         homework_number = 0
         for workout in self.workouts:
@@ -125,7 +127,7 @@ class WorkoutLibrary:
 
     def get_workout_number(self, workout_plan, week_number):
         self.lock.acquire()
-        workout_number = len(self \
-            .__workout_plans[workout_plan][week_number].workouts)
+        workout_number = \
+            len(self.__workout_plans[workout_plan][week_number].workouts)
         self.lock.release()
         return workout_number
