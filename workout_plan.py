@@ -106,14 +106,14 @@ class WorkoutLibrary:
                                  workout_number):
         self.lock.acquire()
         text = self.__workout_plans[workout_plan][week_number] \
-                .workouts[workout_number].to_text_message()
+            .workouts[workout_number].to_text_message()
         self.lock.release()
         return text
 
     def get_week_text_message(self, workout_plan, week_number):
         self.lock.acquire()
         text = self.__workout_plans[workout_plan][week_number] \
-                .to_text_message()
+            .to_text_message()
         self.lock.release()
         return text
 
@@ -126,6 +126,6 @@ class WorkoutLibrary:
     def get_workout_number(self, workout_plan, week_number):
         self.lock.acquire()
         workout_number = len(self \
-                .__workout_plans[workout_plan][week_number].workouts)
+            .__workout_plans[workout_plan][week_number].workouts)
         self.lock.release()
         return workout_number

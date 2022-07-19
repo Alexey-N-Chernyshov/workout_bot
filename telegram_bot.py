@@ -115,11 +115,11 @@ def get_text_messages(message):
 
     if message.text.strip().lower() == "далее":
         send_workout(message.chat.id, user_context)
-        if user_context.current_workout < workout_library
+        if user_context.current_workout < workout_library \
                 .get_workout_number(user_context.current_plan,
                                     user_context.current_week) - 1:
             user_context.current_workout += 1
-        elif user_context.current_week < workout_library
+        elif user_context.current_week < workout_library \
                 .get_week_number(user_context.current_plan) - 1:
             user_context.current_week += 1
             user_context.current_workout = 0
@@ -134,13 +134,13 @@ def get_text_messages(message):
     if message.text.strip().lower() == "последняя неделя" \
             or message.text.strip().lower() == "крайняя неделя" \
             or message.text.strip().lower() == "текущая неделя":
-        user_context.current_week = workout_library
+        user_context.current_week = workout_library \
                 .get_week_number(user_context.current_plan) - 1
         send_week_schedule(message.chat.id, user_context)
         user_context.current_workout = 0
 
     if message.text.strip().lower() == "следующая неделя":
-        if user_context.current_week < workout_library
+        if user_context.current_week < workout_library \
                 .get_week_number(user_context.current_plan) - 1:
             user_context.current_week += 1
         send_week_schedule(message.chat.id, user_context)
