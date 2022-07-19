@@ -22,7 +22,7 @@ class Excercise:
     description: str
     reps_window: str = ''
 
-    def to_text_message():
+    def to_text_message(self):
         text = ""
         if self.reps_window:
             text += escape_text("\n- {}, {}"
