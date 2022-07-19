@@ -24,13 +24,13 @@ class Excercise:
 
     def to_text_message():
         text = ""
-        if excercise.reps_window:
+        if self.reps_window:
             text += escape_text("\n- {}, {}"
-                                .format(excercise.description,
-                                        excercise.reps_window))
+                                .format(self.description,
+                                        self.reps_window))
         else:
             text += escape_text("\n- {}"
-                                .format(excercise.description))
+                                .format(self.description))
         return text
 
 
