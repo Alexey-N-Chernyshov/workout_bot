@@ -15,7 +15,7 @@ def test_set_to_text_message():
         "take a rest\n"
         "\\- squats, 15 times\n"
         "\\- plank, 1 minute\n"
-        "\\- stretching"
+        "\\- stretching\n"
     )
     assert expected == set.to_text_message()
 
@@ -26,7 +26,7 @@ def test_set_no_rounds_to_text_message():
     set = Set("", 2, [Excercise("treadmill")])
     expected = (
         "\nСет 2\n"
-        "\\- treadmill"
+        "\\- treadmill\n"
     )
     assert expected == set.to_text_message()
 
@@ -43,7 +43,7 @@ def test_workout_to_text_message():
         "first workout\n"
         "\n"
         "Сет 1\n"
-        "\\- stretching"
+        "\\- stretching\n"
     )
     assert expected == workout.to_text_message()
 
@@ -51,8 +51,9 @@ def test_workout_to_text_message():
 def test_workout_no_number_to_text_message():
     """Prints workout without explicit number"""
 
-    set = Set("", 1, [Excercise("stretching")])
-    workout = Workout("first workout", [set], 1)
+    set1 = Set("", 1, [Excercise("stretching")])
+    set2 = Set("", 2, [Excercise("treadmill")])
+    workout = Workout("first workout", [set1, set2], 1)
 
     expected = (
         "*Промежуточная тренировка*\n"
@@ -60,6 +61,9 @@ def test_workout_no_number_to_text_message():
         "first workout\n"
         "\n"
         "Сет 1\n"
-        "\\- stretching"
+        "\\- stretching\n"
+        "\n"
+        "Сет 2\n"
+        "\\- treadmill\n"
     )
     assert expected == workout.to_text_message()
