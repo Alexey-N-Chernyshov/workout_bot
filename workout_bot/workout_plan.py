@@ -25,11 +25,11 @@ class Excercise:
     def to_text_message(self):
         text = ""
         if self.reps_window:
-            text += escape_text("\n- {}, {}"
+            text += escape_text("- {}, {}\n"
                                 .format(self.description,
                                         self.reps_window))
         else:
-            text += escape_text("\n- {}"
+            text += escape_text("- {}\n"
                                 .format(self.description))
         return text
 
@@ -44,9 +44,10 @@ class Set:
     def to_text_message(self):
         text = "\nСет {}".format(self.number)
         if self.rounds != 0:
-            text += ', количество раундов: {}'.format(self.rounds)
+            text += ", количество раундов: {}".format(self.rounds)
+        text += '\n'
         if self.description:
-            text += escape_text('\n{}'.format(self.description))
+            text += escape_text('{}\n'.format(self.description))
         for excercise in self.excersises:
             text += excercise.to_text_message()
         return text
@@ -60,14 +61,14 @@ class Workout:
     number: int = 0
 
     def to_text_message(self):
-        text = ''
+        text = ""
         if self.number == 0:
-            text = '*Промежуточная тренировка*\n'
+            text = "*Промежуточная тренировка*\n"
         else:
-            text = '*Тренировка {}*\n'.format(self.number)
+            text = "*Тренировка {}*\n".format(self.number)
         if self.description:
             text += escape_text(
-                '\n{}\n'.format(self.description.replace('\n', ' ')))
+                "\n{}\n".format(self.description.replace('\n', ' ')))
         for set in self.sets:
             text += set.to_text_message()
         return text
@@ -82,9 +83,9 @@ class WeekRoutine:
 
     def to_text_message(self):
         text = "*" + \
-               escape_text("Неделя {} - {}\n".format(self.start_date,
+               escape_text("Неделя {} - {}".format(self.start_date,
                                                      self.end_date)) + \
-               "*"
+               "*\n"
         workout_number = 0
         homework_number = 0
         for workout in self.workouts:
