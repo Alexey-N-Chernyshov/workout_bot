@@ -12,11 +12,11 @@ def test_set_to_text_message():
     excercise3 = Excercise("stretching")
     set = Set("take a rest", 1, [excercise1, excercise2, excercise3], 3)
     expected = (
-    "Сет 1, количество раундов: 3\n"
-    "take a rest\n"
-    "\\- squats, 15 times\n"
-    "\\- plank, 1 minute\n"
-    "\\- stretching"
+        "Сет 1, количество раундов: 3\n"
+        "take a rest\n"
+        "\\- squats, 15 times\n"
+        "\\- plank, 1 minute\n"
+        "\\- stretching"
     )
     assert expected == set.to_text_message()
 
@@ -26,8 +26,8 @@ def test_set_no_rounds_to_text_message():
 
     set = Set("", 2, [Excercise("treadmill")])
     expected = (
-    "Сет 2\n"
-    "\\- treadmill"
+        "Сет 2\n"
+        "\\- treadmill"
     )
     assert expected == set.to_text_message()
 
@@ -46,7 +46,7 @@ def test_workout_to_text_message():
         "\n"
         "Сет 1\n"
         "\\- stretching"
-        )
+    )
     assert expected == workout.to_text_message()
 
 
@@ -64,5 +64,5 @@ def test_workout_no_number_to_text_message():
         "\n"
         "Сет 1\n"
         "\\- stretching"
-        )
+    )
     assert expected == workout.to_text_message()
