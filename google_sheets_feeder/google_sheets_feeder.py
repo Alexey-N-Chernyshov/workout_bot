@@ -11,6 +11,7 @@ from googleapiclient.errors import HttpError
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
+
 def get_values(spreadsheet_id, pagename):
     """
     Shows basic usage of the Sheets API.
@@ -46,8 +47,8 @@ def get_values(spreadsheet_id, pagename):
         sheet = service.spreadsheets()
         # get cell merges
         result_merges = sheet.get(spreadsheetId=spreadsheet_id,
-                                            ranges=range_name,
-                                            includeGridData=False).execute()
+                                  ranges=range_name,
+                                  includeGridData=False).execute()
 
         # get values
         result = sheet.values().get(spreadsheetId=spreadsheet_id,

@@ -3,22 +3,25 @@ from datetime import date
 from dataclasses import dataclass
 from typing import List
 
+
 def escape_text(text):
     """
     Escape text for MarkdownV2
     """
     text = text.replace('\\', '\\\\')
-    text = text.replace('(', '\(')
-    text = text.replace(')', '\)')
-    text = text.replace('-', '\-')
-    text = text.replace('+', '\+')
-    text = text.replace('.', '\.')
+    text = text.replace('(', '\\(')
+    text = text.replace(')', '\\)')
+    text = text.replace('-', '\\-')
+    text = text.replace('+', '\\+')
+    text = text.replace('.', '\\.')
     return text
+
 
 @dataclass
 class Excercise:
     description: str
     reps_window: str = ''
+
 
 @dataclass
 class Set:
@@ -26,6 +29,7 @@ class Set:
     number: int
     excersises: List[Excercise]
     rounds: int = 0
+
 
 @dataclass
 class Workout:
@@ -52,8 +56,10 @@ class Workout:
                 text += escape_text('{}\n'.format(set.description))
             for excercise in set.excersises:
                 text += escape_text("- {}, {}\n"
-                    .format(excercise.description, excercise.reps_window))
+                                    .format(excercise.description,
+                                            excercise.reps_window))
         return text
+
 
 @dataclass
 class WeekRoutine:
@@ -63,8 +69,10 @@ class WeekRoutine:
     workouts: List[Workout]
 
     def to_text_message(self):
-        text = "*" + escape_text("Неделя {} - {}\n".format(self.start_date,
-            self.end_date)) + "*"
+        text = "*" + \
+               escape_text("Неделя {} - {}\n".format(self.start_date,
+                                                     self.end_date)) + \
+               "*"
         workout_number = 0
         homework_number = 0
         for workout in self.workouts:
@@ -75,6 +83,7 @@ class WeekRoutine:
         text += "Тренировок: {}\n".format(workout_number)
         text += "Промежуточных тренировок: {}\n".format(homework_number)
         return text
+
 
 class WorkoutLibrary:
     """
@@ -95,8 +104,8 @@ class WorkoutLibrary:
         self.lock.release()
         return plans
 
-    def get_workout_text_message(self, workout_plan, week_number, \
-            workout_number):
+    def get_workout_text_message(self, workout_plan, week_number,
+                                 workout_number):
         self.lock.acquire()
         text = self.__workout_plans[workout_plan][week_number] \
             .workouts[workout_number].to_text_message()
@@ -105,7 +114,8 @@ class WorkoutLibrary:
 
     def get_week_text_message(self, workout_plan, week_number):
         self.lock.acquire()
-        text = self.__workout_plans[workout_plan][week_number].to_text_message()
+        text = self.__workout_plans[workout_plan][week_number] \
+            .to_text_message()
         self.lock.release()
         return text
 
@@ -117,7 +127,7 @@ class WorkoutLibrary:
 
     def get_workout_number(self, workout_plan, week_number):
         self.lock.acquire()
-        workout_number = len(self \
-            .__workout_plans[workout_plan][week_number].workouts)
+        workout_number = \
+            len(self.__workout_plans[workout_plan][week_number].workouts)
         self.lock.release()
         return workout_number

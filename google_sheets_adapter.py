@@ -7,6 +7,7 @@ from workout_plan import Set
 from workout_plan import Workout
 from workout_plan import WeekRoutine
 
+
 def load_workouts(spreadsheet_id, pagenames):
     library = WorkoutLibrary()
     workout_plans = {}
@@ -17,18 +18,20 @@ def load_workouts(spreadsheet_id, pagenames):
     library.update_workout_plans(workout_plans)
     return library
 
+
 def load_table_page(spreadsheet_id, pagename):
     """
     Parses google sheet with training program.
     Parses cell merges to determine workouts and sets.
     """
 
-    (merges, values) = google_sheets_feeder.get_values(spreadsheet_id, pagename)
+    (merges, values) = google_sheets_feeder.get_values(spreadsheet_id,
+                                                       pagename)
     start_week_date = date.today()
     end_week_date = date.today()
     week_workouts = []
-    workout_number = 0 # workout number in a week written in sheets
-    workout_actual_number = 0 # actual workout number including homework
+    workout_number = 0  # workout number in a week written in sheets
+    workout_actual_number = 0  # actual workout number including homework
     workout_description = ''
     workout_sets = []
     set_number = 0
@@ -72,7 +75,7 @@ def load_table_page(spreadsheet_id, pagename):
             # it is a set description if starts with set number
             if set_number != 0:
                 workout_sets.append(Set(set_description, set_number,
-                    set_excercises, set_rounds))
+                                        set_excercises, set_rounds))
             set_excercises = []
             number, rest = row[2].split('\\', 1)
             set_number = int(number)
@@ -124,9 +127,10 @@ def load_table_page(spreadsheet_id, pagename):
         # Workout end
         if i == workout_indeces[current_workout][1] - 1:
             workout_sets.append(Set(set_description, set_number,
-                set_excercises, set_rounds))
-            week_workouts.append(Workout(workout_description,
-                workout_sets, workout_actual_number, workout_number))
+                                    set_excercises, set_rounds))
+            week_workouts.append(Workout(workout_description, workout_sets,
+                                         workout_actual_number,
+                                         workout_number))
             set_excercises = []
             workout_sets = []
             set_number = 0
@@ -137,8 +141,8 @@ def load_table_page(spreadsheet_id, pagename):
 
         # week end
         if i == week_indeces[current_week][1] - 1:
-            all_weeks.append(WeekRoutine(start_week_date,
-                end_week_date, current_week + 1, week_workouts))
+            all_weeks.append(WeekRoutine(start_week_date, end_week_date,
+                                         current_week + 1, week_workouts))
             workout_actual_number = 0
             current_week += 1
 
