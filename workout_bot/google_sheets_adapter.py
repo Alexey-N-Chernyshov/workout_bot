@@ -1,27 +1,23 @@
 import re
 from datetime import date
 from google_sheets_feeder import google_sheets_feeder
-from workout_plan import Excercise
-from workout_plan import WorkoutLibrary
-from workout_plan import Set
-from workout_plan import Workout
-from workout_plan import WeekRoutine
+from data_model.workout_plan import Excercise
+from data_model.workout_plan import WorkoutLibrary
+from data_model.workout_plan import Set
+from data_model.workout_plan import Workout
+from data_model.workout_plan import WeekRoutine
 
 
-def load_workouts(spreadsheet_id, pagenames):
-    library = WorkoutLibrary()
+def load_workouts(workout_library, spreadsheet_id, pagenames):
     workout_plans = {}
-
     for pagename in pagenames:
         workout_plans[pagename] = load_table_page(spreadsheet_id, pagename)
-
-    library.update_workout_plans(workout_plans)
-    return library
+    workout_library.update_workout_plans(workout_plans)
 
 
 def load_table_page(spreadsheet_id, pagename):
     """
-    Parses google sheet with training program.
+    Parses google spreadsheet page with a training program.
     Parses cell merges to determine workouts and sets.
     """
 

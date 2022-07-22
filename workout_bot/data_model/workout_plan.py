@@ -3,6 +3,8 @@ from datetime import date
 from dataclasses import dataclass
 from typing import List
 
+excercise_links = {}
+
 
 def escape_text(text):
     """
@@ -14,6 +16,7 @@ def escape_text(text):
     text = text.replace('-', '\\-')
     text = text.replace('+', '\\+')
     text = text.replace('.', '\\.')
+    text = text.replace('=', '\\=')
     return text
 
 
@@ -23,14 +26,13 @@ class Excercise:
     reps_window: str = ''
 
     def to_text_message(self):
-        text = ""
+        text = "- {}".format(self.description)
         if self.reps_window:
-            text += escape_text("- {}, {}\n"
-                                .format(self.description,
-                                        self.reps_window))
-        else:
-            text += escape_text("- {}\n"
-                                .format(self.description))
+            text += escape_text(", {}".format(self.reps_window))
+        text += "\n"
+        text = escape_text(text)
+        for name, link in excercise_links.items():
+            text = text.replace(name, link)
         return text
 
 

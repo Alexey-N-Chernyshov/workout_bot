@@ -14,10 +14,11 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
 def get_values(spreadsheet_id, pagename):
     """
-    Shows basic usage of the Sheets API.
-    Prints values from a sample spreadsheet.
-    spreadsheet_id - is an id of the table, can be found in page http
-    pagename - name of table page
+    Reads google spreadsheet page in specific format.
+
+    str spreadsheet_id -- is an id of the table, can be found in page http
+    str pagename -- name of table page
+    return spreadsheet cells merges and values
     """
     range_name = pagename + '!A:E'
 
