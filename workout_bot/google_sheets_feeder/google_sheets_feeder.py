@@ -46,6 +46,7 @@ def get_values(spreadsheet_id, pagename):
 
         # Call the Sheets API
         sheet = service.spreadsheets()
+
         # get cell merges
         result_merges = sheet.get(spreadsheetId=spreadsheet_id,
                                   ranges=range_name,
@@ -56,7 +57,8 @@ def get_values(spreadsheet_id, pagename):
                                     range=range_name).execute()
         values = result.get('values', [])
 
-        return (result_merges['sheets'][0]['merges'], values[1:])
+        return (result_merges["properties"]["title"],
+                result_merges['sheets'][0]['merges'], values[1:])
 
     except HttpError as err:
         print(err)

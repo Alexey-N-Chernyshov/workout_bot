@@ -5,24 +5,39 @@ from data_model.workout_plan import Excercise
 from data_model.workout_plan import WorkoutLibrary
 from data_model.workout_plan import Set
 from data_model.workout_plan import Workout
+from data_model.workout_plan import WorkoutTable
 from data_model.workout_plan import WeekRoutine
 
 
-def load_workouts(workout_library, spreadsheet_id, pagenames):
-    workout_plans = {}
-    for pagename in pagenames:
-        workout_plans[pagename] = load_table_page(spreadsheet_id, pagename)
-    workout_library.update_workout_plans(workout_plans)
+def load_workouts(workout_library, tables):
+    """
+    Updates workout_library with workout plans from google spreadsheet tables.
+    tables - {table_id: str : [page_name]}
+    """
+
+    print('Updating workouts')
+    for spreadsheet_id, pagenames in tables.items():
+        table = WorkoutTable(spreadsheet_id, "", {})
+        for pagename in pagenames:
+            (tablename, pagename, all_weeks) = load_table_page(spreadsheet_id,
+                                                               pagename)
+            table.table_name = tablename
+            table.pages[pagename] = all_weeks
+            print("Loaded \"{}\" - \"{}\"".format(tablename, pagename))
+        workout_library.update_workout_table(table)
+    print('Updated workouts')
 
 
 def load_table_page(spreadsheet_id, pagename):
     """
     Parses google spreadsheet page with a training program.
     Parses cell merges to determine workouts and sets.
+
+    Retruns (tablename, pagename, list_of_week_workouts)
     """
 
-    (merges, values) = google_sheets_feeder.get_values(spreadsheet_id,
-                                                       pagename)
+    (tablename, merges, values) = \
+        google_sheets_feeder.get_values(spreadsheet_id, pagename)
     start_week_date = date.today()
     end_week_date = date.today()
     week_workouts = []
@@ -79,6 +94,8 @@ def load_table_page(spreadsheet_id, pagename):
             if rest[0].isdigit():
                 rounds, rest = rest.split('\\', 1)
                 set_rounds = int(rounds)
+            else:
+                set_rounds = 0
             set_description = rest
         else:
             # it is an excercise
@@ -142,4 +159,4 @@ def load_table_page(spreadsheet_id, pagename):
             workout_actual_number = 0
             current_week += 1
 
-    return all_weeks
+    return tablename, pagename, all_weeks

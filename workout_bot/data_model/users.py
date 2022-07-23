@@ -7,27 +7,40 @@ class UserAction(enum.Enum):
     choosing_plan = 2
     training = 3
     administration = 4
-    admin_adding_excercise_name = 5
-    admin_adding_excercise_link = 6
-    admin_adding_excercise_prove = 7
+    admin_removing_excercise_name = 5
+    admin_removing_excercise_prove = 6
+    admin_adding_excercise_name = 7
+    admin_adding_excercise_link = 8
+    admin_adding_excercise_prove = 9
+
+
+@dataclass
+class RemoveExcerciseLinkContext:
+    name: str = ""
+
+
+@dataclass
+class AddExcerciseLinkContext:
+    name: str = ""
+    link: str = ""
 
 
 @dataclass
 class UserContext:
-    current_plan: Optional[str] = None
+    current_table_id: Optional[str] = None
+    current_page: Optional[str] = None
     current_week: Optional[int] = None
     current_workout: Optional[int] = None
     action: UserAction = UserAction.awaiting_authz
     # permissions
     administrative_permission: bool = False
-    # stored input data
-    data: str = ""
+    # additional stored user input, may be anything
+    user_input_data: 'typing.Any' = None
 
 
 class Users:
     # map user_id -> UserContext
-    __users = {96539438 : UserContext(action=UserAction.choosing_plan,
-                                         administrative_permission=True)}
+    __users = {}
 
     def get_user_context(self, user_id):
         """
@@ -38,6 +51,12 @@ class Users:
         if user_id not in self.__users:
             self.__users[user_id] = UserContext()
         return self.__users[user_id]
+
+    def set_administrative_permission(self, user_id):
+        user_context = self.get_user_context(user_id)
+        user_context.administrative_permission = True
+        user_context.action = UserAction.administration
+        user_context.data = ""
 
     def get_unique_users(self):
         """
