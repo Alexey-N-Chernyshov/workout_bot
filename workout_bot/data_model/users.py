@@ -1,6 +1,7 @@
 import enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
+from typing import List
 
 class UserAction(enum.Enum):
     awaiting_authz = 1  # await authorization
@@ -12,6 +13,14 @@ class UserAction(enum.Enum):
     admin_adding_excercise_name = 7
     admin_adding_excercise_link = 8
     admin_adding_excercise_prove = 9
+    admin_adding_table = 10
+    admin_adding_pages = 11
+
+
+@dataclass
+class AddTableContext:
+    table_id: str = ""
+    pages: List[str] = field(default_factory=list)
 
 
 @dataclass

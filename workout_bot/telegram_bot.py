@@ -4,6 +4,7 @@ import yaml
 from data_model.statistics import Statistics
 from data_model.users import Users
 from data_model.users import UserAction
+from data_model.users import AddTableContext
 from data_model.users import AddExcerciseLinkContext
 from data_model.users import RemoveExcerciseLinkContext
 from data_model.workout_plan import WorkoutLibrary
@@ -52,19 +53,31 @@ def show_admin_panel(chat_id, user_context):
     if user_context.administrative_permission:
         keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True,
                                                      one_time_keyboard=True)
+        key_remove_table = KeyboardButton(text='Удалить таблицу')
+        key_add_table = KeyboardButton(text='Добавить таблицу')
+        keyboard.row(key_remove_table, key_add_table)
+        key_reload_plans = KeyboardButton(text='Прочитать таблицы')
+        keyboard.add(key_reload_plans)
         key_remove_workout_link = \
             KeyboardButton(text="Удалить ссылку на упражнение")
         key_add_workout_link = \
             KeyboardButton(text="Добавить ссылку на упражнение")
         keyboard.row(key_remove_workout_link, key_add_workout_link)
-        key_reload_plans = \
-            telebot.types.KeyboardButton(text='Прочитать таблицы')
-        keyboard.add(key_reload_plans)
-        key_training = \
-            telebot.types.KeyboardButton(text='Перейти к тренировкам')
+        key_training = KeyboardButton(text='Перейти к тренировкам')
         keyboard.add(key_training)
         bot.send_message(chat_id, "Администрирование", reply_markup=keyboard,
                          parse_mode="MarkdownV2")
+
+def add_pages_prompt(chat_id, user_context):
+    keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True,
+                                                 one_time_keyboard=True)
+    key_done = KeyboardButton(text='Готово')
+    keyboard.add(key_done)
+    bot.send_message(chat_id,
+                     "Введите название страницы или нажмите \"Готово\"",
+                     reply_markup=keyboard,
+                     parse_mode="MarkdownV2")
+
 
 def remove_excercise_link_prompt(chat_id, user_context):
     global excercise_links
@@ -206,6 +219,7 @@ def system_stats(message):
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
+    global workout_tables
     global excercise_links
     global statistics
     statistics.record_request()
@@ -215,6 +229,25 @@ def get_text_messages(message):
     if user_context.action == UserAction.choosing_plan:
         plan = message.text.strip()
         change_plan(message.chat.id, user_context, message.text.strip())
+        return
+
+    if user_context.action == UserAction.admin_adding_table:
+        user_context.user_input_data.table_id = message.text
+        user_context.action = UserAction.admin_adding_pages
+        add_pages_prompt(message.chat.id, user_context)
+        user_context.action = UserAction.admin_adding_pages
+        return
+
+    if user_context.action == UserAction.admin_adding_pages:
+        if message.text.strip().lower() == "готово":
+            workout_tables[user_context.user_input_data.table_id] = \
+                user_context.user_input_data.pages
+            user_context.action = UserAction.administration
+            user_context.user_input_data = None
+            show_admin_panel(message.chat.id, user_context)
+        else:
+            user_context.user_input_data.pages.append(message.text)
+            add_pages_prompt(message.chat.id, user_context)
         return
 
     if user_context.action == UserAction.admin_removing_excercise_name:
@@ -286,6 +319,16 @@ def get_text_messages(message):
     if message.text.strip().lower() == "администрирование":
         user_context.action = UserAction.administration
         show_admin_panel(message.chat.id, user_context)
+        return
+
+    if (message.text.strip().lower() == "добавить таблицу"
+        and user_context.administrative_permission):
+        user_context.action = UserAction.admin_adding_table
+        user_context.user_input_data = AddTableContext()
+        text = "Введите идентификатор таблицы.\n\n" + \
+            "Идентификатор может быть найден в ссылке на таблицу (spreadsheetId):\n" + \
+            "<code>https://docs.google.com/spreadsheets/d/</code><b><u>spreadsheetId</u></b><code>/edit#gid=0</code>"
+        bot.send_message(message.chat.id, text, parse_mode="HTML")
         return
 
     if (message.text.strip().lower() == "удалить ссылку на упражнение"

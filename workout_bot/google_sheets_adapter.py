@@ -19,6 +19,7 @@ def load_workouts(workout_library, tables):
     for spreadsheet_id, pagenames in tables.items():
         table = WorkoutTable(spreadsheet_id, "", {})
         for pagename in pagenames:
+            print("Loading https://docs.google.com/spreadsheets/d/{}/edit#gid=0 - \"{}\"".format(spreadsheet_id, pagename))
             (tablename, pagename, all_weeks) = load_table_page(spreadsheet_id,
                                                                pagename)
             table.table_name = tablename
