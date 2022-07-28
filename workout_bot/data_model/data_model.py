@@ -4,11 +4,14 @@ from data_model.workout_plan import WorkoutLibrary
 
 
 class DataModel:
+    # Table ids and page names to read
+    # {google_spreadsheet_id: [page names]}
+    workout_tables = {}
+
+    # Workouts has been read from tables
     workout_library = WorkoutLibrary()
     users = Users()
     statistics = Statistics()
-    # {google spreadsheet_id: [page names]}
-    workout_tables = {}
 
     def __init__(self, feeder):
         self.feeder = feeder

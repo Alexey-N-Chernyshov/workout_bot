@@ -390,4 +390,4 @@ def start_bot():
                                             "Show system statistics")
     bot.set_my_commands([start, system_stats])
 
-    bot.polling(none_stop=True, interval=1)
+    bot.infinity_polling(none_stop=True, interval=1, timeout=30)
