@@ -9,6 +9,7 @@ from data_model.workout_plan import WorkoutLibrary
 from data_model.workout_plan import excercise_links
 from google_sheets_feeder import google_sheets_adapter
 from telebot.types import KeyboardButton
+from view.users import get_user_message
 
 telegram_bot_token_file = 'secrets/telegram_token.txt'
 telegram_bot_token = ''
@@ -165,7 +166,13 @@ def start(message):
         bot.send_message(message.chat.id,
                          "Бот доступен только в приватном чате.")
         return
-    user_context = data_model.users.get_user_context(message.from_user.id)
+    user_context = \
+        data_model.users.get_or_create_user_context(message.from_user.id)
+    user_context.user_id = message.from_user.id
+    user_context.first_name = message.from_user.first_name
+    user_context.last_name = message.from_user.last_name
+    user_context.username = message.from_user.username
+    user_context.chat_id = message.chat.id
     user_context.current_table_id = None
     user_context.current_page = None
     user_context.current_week = None
@@ -173,9 +180,9 @@ def start(message):
     if user_context.administrative_permission:
         user_context.action = UserAction.administration
         show_admin_panel(message.chat.id, user_context)
-    else:
-        user_context.action = UserAction.choosing_plan
-        change_plan_prompt(message.chat.id, user_context)
+    if user_context.action == UserAction.awaiting_authz:
+        bot.send_message(message.chat.id,
+                         "Ожидайте подтверждения авторизации")
 
 @bot.message_handler(commands=["system_stats"])
 def system_stats(message):
@@ -188,7 +195,7 @@ def system_stats(message):
         "Расписание обновлено: {:%Y-%m-%d %H:%M}\n" \
         .format(data_model.statistics.get_training_plan_update_time())
 
-    if user_context.administrative_permission:
+    if user_context and user_context.administrative_permission:
         text += 'Количество запросов: {}\n'.format(data_model.statistics.get_total_requests())
         text += 'Количество команд: {}\n'.format(data_model.statistics.get_total_commands())
         text += 'Количество пользователей: {}'.format(data_model.users.get_unique_users())
@@ -201,9 +208,20 @@ def get_text_messages(message):
     global data_model
 
     data_model.statistics.record_request()
-    user_context = data_model.users.get_user_context(message.from_user.id)
+
+    user_context = \
+        data_model.users.get_user_context(message.from_user.id)
+    if not user_context:
+        text = "Вы не авторизованы.\n"
+        text += "Нажмите на команду /start для начала авторизации."
+        bot.send_message(message.chat.id, text)
+        return
 
     # waiting for specific input
+    if user_context.action == UserAction.awaiting_authz:
+        bot.send_message(message.chat.id, "Ожидайте подтверждения авторизации")
+        return
+
     if user_context.action == UserAction.choosing_plan:
         plan = message.text.strip()
         change_plan(message.chat.id, user_context, message.text.strip())

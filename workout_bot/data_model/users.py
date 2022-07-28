@@ -4,7 +4,8 @@ from typing import Optional
 from typing import List
 
 class UserAction(enum.Enum):
-    awaiting_authz = 1  # await authorization
+    blocked = 0
+    awaiting_authz = 1
     choosing_plan = 2
     training = 3
     administration = 4
@@ -45,6 +46,12 @@ class AddExcerciseLinkContext:
 
 @dataclass
 class UserContext:
+    user_id: int = 0
+    first_name: str = ""
+    last_name: str = ""
+    username: str = ""
+    # private chat with user
+    chat_id: int = 0
     current_table_id: Optional[str] = None
     current_page: Optional[str] = None
     current_week: Optional[int] = None
@@ -61,6 +68,11 @@ class Users:
     __users = {}
 
     def get_user_context(self, user_id):
+        if user_id not in self.__users:
+            return None
+        return self.__users[user_id]
+
+    def get_or_create_user_context(self, user_id):
         """
         Returns UserContext for telegram user_id. If UserContext not present,
         creates new one.
@@ -71,7 +83,7 @@ class Users:
         return self.__users[user_id]
 
     def set_administrative_permission(self, user_id):
-        user_context = self.get_user_context(user_id)
+        user_context = self.get_or_create_user_context(user_id)
         user_context.administrative_permission = True
         user_context.action = UserAction.administration
         user_context.data = ""
