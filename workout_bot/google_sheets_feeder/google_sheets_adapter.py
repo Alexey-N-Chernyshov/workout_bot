@@ -1,13 +1,12 @@
 import re
 from datetime import date
-from google_sheets_feeder import google_sheets_feeder
 from data_model.workout_plan import Excercise
 from data_model.workout_plan import WorkoutLibrary
 from data_model.workout_plan import Set
 from data_model.workout_plan import Workout
 from data_model.workout_plan import WorkoutTable
 from data_model.workout_plan import WeekRoutine
-
+from google_sheets_feeder import google_sheets_feeder
 
 def load_workouts(workout_library, tables):
     """
@@ -41,6 +40,7 @@ def load_table_page(spreadsheet_id, pagename):
         google_sheets_feeder.get_values(spreadsheet_id, pagename)
     start_week_date = date.today()
     end_week_date = date.today()
+    week_comment = ""
     week_workouts = []
     workout_number = 0  # workout number in a week written in sheets
     workout_actual_number = 0  # actual workout number including homework
@@ -83,7 +83,7 @@ def load_table_page(spreadsheet_id, pagename):
         row = values[i]
 
         # Set
-        if row[2][0].isdigit():
+        if re.match("^\d+\\\\", row[2]):
             # it is a set description if starts with set number
             if set_number != 0:
                 workout_sets.append(Set(set_description, set_number,
@@ -93,8 +93,12 @@ def load_table_page(spreadsheet_id, pagename):
             set_number = int(number)
             # read rounds if present
             if rest[0].isdigit():
-                rounds, rest = rest.split('\\', 1)
-                set_rounds = int(rounds)
+                if '\\' in rest:
+                    rounds, rest = rest.split('\\', 1)
+                    set_rounds = rounds
+                else:
+                    set_rounds = rest
+                    rest = ""
             else:
                 set_rounds = 0
             set_description = rest
@@ -113,7 +117,8 @@ def load_table_page(spreadsheet_id, pagename):
             # check workout type
             if row[1] and row[1][0].isdigit():
                 # it's a workout
-                num, workout_description = re.split(" |\n", row[1], maxsplit=1)
+                num, workout_description = \
+                    re.split("(^\d+)", row[1], maxsplit=1)[1:]
                 workout_number = int(num)
             else:
                 # it's a homework
@@ -123,8 +128,9 @@ def load_table_page(spreadsheet_id, pagename):
         # week begin
         if i == week_indeces[current_week][0]:
             week_workouts = []
-            days, month = row[0].split('.')
+            days, rest = row[0].strip().split('.', 1)
             start_day, end_day = [int(x) for x in days.split('-')]
+            month, week_comment = re.split("(^\d+)", rest, maxsplit=1)[1:]
             end_month = int(month)
             start_year = date.today().year
             end_year = date.today().year
@@ -156,7 +162,8 @@ def load_table_page(spreadsheet_id, pagename):
         # week end
         if i == week_indeces[current_week][1] - 1:
             all_weeks.append(WeekRoutine(start_week_date, end_week_date,
-                                         current_week + 1, week_workouts))
+                                         current_week + 1, week_workouts,
+                                         week_comment.strip()))
             workout_actual_number = 0
             current_week += 1
 

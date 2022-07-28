@@ -1,15 +1,13 @@
 import telebot
-import google_sheets_adapter
 import yaml
-from data_model.statistics import Statistics
-from data_model.users import Users
+from controllers.table_management import TableManagement
+from data_model.data_model import DataModel
 from data_model.users import UserAction
-from data_model.users import AddTableContext
 from data_model.users import AddExcerciseLinkContext
 from data_model.users import RemoveExcerciseLinkContext
 from data_model.workout_plan import WorkoutLibrary
 from data_model.workout_plan import excercise_links
-from data_model.workout_plan import workout_tables
+from google_sheets_feeder import google_sheets_adapter
 from telebot.types import KeyboardButton
 
 telegram_bot_token_file = 'secrets/telegram_token.txt'
@@ -19,17 +17,13 @@ with open(telegram_bot_token_file) as f:
 bot = telebot.TeleBot(telegram_bot_token)
 
 # data model
-workout_library = WorkoutLibrary()
-users = Users()
-statistics = Statistics()
+data_model = DataModel(google_sheets_adapter)
+
+table_management = TableManagement(bot, data_model)
 
 def update_workout_library():
-    global workout_library
-    global workout_tables
-
-    google_sheets_adapter.load_workouts(workout_library, workout_tables)
-    statistics.set_training_plan_update_time()
-
+    global data_model
+    data_model.update_tables()
 
 def send_with_next_or_all_buttons(chat_id, user_context, message):
     """
@@ -48,16 +42,12 @@ def send_with_next_or_all_buttons(chat_id, user_context, message):
     bot.send_message(chat_id, message, disable_web_page_preview=True,
                      reply_markup=keyboard, parse_mode="MarkdownV2")
 
-
 def show_admin_panel(chat_id, user_context):
     if user_context.administrative_permission:
         keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True,
                                                      one_time_keyboard=True)
-        key_remove_table = KeyboardButton(text='Удалить таблицу')
-        key_add_table = KeyboardButton(text='Добавить таблицу')
-        keyboard.row(key_remove_table, key_add_table)
-        key_reload_plans = KeyboardButton(text='Прочитать таблицы')
-        keyboard.add(key_reload_plans)
+        key_table_management = KeyboardButton(text='Управление таблицами')
+        keyboard.add(key_table_management)
         key_remove_workout_link = \
             KeyboardButton(text="Удалить ссылку на упражнение")
         key_add_workout_link = \
@@ -67,17 +57,6 @@ def show_admin_panel(chat_id, user_context):
         keyboard.add(key_training)
         bot.send_message(chat_id, "Администрирование", reply_markup=keyboard,
                          parse_mode="MarkdownV2")
-
-def add_pages_prompt(chat_id, user_context):
-    keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True,
-                                                 one_time_keyboard=True)
-    key_done = KeyboardButton(text='Готово')
-    keyboard.add(key_done)
-    bot.send_message(chat_id,
-                     "Введите название страницы или нажмите \"Готово\"",
-                     reply_markup=keyboard,
-                     parse_mode="MarkdownV2")
-
 
 def remove_excercise_link_prompt(chat_id, user_context):
     global excercise_links
@@ -107,7 +86,7 @@ def change_plan_prompt(chat_id, user_context):
     Asks the user with user_id to choose plan.
     """
 
-    plans = workout_library.get_plan_names()
+    plans = data_model.workout_library.get_plan_names()
     if plans:
         keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
         text = 'Выберите программу из списка:'
@@ -125,13 +104,13 @@ def change_plan(chat_id, user_context, plan):
     Changes plan to the selected one for user.
     """
 
-    plans = workout_library.get_plan_names()
+    plans = data_model.workout_library.get_plan_names()
     if plan in plans:
         (table_name, page_name) = plan.split(" - ")
         user_context.current_table_id = \
-            workout_library.get_table_id_by_name(table_name)
+            data_model.workout_library.get_table_id_by_name(table_name)
         user_context.current_page = page_name
-        user_context.current_week = workout_library.get_week_number(
+        user_context.current_week = data_model.workout_library.get_week_number(
             user_context.current_table_id, user_context.current_page) - 1
         user_context.current_workout = 0
         user_context.action = UserAction.training
@@ -145,7 +124,7 @@ def change_plan(chat_id, user_context, plan):
 
 def send_week_schedule(chat_id, user_context):
     message = \
-        workout_library.get_week_text_message(user_context.current_table_id,
+        data_model.workout_library.get_week_text_message(user_context.current_table_id,
                                               user_context.current_page,
                                               user_context.current_week)
     send_with_next_or_all_buttons(chat_id, user_context, message)
@@ -153,7 +132,7 @@ def send_week_schedule(chat_id, user_context):
 
 def send_workout(chat_id, user_context):
     message = \
-        workout_library.get_workout_text_message(user_context.current_table_id,
+        data_model.workout_library.get_workout_text_message(user_context.current_table_id,
                                                  user_context.current_page,
                                                  user_context.current_week,
                                                  user_context.current_workout)
@@ -180,13 +159,13 @@ def send_all_actions(chat_id, user_context):
 
 @bot.message_handler(commands=["start"])
 def start(message):
-    global statistics
-    statistics.record_command()
+    global data_model
+    data_model.statistics.record_command()
     if message.chat.type != "private":
         bot.send_message(message.chat.id,
                          "Бот доступен только в приватном чате.")
         return
-    user_context = users.get_user_context(message.from_user.id)
+    user_context = data_model.users.get_user_context(message.from_user.id)
     user_context.current_table_id = None
     user_context.current_page = None
     user_context.current_week = None
@@ -200,30 +179,29 @@ def start(message):
 
 @bot.message_handler(commands=["system_stats"])
 def system_stats(message):
-    global statistics
-    statistics.record_command()
-    user_context = users.get_user_context(message.from_user.id)
+    global data_model
+    data_model.statistics.record_command()
+    user_context = data_model.users.get_user_context(message.from_user.id)
 
     text = 'Системная статистика:\n\n'
     text += \
         "Расписание обновлено: {:%Y-%m-%d %H:%M}\n" \
-        .format(statistics.get_training_plan_update_time())
+        .format(data_model.statistics.get_training_plan_update_time())
 
     if user_context.administrative_permission:
-        text += 'Количество запросов: {}\n'.format(statistics.get_total_requests())
-        text += 'Количество команд: {}\n'.format(statistics.get_total_commands())
-        text += 'Количество пользователей: {}'.format(users.get_unique_users())
+        text += 'Количество запросов: {}\n'.format(data_model.statistics.get_total_requests())
+        text += 'Количество команд: {}\n'.format(data_model.statistics.get_total_commands())
+        text += 'Количество пользователей: {}'.format(data_model.users.get_unique_users())
 
     bot.send_message(message.chat.id, text)
 
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
-    global workout_tables
-    global excercise_links
-    global statistics
-    statistics.record_request()
-    user_context = users.get_user_context(message.from_user.id)
+    global data_model
+
+    data_model.statistics.record_request()
+    user_context = data_model.users.get_user_context(message.from_user.id)
 
     # waiting for specific input
     if user_context.action == UserAction.choosing_plan:
@@ -231,23 +209,7 @@ def get_text_messages(message):
         change_plan(message.chat.id, user_context, message.text.strip())
         return
 
-    if user_context.action == UserAction.admin_adding_table:
-        user_context.user_input_data.table_id = message.text
-        user_context.action = UserAction.admin_adding_pages
-        add_pages_prompt(message.chat.id, user_context)
-        user_context.action = UserAction.admin_adding_pages
-        return
-
-    if user_context.action == UserAction.admin_adding_pages:
-        if message.text.strip().lower() == "готово":
-            workout_tables[user_context.user_input_data.table_id] = \
-                user_context.user_input_data.pages
-            user_context.action = UserAction.administration
-            user_context.user_input_data = None
-            show_admin_panel(message.chat.id, user_context)
-        else:
-            user_context.user_input_data.pages.append(message.text)
-            add_pages_prompt(message.chat.id, user_context)
+    if table_management.handle_message(message):
         return
 
     if user_context.action == UserAction.admin_removing_excercise_name:
@@ -316,19 +278,17 @@ def get_text_messages(message):
             send_workout(message.chat.id, user_context)
         return
 
-    if message.text.strip().lower() == "администрирование":
+    if (message.text.strip().lower() == "администрирование"
+        and user_context.administrative_permission):
         user_context.action = UserAction.administration
         show_admin_panel(message.chat.id, user_context)
         return
 
-    if (message.text.strip().lower() == "добавить таблицу"
+    if (message.text.strip().lower() == "управление таблицами"
         and user_context.administrative_permission):
-        user_context.action = UserAction.admin_adding_table
-        user_context.user_input_data = AddTableContext()
-        text = "Введите идентификатор таблицы.\n\n" + \
-            "Идентификатор может быть найден в ссылке на таблицу (spreadsheetId):\n" + \
-            "<code>https://docs.google.com/spreadsheets/d/</code><b><u>spreadsheetId</u></b><code>/edit#gid=0</code>"
-        bot.send_message(message.chat.id, text, parse_mode="HTML")
+        user_context.action = UserAction.admin_table_management
+        table_management.show_table_management_panel(message.chat.id,
+                                                     user_context)
         return
 
     if (message.text.strip().lower() == "удалить ссылку на упражнение"
@@ -346,13 +306,6 @@ def get_text_messages(message):
         return
 
     # actions
-    if message.text.strip().lower() == "прочитать таблицы":
-        if user_context.administrative_permission:
-            update_workout_library()
-            bot.send_message(message.chat.id, "Таблицы обновлены.")
-            show_admin_panel(message.chat.id, user_context)
-        return
-
     if (user_context.current_table_id == None
         or user_context.current_page == None):
         user_context.action = UserAction.choosing_plan
@@ -364,12 +317,12 @@ def get_text_messages(message):
 
     if (message.text.strip().lower() == "далее"
             or message.text.strip().lower() == "следующая тренировка"):
-        if user_context.current_workout < workout_library \
+        if user_context.current_workout < data_model.workout_library \
                 .get_workout_number(user_context.current_table_id,
                                     user_context.current_page,
                                     user_context.current_week) - 1:
             user_context.current_workout += 1
-        elif user_context.current_week < workout_library \
+        elif user_context.current_week < data_model.workout_library \
                 .get_week_number(user_context.current_table_id,
                                  user_context.current_page) - 1:
             user_context.current_week += 1
@@ -393,7 +346,7 @@ def get_text_messages(message):
     if (message.text.strip().lower() == "последняя неделя"
             or message.text.strip().lower() == "крайняя неделя"
             or message.text.strip().lower() == "текущая неделя"):
-        user_context.current_week = workout_library \
+        user_context.current_week = data_model.workout_library \
             .get_week_number(user_context.current_table_id,
                              user_context.current_page) - 1
         user_context.current_workout = 0
@@ -402,7 +355,7 @@ def get_text_messages(message):
         return
 
     if message.text.strip().lower() == "следующая неделя":
-        if user_context.current_week < workout_library \
+        if user_context.current_week < data_model.workout_library \
                 .get_week_number(user_context.current_table_id,
                                  user_context.current_page) - 1:
             user_context.current_week += 1
@@ -421,15 +374,14 @@ def get_text_messages(message):
         return
 
 def start_bot():
-    global workout_tables
-    global users
+    global data_model
 
     config = yaml.safe_load(open("secrets/config.yml"))
     table_id = config['spreadsheet_id']
     pagenames = config['pagenames']
-    workout_tables[table_id] = pagenames
+    data_model.add_table(table_id, pagenames)
 
-    users.set_administrative_permission(96539438)
+    data_model.users.set_administrative_permission(96539438)
 
     update_workout_library()
 

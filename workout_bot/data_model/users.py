@@ -13,8 +13,17 @@ class UserAction(enum.Enum):
     admin_adding_excercise_name = 7
     admin_adding_excercise_link = 8
     admin_adding_excercise_prove = 9
-    admin_adding_table = 10
-    admin_adding_pages = 11
+    admin_table_management = 10
+    admin_removing_table = 11
+    admin_adding_table = 12
+    admin_removing_pages = 13
+    admin_adding_pages = 14
+
+
+@dataclass
+class RemoveTableContext:
+    table_id: str = ""
+    pages: List[str] = field(default_factory=list)
 
 
 @dataclass

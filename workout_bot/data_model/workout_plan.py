@@ -7,9 +7,6 @@ from typing import Dict
 # {name: link}
 excercise_links = {}
 
-# {google spreadsheet_id: [page names]}
-workout_tables = {}
-
 def escape_text(text):
     """
     Escape text for MarkdownV2
@@ -47,12 +44,12 @@ class Set:
     description: str
     number: int
     excersises: List[Excercise]
-    rounds: int = 0
+    rounds: str = ""
 
     def to_text_message(self):
         text = "\nСет {}".format(self.number)
-        if self.rounds != 0:
-            text += ", количество раундов: {}".format(self.rounds)
+        if self.rounds:
+            text += escape_text(", количество раундов: {}".format(self.rounds))
         text += '\n'
         if self.description:
             text += escape_text('{}\n'.format(self.description))
@@ -88,12 +85,15 @@ class WeekRoutine:
     end_date: date
     number: int
     workouts: List[Workout]
+    comment: str
 
     def to_text_message(self):
         text = "*" + \
                escape_text("Неделя {} - {}".format(self.start_date,
                                                    self.end_date)) + \
                "*\n"
+        if self.comment:
+            text += escape_text(self.comment + "\n\n")
         workout_number = 0
         homework_number = 0
         for workout in self.workouts:
@@ -134,6 +134,15 @@ class WorkoutLibrary:
                 plans.append(table.table_name + " - " + pagename)
         self.lock.release()
         return plans
+
+    def get_plan_name(self, table_id):
+        name = None
+        self.lock.acquire()
+        if table_id in self.__workout_tables:
+            name = self.__workout_tables[table_id].table_name
+        self.lock.release()
+        return name
+
 
     def get_table_id_by_name(self, name):
         res = None
