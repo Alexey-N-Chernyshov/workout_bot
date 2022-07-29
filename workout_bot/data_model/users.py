@@ -90,7 +90,7 @@ class Users:
         user_context.action = UserAction.administration
         user_context.data = ""
 
-    def get_unique_users(self):
+    def get_users_number(self):
         """
         Returns number of unique users
         """
