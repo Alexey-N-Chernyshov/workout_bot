@@ -20,14 +20,15 @@ def load_workouts(workout_plans, tables):
         for pagename in pagenames:
             text = (
                 "Loading "
-                "https://docs.google.com/spreadsheets/d/{}/edit#gid=0 - \"{}\""
-            ).format(spreadsheet_id, pagename)
+                "https://docs.google.com/spreadsheets/d/"
+                f"{spreadsheet_id}/edit#gid=0 - \"{pagename}\""
+            )
             print(text)
             (tablename, pagename, all_weeks) = load_table_page(spreadsheet_id,
                                                                pagename)
             table.table_name = tablename
             table.pages[pagename] = all_weeks
-            print("Loaded \"{}\" - \"{}\"".format(tablename, pagename))
+            print(f'Loaded "{tablename}" - "{pagename}"')
         workout_plans.update_workout_table(table)
     print('Updated workouts')
 
@@ -58,13 +59,13 @@ def load_table_page(spreadsheet_id, pagename):
     week_indeces = []
     workout_indeces = []
     for merge in merges:
-        if merge['startColumnIndex'] == 0 and merge['endColumnIndex'] == 1:
+        if merge["startColumnIndex"] == 0 and merge["endColumnIndex"] == 1:
             start_week_index = merge['startRowIndex'] - 1
             end_week_index = merge['endRowIndex'] - 1
             week_indeces.append((start_week_index, end_week_index))
-        if merge['startColumnIndex'] == 1 and merge['endColumnIndex'] == 2:
-            start_workout_index = merge['startRowIndex'] - 1
-            end_workout_index = merge['endRowIndex'] - 1
+        if merge["startColumnIndex"] == 1 and merge["endColumnIndex"] == 2:
+            start_workout_index = merge["startRowIndex"] - 1
+            end_workout_index = merge["endRowIndex"] - 1
             workout_indeces.append((start_workout_index, end_workout_index))
     week_indeces.sort()
     workout_indeces.sort()
