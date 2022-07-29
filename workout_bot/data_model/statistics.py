@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 class Statistics:
     total_requests = 0
     total_commands = 0

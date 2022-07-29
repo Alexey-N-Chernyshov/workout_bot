@@ -1,6 +1,6 @@
-from workout_bot.workout_plan import Excercise
-from workout_bot.workout_plan import Set
-from workout_bot.workout_plan import Workout
+from workout_bot.data_model.workout_plan import Excercise
+from workout_bot.data_model.workout_plan import Set
+from workout_bot.data_model.workout_plan import Workout
 
 
 def test_set_to_text_message():

@@ -7,6 +7,7 @@ from typing import Dict
 # {name: link}
 excercise_links = {}
 
+
 def escape_text(text):
     """
     Escape text for MarkdownV2
@@ -143,7 +144,6 @@ class WorkoutLibrary:
         self.lock.release()
         return name
 
-
     def get_table_id_by_name(self, name):
         res = None
         self.lock.acquire()
@@ -177,7 +177,7 @@ class WorkoutLibrary:
     def get_workout_number(self, table_id, page_name, week_number):
         self.lock.acquire()
         workout_number = \
-            len(self.__workout_tables[table_id].pages[page_name][week_number] \
-            .workouts)
+            len(self.__workout_tables[table_id].pages[page_name][week_number]
+                .workouts)
         self.lock.release()
         return workout_number

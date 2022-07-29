@@ -2,6 +2,8 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 from data_model.users import UserAction
 from data_model.users import AddTableContext, RemoveTableContext
 from view.tables import get_table_message, get_all_tables_message
+from google_sheets_feeder.utils import get_table_id_from_link
+
 
 class TableManagement:
     def __init__(self, bot, data_model):
@@ -25,10 +27,7 @@ class TableManagement:
                               parse_mode="MarkdownV2")
 
     def prompt_table_id(self, chat_id):
-        text = "Введите идентификатор таблицы.\n\n" + \
-            "Идентификатор может быть найден в ссылке на таблицу (spreadsheetId):\n" + \
-            "<code>https://docs.google.com/spreadsheets/d/</code><b><u>spreadsheetId</u></b><code>/edit#gid=0</code>"
-        self.bot.send_message(chat_id, text, parse_mode="HTML")
+        self.bot.send_message(chat_id, "Введите ссылку на таблицу")
 
     def prompt_pages(self, chat_id, user_context, show_table=True):
         keyboard = ReplyKeyboardMarkup(resize_keyboard=True,
@@ -59,13 +58,15 @@ class TableManagement:
             return False
 
         if user_context.action == UserAction.admin_adding_table:
-            user_context.user_input_data.table_id = message.text
+            table_id = get_table_id_from_link(message.text)
+            user_context.user_input_data.table_id = table_id
             user_context.action = UserAction.admin_adding_pages
             self.prompt_pages(message.chat.id, user_context, show_table=False)
             return True
 
         if user_context.action == UserAction.admin_removing_table:
-            user_context.user_input_data.table_id = message.text
+            table_id = get_table_id_from_link(message.text)
+            user_context.user_input_data.table_id = table_id
             user_context.action = UserAction.admin_removing_pages
             self.prompt_pages(message.chat.id, user_context)
             return True
@@ -105,31 +106,31 @@ class TableManagement:
             return True
 
         if (message_text == "добавить таблицу/страницу"
-            or message_text == "добавить таблицу"
-            or message_text == "добавить страницу"):
+                or message_text == "добавить таблицу"
+                or message_text == "добавить страницу"):
             user_context.action = UserAction.admin_adding_table
             user_context.user_input_data = AddTableContext()
             self.prompt_table_id(message.chat.id)
             return True
 
         if (message_text == "удалить таблицу/страницу"
-            or message_text == "удалить таблицу"
-            or message_text == "удалить страницу"):
+                or message_text == "удалить таблицу"
+                or message_text == "удалить страницу"):
             user_context.action = UserAction.admin_removing_table
             user_context.user_input_data = RemoveTableContext()
             self.prompt_table_id(message.chat.id)
             return True
 
         if message_text == "прочитать таблицы":
-            self.bot.send_message(message.chat.id,
-                                  "Идёт обновление таблиц, может занять несколько секунд.")
+            text = "Идёт обновление таблиц, может занять несколько секунд."
+            self.bot.send_message(message.chat.id, text)
             self.data_model.update_tables()
             self.bot.send_message(message.chat.id, "Таблицы обновлены.")
             self.show_table_management_panel(message.chat.id, user_context)
             return True
 
         if message_text == "администрирование":
-            # will be handled above
+            # return to above menu
             return False
 
         if user_context.action == UserAction.admin_table_management:

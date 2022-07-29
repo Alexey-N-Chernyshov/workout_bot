@@ -1,12 +1,12 @@
 import re
 from datetime import date
 from data_model.workout_plan import Excercise
-from data_model.workout_plan import WorkoutLibrary
 from data_model.workout_plan import Set
 from data_model.workout_plan import Workout
 from data_model.workout_plan import WorkoutTable
 from data_model.workout_plan import WeekRoutine
 from google_sheets_feeder import google_sheets_feeder
+
 
 def load_workouts(workout_library, tables):
     """
@@ -18,7 +18,11 @@ def load_workouts(workout_library, tables):
     for spreadsheet_id, pagenames in tables.items():
         table = WorkoutTable(spreadsheet_id, "", {})
         for pagename in pagenames:
-            print("Loading https://docs.google.com/spreadsheets/d/{}/edit#gid=0 - \"{}\"".format(spreadsheet_id, pagename))
+            text = (
+                "Loading "
+                "https://docs.google.com/spreadsheets/d/{}/edit#gid=0 - \"{}\""
+            ).format(spreadsheet_id, pagename)
+            print(text)
             (tablename, pagename, all_weeks) = load_table_page(spreadsheet_id,
                                                                pagename)
             table.table_name = tablename
@@ -83,7 +87,7 @@ def load_table_page(spreadsheet_id, pagename):
         row = values[i]
 
         # Set
-        if re.match("^\d+\\\\", row[2]):
+        if re.match(r"^\d+\\", row[2]):
             # it is a set description if starts with set number
             if set_number != 0:
                 workout_sets.append(Set(set_description, set_number,
@@ -118,7 +122,7 @@ def load_table_page(spreadsheet_id, pagename):
             if row[1] and row[1][0].isdigit():
                 # it's a workout
                 num, workout_description = \
-                    re.split("(^\d+)", row[1], maxsplit=1)[1:]
+                    re.split(r"(^\d+)", row[1], maxsplit=1)[1:]
                 workout_number = int(num)
             else:
                 # it's a homework
@@ -130,7 +134,7 @@ def load_table_page(spreadsheet_id, pagename):
             week_workouts = []
             days, rest = row[0].strip().split('.', 1)
             start_day, end_day = [int(x) for x in days.split('-')]
-            month, week_comment = re.split("(^\d+)", rest, maxsplit=1)[1:]
+            month, week_comment = re.split(r"(^\d+)", rest, maxsplit=1)[1:]
             end_month = int(month)
             start_year = date.today().year
             end_year = date.today().year

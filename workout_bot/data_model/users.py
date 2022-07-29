@@ -1,7 +1,9 @@
 import enum
 from dataclasses import dataclass, field
+from typing import Any
 from typing import Optional
 from typing import List
+
 
 class UserAction(enum.Enum):
     blocked = 0
@@ -60,7 +62,7 @@ class UserContext:
     # permissions
     administrative_permission: bool = False
     # additional stored user input, may be anything
-    user_input_data: 'typing.Any' = None
+    user_input_data: Any = None
 
 
 class Users:

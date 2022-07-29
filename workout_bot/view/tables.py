@@ -1,5 +1,6 @@
 from view.util import escape_text
 
+
 def get_table_message(data_model, table_id):
     text = ""
     if data_model.is_table_present(table_id):
@@ -12,6 +13,7 @@ def get_table_message(data_model, table_id):
         for page in pages:
             text += escape_text(" - " + page) + "\n"
     return text
+
 
 def get_all_tables_message(data_model):
     text = ""

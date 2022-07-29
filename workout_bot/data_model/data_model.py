@@ -27,7 +27,7 @@ class DataModel:
         if pages:
             if table_id in self.workout_tables:
                 for page in pages:
-                    if not page in self.workout_tables[table_id]:
+                    if page not in self.workout_tables[table_id]:
                         self.workout_tables[table_id].append(page)
             else:
                 self.workout_tables[table_id] = pages
