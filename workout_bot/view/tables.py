@@ -1,10 +1,10 @@
-from view.util import escape_text
+from .utils import escape_text
 
 
 def get_table_message(data_model, table_id):
     text = ""
     if data_model.workout_table_names.is_table_present(table_id):
-        table_name = data_model.workout_library.get_plan_name(table_id)
+        table_name = data_model.workout_plans.get_plan_name(table_id)
         if table_name:
             text += "*" + table_name + "*\n"
         text += "id: " + escape_text(table_id) + "\n"

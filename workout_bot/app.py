@@ -15,7 +15,7 @@ VERSION_FILE_NAME = 'git_commit_version.txt'
 def scheduler():
     "Schedules google table updates daily at 3 a.m."
 
-    schedule.every().day.at("03:00").do(telegram_bot.update_workout_library)
+    schedule.every().day.at("03:00").do(telegram_bot.update_workout_tables)
     while True:
         schedule.run_pending()
         time.sleep(1)

@@ -1,6 +1,15 @@
-from workout_bot.data_model.workout_plan import Excercise
-from workout_bot.data_model.workout_plan import Set
-from workout_bot.data_model.workout_plan import Workout
+from workout_bot.data_model.workout_plans import Excercise
+from workout_bot.data_model.workout_plans import Set
+from workout_bot.data_model.workout_plans import Workout
+from workout_bot.view.workouts import set_to_text_message
+from workout_bot.view.workouts import workout_to_text_message
+
+
+class StubDataModel:
+    excercise_links = {}
+
+
+data_model = StubDataModel()
 
 
 def test_set_to_text_message():
@@ -17,7 +26,7 @@ def test_set_to_text_message():
         "\\- plank, 1 minute\n"
         "\\- stretching\n"
     )
-    assert expected == set.to_text_message()
+    assert expected == set_to_text_message(data_model, set)
 
 
 def test_set_no_rounds_to_text_message():
@@ -28,7 +37,7 @@ def test_set_no_rounds_to_text_message():
         "\nСет 2\n"
         "\\- treadmill\n"
     )
-    assert expected == set.to_text_message()
+    assert expected == set_to_text_message(data_model, set)
 
 
 def test_workout_to_text_message():
@@ -45,7 +54,7 @@ def test_workout_to_text_message():
         "Сет 1\n"
         "\\- stretching\n"
     )
-    assert expected == workout.to_text_message()
+    assert expected == workout_to_text_message(data_model, workout)
 
 
 def test_workout_no_number_to_text_message():
@@ -66,4 +75,4 @@ def test_workout_no_number_to_text_message():
         "Сет 2\n"
         "\\- treadmill\n"
     )
-    assert expected == workout.to_text_message()
+    assert expected == workout_to_text_message(data_model, workout)

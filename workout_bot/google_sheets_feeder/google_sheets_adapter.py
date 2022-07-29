@@ -1,16 +1,16 @@
 import re
 from datetime import date
-from data_model.workout_plan import Excercise
-from data_model.workout_plan import Set
-from data_model.workout_plan import Workout
-from data_model.workout_plan import WorkoutTable
-from data_model.workout_plan import WeekRoutine
-from google_sheets_feeder import google_sheets_feeder
+from data_model.workout_plans import Excercise
+from data_model.workout_plans import Set
+from data_model.workout_plans import Workout
+from data_model.workout_plans import WorkoutTable
+from data_model.workout_plans import WeekRoutine
+from . import google_sheets_feeder
 
 
-def load_workouts(workout_library, tables):
+def load_workouts(workout_plans, tables):
     """
-    Updates workout_library with workout plans from google spreadsheet tables.
+    Updates workout plans from google spreadsheet tables.
     tables - {table_id: str : [page_name]}
     """
 
@@ -28,7 +28,7 @@ def load_workouts(workout_library, tables):
             table.table_name = tablename
             table.pages[pagename] = all_weeks
             print("Loaded \"{}\" - \"{}\"".format(tablename, pagename))
-        workout_library.update_workout_table(table)
+        workout_plans.update_workout_table(table)
     print('Updated workouts')
 
 

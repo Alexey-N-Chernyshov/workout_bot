@@ -1,5 +1,3 @@
-from data_model.statistics import Statistics
-
 class WorkoutTableNames:
     """
     Stores google table ids and pages with workouts to be loaded.

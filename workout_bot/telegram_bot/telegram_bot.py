@@ -5,8 +5,9 @@ from data_model.data_model import DataModel
 from data_model.users import UserAction
 from data_model.users import AddExcerciseLinkContext
 from data_model.users import RemoveExcerciseLinkContext
-from data_model.workout_plan import excercise_links
 from google_sheets_feeder import google_sheets_adapter
+from view.workouts import get_workout_text_message
+from view.workouts import get_week_routine_text_message
 from telebot.types import KeyboardButton
 
 
@@ -22,7 +23,7 @@ data_model = DataModel(google_sheets_adapter)
 table_management = TableManagement(bot, data_model)
 
 
-def update_workout_library():
+def update_workout_tables():
     global data_model
     data_model.update_tables()
 
@@ -63,9 +64,9 @@ def show_admin_panel(chat_id, user_context):
 
 
 def remove_excercise_link_prompt(chat_id, user_context):
-    global excercise_links
+    global data_model
     name = user_context.user_input_data.name
-    link = excercise_links[name]
+    link = data_model.excercise_links[name]
     text = "Удалить упражнение?\n\n[{}]({})".format(name, link)
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     key_no = KeyboardButton(text="Нет")
@@ -92,7 +93,7 @@ def change_plan_prompt(chat_id, user_context):
     Asks the user with user_id to choose plan.
     """
 
-    plans = data_model.workout_library.get_plan_names()
+    plans = data_model.workout_plans.get_plan_names()
     if plans:
         keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
         text = 'Выберите программу из списка:'
@@ -110,13 +111,13 @@ def change_plan(chat_id, user_context, plan):
     Changes plan to the selected one for user.
     """
 
-    plans = data_model.workout_library.get_plan_names()
+    plans = data_model.workout_plans.get_plan_names()
     if plan in plans:
         (table_name, page_name) = plan.split(" - ")
         user_context.current_table_id = \
-            data_model.workout_library.get_table_id_by_name(table_name)
+            data_model.workout_plans.get_table_id_by_name(table_name)
         user_context.current_page = page_name
-        user_context.current_week = data_model.workout_library.get_week_number(
+        user_context.current_week = data_model.workout_plans.get_week_number(
             user_context.current_table_id, user_context.current_page) - 1
         user_context.current_workout = 0
         user_context.action = UserAction.training
@@ -129,23 +130,19 @@ def change_plan(chat_id, user_context, plan):
 
 
 def send_week_schedule(chat_id, user_context):
-    message = (
-        data_model.workout_library
-        .get_week_text_message(user_context.current_table_id,
-                               user_context.current_page,
-                               user_context.current_week)
-    )
+    message = get_week_routine_text_message(data_model,
+                                            user_context.current_table_id,
+                                            user_context.current_page,
+                                            user_context.current_week)
     send_with_next_or_all_buttons(chat_id, user_context, message)
 
 
 def send_workout(chat_id, user_context):
-    message = (
-        data_model.workout_library
-        .get_workout_text_message(user_context.current_table_id,
-                                  user_context.current_page,
-                                  user_context.current_week,
-                                  user_context.current_workout)
-    )
+    message = get_workout_text_message(data_model,
+                                       user_context.current_table_id,
+                                       user_context.current_page,
+                                       user_context.current_week,
+                                       user_context.current_workout)
     send_with_next_or_all_buttons(chat_id, user_context, message)
 
 
@@ -244,7 +241,7 @@ def get_text_messages(message):
 
     if user_context.action == UserAction.admin_removing_excercise_name:
         name = message.text.strip().lower()
-        if name in excercise_links:
+        if name in data_model.excercise_links:
             user_context.user_input_data.name = name
             remove_excercise_link_prompt(message.chat.id, user_context)
             user_context.action = UserAction.admin_removing_excercise_prove
@@ -257,7 +254,7 @@ def get_text_messages(message):
     if user_context.action == UserAction.admin_removing_excercise_prove:
         input = message.text.strip().lower()
         if input == "да":
-            del excercise_links[user_context.user_input_data.name]
+            del data_model.excercise_links[user_context.user_input_data.name]
             user_context.action = UserAction.administration
             user_context.user_input_data = None
             show_admin_panel(message.chat.id, user_context)
@@ -284,7 +281,7 @@ def get_text_messages(message):
     if user_context.action == UserAction.admin_adding_excercise_prove:
         input = message.text.strip().lower()
         if input == "да":
-            excercise_links[user_context.user_input_data.name] = \
+            data_model.excercise_links[user_context.user_input_data.name] = \
                 user_context.user_input_data.link
             user_context.action = UserAction.administration
             user_context.user_input_data = None
@@ -347,12 +344,12 @@ def get_text_messages(message):
 
     if (message.text.strip().lower() == "далее"
             or message.text.strip().lower() == "следующая тренировка"):
-        if user_context.current_workout < data_model.workout_library \
+        if user_context.current_workout < data_model.workout_plans \
                 .get_workout_number(user_context.current_table_id,
                                     user_context.current_page,
                                     user_context.current_week) - 1:
             user_context.current_workout += 1
-        elif user_context.current_week < data_model.workout_library \
+        elif user_context.current_week < data_model.workout_plans \
                 .get_week_number(user_context.current_table_id,
                                  user_context.current_page) - 1:
             user_context.current_week += 1
@@ -376,7 +373,7 @@ def get_text_messages(message):
     if (message.text.strip().lower() == "последняя неделя"
             or message.text.strip().lower() == "крайняя неделя"
             or message.text.strip().lower() == "текущая неделя"):
-        user_context.current_week = data_model.workout_library \
+        user_context.current_week = data_model.workout_plans \
             .get_week_number(user_context.current_table_id,
                              user_context.current_page) - 1
         user_context.current_workout = 0
@@ -385,7 +382,7 @@ def get_text_messages(message):
         return
 
     if message.text.strip().lower() == "следующая неделя":
-        if user_context.current_week < data_model.workout_library \
+        if user_context.current_week < data_model.workout_plans \
                 .get_week_number(user_context.current_table_id,
                                  user_context.current_page) - 1:
             user_context.current_week += 1
@@ -414,7 +411,7 @@ def start_bot():
 
     data_model.users.set_administrative_permission(96539438)
 
-    update_workout_library()
+    update_workout_tables()
 
     start = telebot.types.BotCommand("start", "Start using the bot")
     system_stats = telebot.types.BotCommand("system_stats",
