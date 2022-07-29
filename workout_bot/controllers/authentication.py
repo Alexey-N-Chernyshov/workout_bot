@@ -13,11 +13,11 @@ class Authentication:
         if not user_context:
             text = "Вы не авторизованы.\n"
             text += "Нажмите на команду /start для начала авторизации."
-            bot.send_message(message.chat.id, text)
+            self.bot.send_message(message.chat.id, text)
             return True
 
         # waiting for specific input
         if user_context.action == UserAction.awaiting_authz:
-            bot.send_message(message.chat.id,
-                             "Ожидайте подтверждения авторизации")
+            self.bot.send_message(message.chat.id,
+                                  "Ожидайте подтверждения авторизации")
             return True

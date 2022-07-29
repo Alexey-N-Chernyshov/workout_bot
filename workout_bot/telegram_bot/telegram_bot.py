@@ -327,7 +327,6 @@ def get_text_messages(message):
             bot.send_message(message.chat.id, "Введите название упражнения")
             return
 
-
     if (user_context.action == UserAction.admin_table_management
             or user_context.action == UserAction.training):
         if (message.text.strip().lower() == "администрирование"
