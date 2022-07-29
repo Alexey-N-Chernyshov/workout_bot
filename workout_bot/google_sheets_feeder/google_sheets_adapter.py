@@ -1,34 +1,51 @@
 import re
 from datetime import date
-from google_sheets_feeder import google_sheets_feeder
-from workout_plan import Excercise
-from workout_plan import WorkoutLibrary
-from workout_plan import Set
-from workout_plan import Workout
-from workout_plan import WeekRoutine
+from data_model.workout_plans import Excercise
+from data_model.workout_plans import Set
+from data_model.workout_plans import Workout
+from data_model.workout_plans import WorkoutTable
+from data_model.workout_plans import WeekRoutine
+from . import google_sheets_feeder
 
 
-def load_workouts(spreadsheet_id, pagenames):
-    library = WorkoutLibrary()
-    workout_plans = {}
+def load_workouts(workout_plans, tables):
+    """
+    Updates workout plans from google spreadsheet tables.
+    tables - {table_id: str : [page_name]}
+    """
 
-    for pagename in pagenames:
-        workout_plans[pagename] = load_table_page(spreadsheet_id, pagename)
-
-    library.update_workout_plans(workout_plans)
-    return library
+    print('Updating workouts')
+    for spreadsheet_id, pagenames in tables.get_tables().items():
+        table = WorkoutTable(spreadsheet_id, "", {})
+        for pagename in pagenames:
+            text = (
+                "Loading "
+                "https://docs.google.com/spreadsheets/d/"
+                f"{spreadsheet_id}/edit#gid=0 - \"{pagename}\""
+            )
+            print(text)
+            (tablename, pagename, all_weeks) = load_table_page(spreadsheet_id,
+                                                               pagename)
+            table.table_name = tablename
+            table.pages[pagename] = all_weeks
+            print(f'Loaded "{tablename}" - "{pagename}"')
+        workout_plans.update_workout_table(table)
+    print('Updated workouts')
 
 
 def load_table_page(spreadsheet_id, pagename):
     """
-    Parses google sheet with training program.
+    Parses google spreadsheet page with a training program.
     Parses cell merges to determine workouts and sets.
+
+    Retruns (tablename, pagename, list_of_week_workouts)
     """
 
-    (merges, values) = google_sheets_feeder.get_values(spreadsheet_id,
-                                                       pagename)
+    (tablename, merges, values) = \
+        google_sheets_feeder.get_values(spreadsheet_id, pagename)
     start_week_date = date.today()
     end_week_date = date.today()
+    week_comment = ""
     week_workouts = []
     workout_number = 0  # workout number in a week written in sheets
     workout_actual_number = 0  # actual workout number including homework
@@ -42,13 +59,13 @@ def load_table_page(spreadsheet_id, pagename):
     week_indeces = []
     workout_indeces = []
     for merge in merges:
-        if merge['startColumnIndex'] == 0 and merge['endColumnIndex'] == 1:
+        if merge["startColumnIndex"] == 0 and merge["endColumnIndex"] == 1:
             start_week_index = merge['startRowIndex'] - 1
             end_week_index = merge['endRowIndex'] - 1
             week_indeces.append((start_week_index, end_week_index))
-        if merge['startColumnIndex'] == 1 and merge['endColumnIndex'] == 2:
-            start_workout_index = merge['startRowIndex'] - 1
-            end_workout_index = merge['endRowIndex'] - 1
+        if merge["startColumnIndex"] == 1 and merge["endColumnIndex"] == 2:
+            start_workout_index = merge["startRowIndex"] - 1
+            end_workout_index = merge["endRowIndex"] - 1
             workout_indeces.append((start_workout_index, end_workout_index))
     week_indeces.sort()
     workout_indeces.sort()
@@ -71,7 +88,7 @@ def load_table_page(spreadsheet_id, pagename):
         row = values[i]
 
         # Set
-        if row[2][0].isdigit():
+        if re.match(r"^\d+\\", row[2]):
             # it is a set description if starts with set number
             if set_number != 0:
                 workout_sets.append(Set(set_description, set_number,
@@ -81,8 +98,14 @@ def load_table_page(spreadsheet_id, pagename):
             set_number = int(number)
             # read rounds if present
             if rest[0].isdigit():
-                rounds, rest = rest.split('\\', 1)
-                set_rounds = int(rounds)
+                if '\\' in rest:
+                    rounds, rest = rest.split('\\', 1)
+                    set_rounds = rounds
+                else:
+                    set_rounds = rest
+                    rest = ""
+            else:
+                set_rounds = 0
             set_description = rest
         else:
             # it is an excercise
@@ -99,7 +122,8 @@ def load_table_page(spreadsheet_id, pagename):
             # check workout type
             if row[1] and row[1][0].isdigit():
                 # it's a workout
-                num, workout_description = re.split(" |\n", row[1], maxsplit=1)
+                num, workout_description = \
+                    re.split(r"(^\d+)", row[1], maxsplit=1)[1:]
                 workout_number = int(num)
             else:
                 # it's a homework
@@ -109,8 +133,9 @@ def load_table_page(spreadsheet_id, pagename):
         # week begin
         if i == week_indeces[current_week][0]:
             week_workouts = []
-            days, month = row[0].split('.')
+            days, rest = row[0].strip().split('.', 1)
             start_day, end_day = [int(x) for x in days.split('-')]
+            month, week_comment = re.split(r"(^\d+)", rest, maxsplit=1)[1:]
             end_month = int(month)
             start_year = date.today().year
             end_year = date.today().year
@@ -142,8 +167,9 @@ def load_table_page(spreadsheet_id, pagename):
         # week end
         if i == week_indeces[current_week][1] - 1:
             all_weeks.append(WeekRoutine(start_week_date, end_week_date,
-                                         current_week + 1, week_workouts))
+                                         current_week + 1, week_workouts,
+                                         week_comment.strip()))
             workout_actual_number = 0
             current_week += 1
 
-    return all_weeks
+    return tablename, pagename, all_weeks
