@@ -2,6 +2,7 @@
 Helper funstions for google tables.
 """
 
+
 def get_table_id_from_link(link):
     """
     Extracts table_id from link to google table.
