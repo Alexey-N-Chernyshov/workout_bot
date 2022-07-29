@@ -1,4 +1,4 @@
-name: Run tests
+name: Run tests and get coverage
 
 on: [push, pull_request]
 
@@ -30,7 +30,7 @@ jobs:
       - name: Generate Report
         run: |
           pip install coverage
-          coverage run -m unittest
-          
+          coverage run --source=workout_bot -m unittest
+
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v3
