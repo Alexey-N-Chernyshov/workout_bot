@@ -410,7 +410,7 @@ def start_bot():
     config = yaml.safe_load(open("secrets/config.yml"))
     table_id = config['spreadsheet_id']
     pagenames = config['pagenames']
-    data_model.add_table(table_id, pagenames)
+    data_model.workout_table_names.add_table(table_id, pagenames)
 
     data_model.users.set_administrative_permission(96539438)
 

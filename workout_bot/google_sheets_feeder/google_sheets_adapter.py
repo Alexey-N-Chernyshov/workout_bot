@@ -15,7 +15,7 @@ def load_workouts(workout_library, tables):
     """
 
     print('Updating workouts')
-    for spreadsheet_id, pagenames in tables.items():
+    for spreadsheet_id, pagenames in tables.get_tables().items():
         table = WorkoutTable(spreadsheet_id, "", {})
         for pagename in pagenames:
             text = (

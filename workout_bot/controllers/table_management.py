@@ -74,6 +74,7 @@ class TableManagement:
         if user_context.action == UserAction.admin_adding_pages:
             if message_text == "готово":
                 self.data_model \
+                    .workout_table_names \
                     .add_table(
                         user_context.user_input_data.table_id,
                         user_context.user_input_data.pages)
@@ -88,6 +89,7 @@ class TableManagement:
         if user_context.action == UserAction.admin_removing_pages:
             if message_text == "готово":
                 self.data_model \
+                    .workout_table_names \
                     .remove_table(
                         user_context.user_input_data.table_id,
                         user_context.user_input_data.pages)
