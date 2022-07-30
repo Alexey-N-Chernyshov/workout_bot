@@ -15,7 +15,7 @@ class WorkoutTableNames:
     def set_storage(self, filename):
         self.__storage_filename = filename
         self.__workout_tables = shelve.open(self.__storage_filename,
-                                               writeback=True)
+                                            writeback=True)
 
     def is_table_present(self, table_id):
         return table_id in self.__workout_tables
