@@ -1,5 +1,6 @@
 import shelve
 
+
 class WorkoutTableNames:
     """
     Stores google table ids and pages with workouts to be loaded.

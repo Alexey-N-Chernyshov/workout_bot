@@ -1,6 +1,7 @@
 from workout_bot.data_model.workout_table_names import WorkoutTableNames
 import os
 
+
 def delete_file(filename):
     try:
         os.remove(filename)
