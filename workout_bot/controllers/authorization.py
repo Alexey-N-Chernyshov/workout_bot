@@ -1,7 +1,7 @@
 from data_model.users import UserAction
 
 
-class Authentication:
+class Authorization:
     def __init__(self, bot, data_model):
         self.bot = bot
         self.data_model = data_model
@@ -26,7 +26,7 @@ class Authentication:
             self.bot.send_message(message.chat.id, text)
             return True
 
-        if user_context.action == UserAction.awaiting_authz:
+        if user_context.action == UserAction.awaiting_authorization:
             self.bot.send_message(message.chat.id,
                                   "Ожидайте подтверждения авторизации")
             return True

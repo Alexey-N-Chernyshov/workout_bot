@@ -1,3 +1,6 @@
+from .utils import escape_text
+
+
 def user_to_text_message(user_context):
     text = ""
     is_username_printed = False
@@ -18,7 +21,13 @@ def user_to_text_message(user_context):
         if text:
             text += ", "
         text += "id: " + str(user_context.user_id)
-    return text
+    return escape_text(text)
+
+
+def user_to_short_text_message(user_context):
+    if user_context.username:
+        return "@" + user_context.username
+    return "id: " + str(user_context.user_id)
 
 
 def get_user_message(data_model, user_id):

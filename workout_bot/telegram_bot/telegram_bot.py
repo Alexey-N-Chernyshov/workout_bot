@@ -1,8 +1,9 @@
 import telebot
 import yaml
 from controllers.administration import Administration
-from controllers.authentication import Authentication
+from controllers.authorization import Authorization
 from controllers.table_management import TableManagement
+from controllers.user_management import UserManagement
 from data_model.data_model import DataModel
 from data_model.users import UserAction
 from data_model.users import AddExcerciseLinkContext
@@ -23,7 +24,8 @@ bot = telebot.TeleBot(telegram_bot_token)
 data_model = DataModel(google_sheets_adapter)
 
 administration = Administration(bot, data_model)
-authentication = Authentication(bot, data_model)
+authorization = Authorization(bot, data_model)
+user_management = UserManagement(bot, data_model)
 table_management = TableManagement(bot, data_model)
 
 
@@ -59,6 +61,10 @@ def change_plan_prompt(chat_id, user_context):
     if (not table_id
             or not data_model.workout_plans.is_table_id_present(table_id)):
         bot.send_message(chat_id, "Вам не назначена программа тренировок")
+        if user_context.administrative_permission:
+            data_model.users.set_user_action(user_context.user_id,
+                                       UserAction.administration)
+            administration.show_admin_panel(chat_id, user_context)
         return
 
     plans = data_model.workout_plans.get_plan_names(table_id)
@@ -166,14 +172,13 @@ def system_stats(message):
 
     if user_context and user_context.administrative_permission:
         text += 'Количество запросов: '
-        text += data_model.statistics.get_total_requests() + "\n"
+        text += str(data_model.statistics.get_total_requests()) + "\n"
         text += 'Количество команд: '
-        text += data_model.statistics.get_total_commands() + "\n"
+        text += str(data_model.statistics.get_total_commands()) + "\n"
         text += 'Количество пользователей: '
-        text += data_model.users.get_users_number() + "\n"
+        text += str(data_model.users.get_users_number()) + "\n"
 
     bot.send_message(message.chat.id, text)
-
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
@@ -181,7 +186,7 @@ def get_text_messages(message):
 
     data_model.statistics.record_request()
 
-    if authentication.handle_message(message):
+    if authorization.handle_message(message):
         return
 
     user_context = \
@@ -201,7 +206,17 @@ def get_text_messages(message):
 
     if (not user_context is None
             and user_context.administrative_permission
-            and (user_context.action == UserAction.admin_table_management
+            and (user_context.action == UserAction.training
+                or user_context.action == UserAction.administration)
+            and message_text == "управление пользователями"):
+        user_context.action = UserAction.admin_user_management
+        user_management.show_user_management_panel(message.chat.id)
+        return
+
+    if (not user_context is None
+            and user_context.administrative_permission
+            and (user_context.action == UserAction.admin_user_management
+                or user_context.action == UserAction.admin_table_management
                 or user_context.action == UserAction.training)
             and message_text == "администрирование"):
         user_context.action = UserAction.administration
@@ -222,7 +237,10 @@ def get_text_messages(message):
             send_workout(message.chat.id, user_context)
         return
 
-    if (administration.handle_message(message)):
+    if administration.handle_message(message):
+        return
+
+    if user_management.handle_message(message):
         return
 
     if table_management.handle_message(message):
@@ -305,14 +323,15 @@ def start_bot():
     global data_model
 
     config = yaml.safe_load(open("secrets/config.yml"))
-    table_id = config['spreadsheet_id']
-    pagenames = config['pagenames']
+    table_id = config["spreadsheet_id"]
+    pagenames = config["pagenames"]
+    admins = config["admins"]
     data_model.workout_table_names.add_table(table_id, pagenames)
-
-    user = data_model.users.get_or_create_user_context(96539438)
-    data_model.users.set_administrative_permission(96539438)
-    user.action = UserAction.administration
-    user.current_table_id = "1MGO6-8NAEJEMrDpx6y4ni_HVofQ5lCisaseLaRJAEBk"
+    for admin in admins:
+        user_id = int(admin)
+        data_model.users.get_or_create_user_context(user_id)
+        data_model.users.set_administrative_permission(user_id)
+        data_model.users.set_table_for_user(user_id, table_id)
 
     update_workout_tables()
 

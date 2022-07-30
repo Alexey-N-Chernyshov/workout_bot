@@ -11,7 +11,10 @@ class Administration:
         if user_context.administrative_permission:
             keyboard = ReplyKeyboardMarkup(resize_keyboard=True,
                                            one_time_keyboard=True)
-            key_table_management = KeyboardButton(text='Управление таблицами')
+            key_user_management = KeyboardButton(
+                text="Управление пользователями")
+            keyboard.add(key_user_management)
+            key_table_management = KeyboardButton(text="Управление таблицами")
             keyboard.add(key_table_management)
             key_remove_workout_link = \
                 KeyboardButton(text="Удалить ссылку на упражнение")
@@ -131,6 +134,5 @@ class Administration:
 
             self.show_admin_panel(message.chat.id, user_context)
             return True
-
 
         return False

@@ -3,6 +3,7 @@ from datetime import date
 from dataclasses import dataclass
 from typing import List
 from typing import Dict
+import copy
 
 
 @dataclass
@@ -58,6 +59,14 @@ class WorkoutPlans:
 
     def is_table_id_present(self, table_id):
         return table_id in self.__workout_tables
+
+    def get_table_names(self):
+        self.lock.acquire()
+        result = set()
+        for table in self.__workout_tables.values():
+            result.add(table.table_name)
+        self.lock.release()
+        return result
 
     def get_plan_names(self, table_id):
         plans = []
