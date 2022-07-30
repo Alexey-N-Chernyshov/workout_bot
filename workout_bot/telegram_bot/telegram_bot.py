@@ -324,6 +324,8 @@ def start_bot():
     table_id = config["spreadsheet_id"]
     pagenames = config["pagenames"]
     admins = config["admins"]
+    workout_table_ids_storage = config["workout_table_ids_storage"]
+    data_model.workout_table_names.set_storage(workout_table_ids_storage)
     data_model.workout_table_names.add_table(table_id, pagenames)
     for admin in admins:
         user_id = int(admin)
