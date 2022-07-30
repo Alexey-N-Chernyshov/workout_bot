@@ -77,3 +77,21 @@ def test_persistence_when_item_deleted():
     assert "page1" in stored_tables["tablename"]
 
     delete_file(STORAGE)
+
+
+def test_table_deleted_when_all_pages_deleted():
+    STORAGE = "storage"
+    delete_file(STORAGE)
+
+    tables = WorkoutTableNames()
+    tables.set_storage(STORAGE)
+
+    tables.add_table("tablename", ["page1"])
+    stored_tables = tables.get_tables()
+
+    tables.remove_table("tablename", ["page1"])
+    stored_tables = tables.get_tables()
+
+    print(stored_tables)
+
+    assert "tablename" not in stored_tables
