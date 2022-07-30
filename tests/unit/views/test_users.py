@@ -1,5 +1,4 @@
-from workout_bot.data_model.data_model import DataModel
-from workout_bot.data_model.users import Users, UserContext
+from workout_bot.data_model.users import UserContext
 from workout_bot.view.users import user_to_text_message
 from workout_bot.view.users import user_to_short_text_message
 
@@ -11,7 +10,7 @@ def test_user_to_message():
                        username="wondergirl")
 
     actual = user_to_text_message(user)
-    expected = "@wondergirl \- Alice Liddell"
+    expected = "@wondergirl \\- Alice Liddell"
 
     assert actual == expected
 
@@ -72,7 +71,7 @@ def test_user_to_message_username_and_first_name():
                        username="wondergirl")
 
     actual = user_to_text_message(user)
-    expected = "@wondergirl \- Alice"
+    expected = "@wondergirl \\- Alice"
 
     assert actual == expected
 
@@ -83,7 +82,7 @@ def test_user_to_message_username_and_last_name():
                        username="wondergirl")
 
     actual = user_to_text_message(user)
-    expected = "@wondergirl \- Liddell"
+    expected = "@wondergirl \\- Liddell"
 
     assert actual == expected
 

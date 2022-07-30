@@ -55,9 +55,11 @@ class AddExcerciseLinkContext:
 class BlockUserContext:
     user_id: int
 
+
 @dataclass
 class AssignTableUserContext:
     user_id: int
+
 
 @dataclass
 class UserContext:

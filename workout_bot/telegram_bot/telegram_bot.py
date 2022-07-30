@@ -6,12 +6,9 @@ from controllers.table_management import TableManagement
 from controllers.user_management import UserManagement
 from data_model.data_model import DataModel
 from data_model.users import UserAction
-from data_model.users import AddExcerciseLinkContext
-from data_model.users import RemoveExcerciseLinkContext
 from google_sheets_feeder import google_sheets_adapter
 from view.workouts import get_workout_text_message
 from view.workouts import get_week_routine_text_message
-from telebot.types import KeyboardButton
 
 
 telegram_bot_token_file = 'secrets/telegram_token.txt'
@@ -63,7 +60,7 @@ def change_plan_prompt(chat_id, user_context):
         bot.send_message(chat_id, "Вам не назначена программа тренировок")
         if user_context.administrative_permission:
             data_model.users.set_user_action(user_context.user_id,
-                                       UserAction.administration)
+                                             UserAction.administration)
             administration.show_admin_panel(chat_id, user_context)
         return
 
@@ -180,6 +177,7 @@ def system_stats(message):
 
     bot.send_message(message.chat.id, text)
 
+
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
     global data_model
@@ -194,39 +192,39 @@ def get_text_messages(message):
     message_text = message.text.strip().lower()
 
     # change state actions
-    if (not user_context is None
+    if (user_context is not None
             and user_context.administrative_permission
             and (user_context.action == UserAction.training
-                or user_context.action == UserAction.administration)
+                 or user_context.action == UserAction.administration)
             and message_text == "управление таблицами"):
         user_context.action = UserAction.admin_table_management
         table_management.show_table_management_panel(message.chat.id,
                                                      user_context)
         return
 
-    if (not user_context is None
+    if (user_context is not None
             and user_context.administrative_permission
             and (user_context.action == UserAction.training
-                or user_context.action == UserAction.administration)
+                 or user_context.action == UserAction.administration)
             and message_text == "управление пользователями"):
         user_context.action = UserAction.admin_user_management
         user_management.show_user_management_panel(message.chat.id)
         return
 
-    if (not user_context is None
+    if (user_context is not None
             and user_context.administrative_permission
             and (user_context.action == UserAction.admin_user_management
-                or user_context.action == UserAction.admin_table_management
-                or user_context.action == UserAction.training)
+                 or user_context.action == UserAction.admin_table_management
+                 or user_context.action == UserAction.training)
             and message_text == "администрирование"):
         user_context.action = UserAction.administration
         administration.show_admin_panel(message.chat.id, user_context)
         return
 
-    if (not user_context is None
+    if (user_context is not None
             and (user_context.action == UserAction.training
-                or user_context.action == UserAction.administration
-                or user_context.action == UserAction.admin_table_management)
+                 or user_context.action == UserAction.administration
+                 or user_context.action == UserAction.admin_table_management)
             and message.text.strip().lower() == "перейти к тренировкам"):
         if (user_context.current_table_id is None
                 or user_context.current_page is None):

@@ -18,7 +18,7 @@ class UserManagement:
             try:
                 return self.data_model.users \
                     .get_user_context(int(short_username[4:]))
-            except Exception as e:
+            except Exception:
                 return None
 
     def show_user_management_panel(self, chat_id,
@@ -51,7 +51,7 @@ class UserManagement:
         keyboard = ReplyKeyboardMarkup(resize_keyboard=True,
                                        one_time_keyboard=True)
         for user in users_in_line:
-            text += " \- " + user_to_text_message(user) + "\n"
+            text += " \\- " + user_to_text_message(user) + "\n"
             username = user_to_short_text_message(user)
             key_block = KeyboardButton(text="Блокировать " + username)
             key_authorize = KeyboardButton(text="Авторизовать " + username)
@@ -61,8 +61,11 @@ class UserManagement:
                               parse_mode="MarkdownV2")
 
     def prompt_confirm_block(self, chat_id, user_context):
-        username = user_to_text_message(self.data_model \
-            .users.get_user_context(user_context.user_input_data.user_id))
+        username = user_to_text_message(
+                self.data_model
+                    .users
+                    .get_user_context(user_context.user_input_data.user_id)
+            )
         text = f"Заблокировать пользователя {username}?\n\n"
         keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
         key_no = KeyboardButton(text="Нет")
@@ -73,11 +76,14 @@ class UserManagement:
 
     def prompt_assign_table(self, chat_id, user_context):
         keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-        username = user_to_text_message(self.data_model \
-            .users.get_user_context(user_context.user_input_data.user_id))
+        username = user_to_text_message(
+                self.data_model
+                    .users
+                    .get_user_context(user_context.user_input_data.user_id)
+            )
         text = f"Какую таблицу назначим для {username}?\n\n"
         for table_name in self.data_model.workout_plans.get_table_names():
-            text += " \- " + table_name + "\n"
+            text += " \\- " + table_name + "\n"
             key_talbe_name = KeyboardButton(text=table_name)
             keyboard.add(key_talbe_name)
         self.bot.send_message(chat_id, text,
@@ -90,7 +96,7 @@ class UserManagement:
                                        one_time_keyboard=True)
         users = self.data_model.users.get_potential_admins()
         for user in users:
-            text += " \- " + user_to_text_message(user) + "\n"
+            text += " \\- " + user_to_text_message(user) + "\n"
             username = user_to_short_text_message(user)
             key = KeyboardButton(text=username)
             keyboard.add(key)
@@ -115,22 +121,22 @@ class UserManagement:
         if waiting_authorization:
             text += "Ожидают авторизации:\n"
             for user in waiting_authorization:
-                text += " \- " + user_to_text_message(user) + "\n"
+                text += " \\- " + user_to_text_message(user) + "\n"
             text += "\n"
         if others:
             text += "Тренируются:\n"
             for user in others:
                 plan_name = self.data_model \
                     .workout_plans.get_plan_name(user.current_table_id)
-                text += f" \- {user_to_text_message(user)} \- {plan_name}"
+                text += f" \\- {user_to_text_message(user)} \\- {plan_name}"
                 if user.administrative_permission:
-                    text += " \- администратор"
+                    text += " \\- администратор"
                 text += "\n"
             text += "\n"
         if blocked:
             text += "Заблокрироанные:\n"
             for user in blocked:
-                text += " \- " + user_to_text_message(user) + "\n"
+                text += " \\- " + user_to_text_message(user) + "\n"
 
         self.show_user_management_panel(chat_id, text)
 
@@ -173,8 +179,10 @@ class UserManagement:
 
         if user_context.action == UserAction.admin_user_blocking:
             if message_text == "да":
-                target_username = get_user_message(self.data_model,
-                    user_context.user_input_data.user_id)
+                target_username = get_user_message(
+                        self.data_model,
+                        user_context.user_input_data.user_id
+                    )
                 self.data_model \
                     .users.block_user(user_context.user_input_data.user_id)
                 user_context.action = UserAction.admin_user_management

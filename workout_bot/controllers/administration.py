@@ -1,5 +1,7 @@
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup
 from data_model.users import UserAction
+from data_model.users import RemoveExcerciseLinkContext
+from data_model.users import AddExcerciseLinkContext
 
 
 class Administration:
@@ -24,8 +26,8 @@ class Administration:
             key_training = KeyboardButton(text='Перейти к тренировкам')
             keyboard.add(key_training)
             self.bot.send_message(chat_id, "Администрирование",
-                                reply_markup=keyboard,
-                                parse_mode="MarkdownV2")
+                                  reply_markup=keyboard,
+                                  parse_mode="MarkdownV2")
 
     def remove_excercise_link_prompt(self, chat_id, user_context):
         name = user_context.user_input_data.name
@@ -38,7 +40,7 @@ class Administration:
         self.bot.send_message(chat_id, text, disable_web_page_preview=True,
                               reply_markup=keyboard, parse_mode="MarkdownV2")
 
-    def add_excercise_link_prompt(chat_id, user_context):
+    def add_excercise_link_prompt(self, chat_id, user_context):
         name = user_context.user_input_data.name
         link = user_context.user_input_data.link
         text = "Добавить упражнение?\n\n[{}]({})".format(name, link)
@@ -61,7 +63,8 @@ class Administration:
             name = message_text
             if name in self.data_model.excercise_links:
                 user_context.user_input_data.name = name
-                self.remove_excercise_link_prompt(message.chat.id, user_context)
+                self.remove_excercise_link_prompt(message.chat.id,
+                                                  user_context)
                 user_context.action = UserAction.admin_removing_excercise_prove
             else:
                 self.bot.send_message(message.chat.id, "Нет такого упражнения")
@@ -81,7 +84,8 @@ class Administration:
                 user_context.user_input_data = None
                 self.show_admin_panel(message.chat.id, user_context)
             else:
-                self.remove_excercise_link_prompt(message.chat.id, user_context)
+                self.remove_excercise_link_prompt(message.chat.id,
+                                                  user_context)
             return True
 
         if user_context.action == UserAction.admin_adding_excercise_name:
