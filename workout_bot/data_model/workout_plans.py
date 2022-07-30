@@ -56,12 +56,24 @@ class WorkoutPlans:
         self.__workout_tables[workout_table.table_id] = workout_table
         self.lock.release()
 
-    def get_plan_names(self):
+    def is_table_id_present(self, table_id):
+        return table_id in self.__workout_tables
+
+    def get_table_names(self):
+        self.lock.acquire()
+        result = set()
+        for table in self.__workout_tables.values():
+            result.add(table.table_name)
+        self.lock.release()
+        return result
+
+    def get_plan_names(self, table_id):
         plans = []
         self.lock.acquire()
-        for table in self.__workout_tables.values():
+        if table_id in self.__workout_tables:
+            table = self.__workout_tables[table_id]
             for pagename in table.pages.keys():
-                plans.append(table.table_name + " - " + pagename)
+                plans.append(pagename)
         self.lock.release()
         return plans
 

@@ -78,7 +78,7 @@ class TableManagement:
                     .add_table(
                         user_context.user_input_data.table_id,
                         user_context.user_input_data.pages)
-                user_context.action = UserAction.administration
+                user_context.action = UserAction.admin_table_management
                 user_context.user_input_data = None
                 self.show_table_management_panel(message.chat.id, user_context)
             else:
@@ -93,7 +93,7 @@ class TableManagement:
                     .remove_table(
                         user_context.user_input_data.table_id,
                         user_context.user_input_data.pages)
-                user_context.action = UserAction.administration
+                user_context.action = UserAction.admin_table_management
                 user_context.user_input_data = None
                 self.show_table_management_panel(message.chat.id, user_context)
             else:
