@@ -190,12 +190,7 @@ def start(message):
     user_context.current_page = None
     user_context.current_week = None
     user_context.current_workout = None
-    if user_context.administrative_permission:
-        user_context.action = UserAction.administration
-        show_admin_panel(message.chat.id, user_context)
-    if user_context.action == UserAction.awaiting_authz:
-        bot.send_message(message.chat.id,
-                         "Ожидайте подтверждения авторизации")
+    get_text_messages(message)
 
 
 @bot.message_handler(commands=["system_stats"])
@@ -226,11 +221,11 @@ def get_text_messages(message):
 
     data_model.statistics.record_request()
 
-    user_context = \
-        data_model.users.get_user_context(message.from_user.id)
-
     if authentication.handle_message(message):
         return
+
+    user_context = \
+        data_model.users.get_user_context(message.from_user.id)
 
     if user_context.action == UserAction.choosing_plan:
         change_plan(message.chat.id, user_context, message.text.strip())
@@ -429,8 +424,9 @@ def start_bot():
     pagenames = config['pagenames']
     data_model.workout_table_names.add_table(table_id, pagenames)
 
-    data_model.users.set_administrative_permission(96539438)
     user = data_model.users.get_or_create_user_context(96539438)
+    data_model.users.set_administrative_permission(96539438)
+    user.action = UserAction.blocked
     user.current_table_id = "1MGO6-8NAEJEMrDpx6y4ni_HVofQ5lCisaseLaRJAEBk"
 
     update_workout_tables()

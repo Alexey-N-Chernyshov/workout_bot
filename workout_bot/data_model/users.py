@@ -70,6 +70,10 @@ class Users:
     __users = {}
 
     def get_user_context(self, user_id):
+        """
+        Returns UserContext for user_id or None if user_id is unknow.
+        """
+
         if user_id not in self.__users:
             return None
         return self.__users[user_id]
