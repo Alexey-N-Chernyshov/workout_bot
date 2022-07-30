@@ -1,5 +1,6 @@
 import telebot
 import yaml
+from controllers.administration import Administration
 from controllers.authentication import Authentication
 from controllers.table_management import TableManagement
 from data_model.data_model import DataModel
@@ -21,6 +22,7 @@ bot = telebot.TeleBot(telegram_bot_token)
 # data model
 data_model = DataModel(google_sheets_adapter)
 
+administration = Administration(bot, data_model)
 authentication = Authentication(bot, data_model)
 table_management = TableManagement(bot, data_model)
 
@@ -45,48 +47,6 @@ def send_with_next_or_all_buttons(chat_id, user_context, message):
         keyboard.add(key_admin)
 
     bot.send_message(chat_id, message, disable_web_page_preview=True,
-                     reply_markup=keyboard, parse_mode="MarkdownV2")
-
-
-def show_admin_panel(chat_id, user_context):
-    if user_context.administrative_permission:
-        keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True,
-                                                     one_time_keyboard=True)
-        key_table_management = KeyboardButton(text='Управление таблицами')
-        keyboard.add(key_table_management)
-        key_remove_workout_link = \
-            KeyboardButton(text="Удалить ссылку на упражнение")
-        key_add_workout_link = \
-            KeyboardButton(text="Добавить ссылку на упражнение")
-        keyboard.row(key_remove_workout_link, key_add_workout_link)
-        key_training = KeyboardButton(text='Перейти к тренировкам')
-        keyboard.add(key_training)
-        bot.send_message(chat_id, "Администрирование", reply_markup=keyboard,
-                         parse_mode="MarkdownV2")
-
-
-def remove_excercise_link_prompt(chat_id, user_context):
-    global data_model
-    name = user_context.user_input_data.name
-    link = data_model.excercise_links[name]
-    text = "Удалить упражнение?\n\n[{}]({})".format(name, link)
-    keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    key_no = KeyboardButton(text="Нет")
-    key_yes = KeyboardButton(text="Да")
-    keyboard.row(key_no, key_yes)
-    bot.send_message(chat_id, text, disable_web_page_preview=True,
-                     reply_markup=keyboard, parse_mode="MarkdownV2")
-
-
-def add_excercise_link_prompt(chat_id, user_context):
-    name = user_context.user_input_data.name
-    link = user_context.user_input_data.link
-    text = "Добавить упражнение?\n\n[{}]({})".format(name, link)
-    keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    key_no = KeyboardButton(text="Нет")
-    key_yes = KeyboardButton(text="Да")
-    keyboard.row(key_no, key_yes)
-    bot.send_message(chat_id, text, disable_web_page_preview=True,
                      reply_markup=keyboard, parse_mode="MarkdownV2")
 
 
@@ -226,139 +186,64 @@ def get_text_messages(message):
 
     user_context = \
         data_model.users.get_user_context(message.from_user.id)
+    message_text = message.text.strip().lower()
 
-    if user_context.action == UserAction.choosing_plan:
-        change_plan(message.chat.id, user_context, message.text.strip())
+    # change state actions
+    if (not user_context is None
+            and user_context.administrative_permission
+            and (user_context.action == UserAction.training
+                or user_context.action == UserAction.administration)
+            and message_text == "управление таблицами"):
+        user_context.action = UserAction.admin_table_management
+        table_management.show_table_management_panel(message.chat.id,
+                                                     user_context)
+        return
+
+    if (not user_context is None
+            and user_context.administrative_permission
+            and (user_context.action == UserAction.admin_table_management
+                or user_context.action == UserAction.training)
+            and message_text == "администрирование"):
+        user_context.action = UserAction.administration
+        administration.show_admin_panel(message.chat.id, user_context)
+        return
+
+    if (not user_context is None
+            and (user_context.action == UserAction.training
+                or user_context.action == UserAction.administration
+                or user_context.action == UserAction.admin_table_management)
+            and message.text.strip().lower() == "перейти к тренировкам"):
+        if (user_context.current_table_id is None
+                or user_context.current_page is None):
+            user_context.action = UserAction.choosing_plan
+            change_plan_prompt(message.chat.id, user_context)
+        else:
+            user_context.action = UserAction.training
+            send_workout(message.chat.id, user_context)
+        return
+
+    if (administration.handle_message(message)):
         return
 
     if table_management.handle_message(message):
         return
 
-    if user_context.action == UserAction.admin_removing_excercise_name:
-        name = message.text.strip().lower()
-        if name in data_model.excercise_links:
-            user_context.user_input_data.name = name
-            remove_excercise_link_prompt(message.chat.id, user_context)
-            user_context.action = UserAction.admin_removing_excercise_prove
-        else:
-            bot.send_message(message.chat.id, "Нет такого упражнения")
-            user_context.action = UserAction.administration
-            show_admin_panel(message.chat.id, user_context)
-        return
-
-    if user_context.action == UserAction.admin_removing_excercise_prove:
-        input = message.text.strip().lower()
-        if input == "да":
-            del data_model.excercise_links[user_context.user_input_data.name]
-            user_context.action = UserAction.administration
-            user_context.user_input_data = None
-            show_admin_panel(message.chat.id, user_context)
-        elif input == "нет":
-            user_context.action = UserAction.administration
-            user_context.user_input_data = None
-            show_admin_panel(message.chat.id, user_context)
-        else:
-            remove_excercise_link_prompt(message.chat.id, user_context)
-        return
-
-    if user_context.action == UserAction.admin_adding_excercise_name:
-        user_context.user_input_data.name = message.text.strip().lower()
-        bot.send_message(message.chat.id, "Введите ссылку")
-        user_context.action = UserAction.admin_adding_excercise_link
-        return
-
-    if user_context.action == UserAction.admin_adding_excercise_link:
-        user_context.user_input_data.link = message.text.strip()
-        add_excercise_link_prompt(message.chat.id, user_context)
-        user_context.action = UserAction.admin_adding_excercise_prove
-        return
-
-    if user_context.action == UserAction.admin_adding_excercise_prove:
-        input = message.text.strip().lower()
-        if input == "да":
-            data_model.excercise_links[user_context.user_input_data.name] = \
-                user_context.user_input_data.link
-            user_context.action = UserAction.administration
-            user_context.user_input_data = None
-            show_admin_panel(message.chat.id, user_context)
-        elif input == "нет":
-            user_context.action = UserAction.administration
-            user_context.user_input_data = None
-            show_admin_panel(message.chat.id, user_context)
-        else:
-            add_excercise_link_prompt(message.chat.id, user_context)
-        return
-
-    # change user action commands
-    if user_context.action == UserAction.administration:
-        if message.text.strip().lower() == "перейти к тренировкам":
-            if (user_context.current_table_id is None
-                    or user_context.current_page is None):
-                user_context.action = UserAction.choosing_plan
-                change_plan_prompt(message.chat.id, user_context)
-            else:
-                user_context.action = UserAction.training
-                send_workout(message.chat.id, user_context)
-            return
-
-        if (message.text.strip().lower() == "управление таблицами"
-                and user_context.administrative_permission):
-            user_context.action = UserAction.admin_table_management
-            table_management.show_table_management_panel(message.chat.id,
-                                                         user_context)
-            return
-
-        if (message.text.strip().lower() == "удалить ссылку на упражнение"
-                and user_context.administrative_permission):
-            user_context.action = UserAction.admin_removing_excercise_name
-            user_context.user_input_data = RemoveExcerciseLinkContext()
-            bot.send_message(message.chat.id, "Введите название упражнения")
-            return
-
-        if (message.text.strip().lower() == "добавить ссылку на упражнение"
-                and user_context.administrative_permission):
-            user_context.action = UserAction.admin_adding_excercise_name
-            user_context.user_input_data = AddExcerciseLinkContext()
-            bot.send_message(message.chat.id, "Введите название упражнения")
-            return
-
-    if (user_context.action == UserAction.admin_table_management
-            or user_context.action == UserAction.training):
-        if (message.text.strip().lower() == "администрирование"
-                and user_context.administrative_permission):
-            user_context.action = UserAction.administration
-            show_admin_panel(message.chat.id, user_context)
-            return
-
     # actions
+    if user_context.action == UserAction.choosing_plan:
+        change_plan(message.chat.id, user_context, message.text.strip())
+        return
+
     if user_context.action == UserAction.training:
-        if message.text.strip().lower() == "перейти к тренировкам":
-            if (user_context.current_table_id is None
-                    or user_context.current_page is None):
-                user_context.action = UserAction.choosing_plan
-                change_plan_prompt(message.chat.id, user_context)
-            else:
-                user_context.action = UserAction.training
-                send_workout(message.chat.id, user_context)
-            return
-
-        if (message.text.strip().lower() == "администрирование"
-                and user_context.administrative_permission):
-            user_context.action = UserAction.administration
-            show_admin_panel(message.chat.id, user_context)
-            return
-
         if (user_context.current_table_id is None
                 or user_context.current_page is None):
             user_context.action = UserAction.choosing_plan
-        if (message.text.strip().lower() == "выбрать программу"
-                or message.text.strip().lower() == "сменить программу"
-                or message.text.strip().lower() == "поменять программу"):
+        if (message_text == "выбрать программу"
+                or message_text == "сменить программу"
+                or message_text == "поменять программу"):
             user_context.action = UserAction.choosing_plan
             change_plan_prompt(message.chat.id, user_context)
 
-        if (message.text.strip().lower() == "далее"
-                or message.text.strip().lower() == "следующая тренировка"):
+        if (message_text == "далее" or message_text == "следующая тренировка"):
             if user_context.current_workout < data_model.workout_plans \
                     .get_workout_number(user_context.current_table_id,
                                         user_context.current_page,
@@ -373,21 +258,21 @@ def get_text_messages(message):
             send_workout(message.chat.id, user_context)
             return
 
-        if message.text.strip().lower() == "все действия":
+        if message_text == "все действия":
             send_all_actions(message.chat.id, user_context)
             return
 
-        if (message.text.strip().lower() == "первая неделя"
-                or message.text.strip().lower() == "начальная неделя"):
+        if (message_text == "первая неделя"
+                or message_text == "начальная неделя"):
             user_context.current_week = 0
             user_context.current_workout = 0
             send_week_schedule(message.chat.id, user_context)
             send_workout(message.chat.id, user_context)
             return
 
-        if (message.text.strip().lower() == "последняя неделя"
-                or message.text.strip().lower() == "крайняя неделя"
-                or message.text.strip().lower() == "текущая неделя"):
+        if (message_text == "последняя неделя"
+                or message_text == "крайняя неделя"
+                or message_text == "текущая неделя"):
             user_context.current_week = data_model.workout_plans \
                 .get_week_number(user_context.current_table_id,
                                  user_context.current_page) - 1
@@ -396,7 +281,7 @@ def get_text_messages(message):
             send_workout(message.chat.id, user_context)
             return
 
-        if message.text.strip().lower() == "следующая неделя":
+        if message_text == "следующая неделя":
             if user_context.current_week < data_model.workout_plans \
                     .get_week_number(user_context.current_table_id,
                                      user_context.current_page) - 1:
@@ -406,8 +291,8 @@ def get_text_messages(message):
             send_workout(message.chat.id, user_context)
             return
 
-        if (message.text.strip().lower() == "прошлая неделя"
-                or message.text.strip().lower() == "предыдущая неделя"):
+        if (message_text == "прошлая неделя"
+                or message_text == "предыдущая неделя"):
             if user_context.current_week > 0:
                 user_context.current_week -= 1
             user_context.current_workout = 0
@@ -426,7 +311,7 @@ def start_bot():
 
     user = data_model.users.get_or_create_user_context(96539438)
     data_model.users.set_administrative_permission(96539438)
-    user.action = UserAction.blocked
+    user.action = UserAction.administration
     user.current_table_id = "1MGO6-8NAEJEMrDpx6y4ni_HVofQ5lCisaseLaRJAEBk"
 
     update_workout_tables()
