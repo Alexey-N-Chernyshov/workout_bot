@@ -88,13 +88,11 @@ def load_table_page(spreadsheet_id, pagename):
         row = values[i]
 
         # Set
-        print(row)
         if len(row) > 2 and re.match(r"^\d+\\", row[2]):
             # it is a set description if starts with set number
             # if set_number != 0:
             workout_sets.append(Set(set_description, set_number,
-                                        set_excercises, set_rounds))
-            print(f"clear set_excercises={set_excercises}")
+                                    set_excercises, set_rounds))
             set_excercises = []
             number, rest = row[2].split('\\', 1)
             set_number = int(number)
@@ -121,8 +119,6 @@ def load_table_page(spreadsheet_id, pagename):
 
         # workout begin
         if i == workout_indeces[current_workout][0]:
-            print(f"workout begin {i}")
-
             workout_sets = []
             workout_actual_number += 1
             # check workout type
@@ -138,8 +134,6 @@ def load_table_page(spreadsheet_id, pagename):
 
         # week begin
         if i == week_indeces[current_week][0]:
-            print(f"week begin {i}")
-
             week_workouts = []
             days, rest = row[0].strip().split('.', 1)
             start_day, end_day = [int(x) for x in days.split('-')]
@@ -158,10 +152,8 @@ def load_table_page(spreadsheet_id, pagename):
             end_week_date = date(end_year, end_month, end_day)
 
         # Workout end
-        print(f"check workout end {i} == {workout_indeces[current_workout][1] - 1}")
         if (i == workout_indeces[current_workout][1] - 1
                 or i == len(values) - 1):
-            print(f"workout end {i}")
             workout_sets.append(Set(set_description, set_number,
                                     set_excercises, set_rounds))
             week_workouts.append(Workout(workout_description, workout_sets,
@@ -178,7 +170,6 @@ def load_table_page(spreadsheet_id, pagename):
         # week end
         if (i == week_indeces[current_week][1] - 1
                 or i == len(values) - 1):
-            print(f"week end {i}")
             all_weeks.append(WeekRoutine(start_week_date, end_week_date,
                                          current_week + 1, week_workouts,
                                          week_comment.strip()))

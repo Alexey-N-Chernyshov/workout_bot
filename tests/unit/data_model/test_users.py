@@ -20,6 +20,7 @@ def test_get_users_awaiting_authorization():
 
     assert actual == expected
 
+
 def test_user_context_persistent_storage():
     delete_file(STORAGE)
 
