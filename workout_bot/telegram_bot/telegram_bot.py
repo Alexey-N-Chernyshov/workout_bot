@@ -91,7 +91,9 @@ def change_plan(chat_id, user_context, plan):
         user_context.current_week = data_model.workout_plans.get_week_number(
             user_context.current_table_id, user_context.current_page) - 1
         user_context.current_workout = 0
-        user_context.action = UserAction.training
+        data_model.users.set_user_context(user_context)
+        data_model.users.set_user_action(user_context.user_id,
+                                         UserAction.training)
         bot.send_message(chat_id, 'Программа выбрана.')
         send_week_schedule(chat_id, user_context)
         send_workout(chat_id, user_context)
@@ -153,6 +155,7 @@ def start(message):
     user_context.current_page = None
     user_context.current_week = None
     user_context.current_workout = None
+    data_model.users.set_user_context(user_context)
     get_text_messages(message)
 
 
@@ -197,7 +200,8 @@ def get_text_messages(message):
             and (user_context.action == UserAction.training
                  or user_context.action == UserAction.administration)
             and message_text == "управление таблицами"):
-        user_context.action = UserAction.admin_table_management
+        data_model.users.set_user_action(user_context.user_id,
+                                         UserAction.admin_table_management)
         table_management.show_table_management_panel(message.chat.id,
                                                      user_context)
         return
@@ -207,7 +211,8 @@ def get_text_messages(message):
             and (user_context.action == UserAction.training
                  or user_context.action == UserAction.administration)
             and message_text == "управление пользователями"):
-        user_context.action = UserAction.admin_user_management
+        data_model.users.set_user_action(user_context.user_id,
+                                         UserAction.admin_user_management)
         user_management.show_user_management_panel(message.chat.id)
         return
 
@@ -217,7 +222,8 @@ def get_text_messages(message):
                  or user_context.action == UserAction.admin_table_management
                  or user_context.action == UserAction.training)
             and message_text == "администрирование"):
-        user_context.action = UserAction.administration
+        data_model.users.set_user_action(user_context.user_id,
+                                         UserAction.administration)
         administration.show_admin_panel(message.chat.id, user_context)
         return
 
@@ -228,10 +234,12 @@ def get_text_messages(message):
             and message.text.strip().lower() == "перейти к тренировкам"):
         if (user_context.current_table_id is None
                 or user_context.current_page is None):
-            user_context.action = UserAction.choosing_plan
+            data_model.users.set_user_action(user_context.user_id,
+                                             UserAction.choosing_plan)
             change_plan_prompt(message.chat.id, user_context)
         else:
-            user_context.action = UserAction.training
+            data_model.users.set_user_action(user_context.user_id,
+                                             UserAction.training)
             send_workout(message.chat.id, user_context)
         return
 
@@ -252,11 +260,13 @@ def get_text_messages(message):
     if user_context.action == UserAction.training:
         if (user_context.current_table_id is None
                 or user_context.current_page is None):
-            user_context.action = UserAction.choosing_plan
+            data_model.users.set_user_action(user_context.user_id,
+                                             UserAction.choosing_plan)
         if (message_text == "выбрать программу"
                 or message_text == "сменить программу"
                 or message_text == "поменять программу"):
-            user_context.action = UserAction.choosing_plan
+            data_model.users.set_user_action(user_context.user_id,
+                                             UserAction.choosing_plan)
             change_plan_prompt(message.chat.id, user_context)
 
         if (message_text == "далее" or message_text == "следующая тренировка"):
@@ -265,11 +275,13 @@ def get_text_messages(message):
                                         user_context.current_page,
                                         user_context.current_week) - 1:
                 user_context.current_workout += 1
+                data_model.users.set_user_context(user_context)
             elif user_context.current_week < data_model.workout_plans \
                     .get_week_number(user_context.current_table_id,
                                      user_context.current_page) - 1:
                 user_context.current_week += 1
                 user_context.current_workout = 0
+                data_model.users.set_user_context(user_context)
                 send_week_schedule(message.chat.id, user_context)
             send_workout(message.chat.id, user_context)
             return
@@ -282,6 +294,7 @@ def get_text_messages(message):
                 or message_text == "начальная неделя"):
             user_context.current_week = 0
             user_context.current_workout = 0
+            data_model.users.set_user_context(user_context)
             send_week_schedule(message.chat.id, user_context)
             send_workout(message.chat.id, user_context)
             return
@@ -293,6 +306,7 @@ def get_text_messages(message):
                 .get_week_number(user_context.current_table_id,
                                  user_context.current_page) - 1
             user_context.current_workout = 0
+            data_model.users.set_user_context(user_context)
             send_week_schedule(message.chat.id, user_context)
             send_workout(message.chat.id, user_context)
             return
@@ -303,6 +317,7 @@ def get_text_messages(message):
                                      user_context.current_page) - 1:
                 user_context.current_week += 1
             user_context.current_workout = 0
+            data_model.users.set_user_context(user_context)
             send_week_schedule(message.chat.id, user_context)
             send_workout(message.chat.id, user_context)
             return
@@ -312,6 +327,7 @@ def get_text_messages(message):
             if user_context.current_week > 0:
                 user_context.current_week -= 1
             user_context.current_workout = 0
+            data_model.users.set_user_context(user_context)
             send_week_schedule(message.chat.id, user_context)
             send_workout(message.chat.id, user_context)
             return
@@ -324,6 +340,10 @@ def start_bot():
     table_id = config["spreadsheet_id"]
     pagenames = config["pagenames"]
     admins = config["admins"]
+    users_storage = config["users_storage"]
+    data_model.users.set_storage(users_storage)
+    workout_table_ids_storage = config["workout_table_ids_storage"]
+    data_model.workout_table_names.set_storage(workout_table_ids_storage)
     data_model.workout_table_names.add_table(table_id, pagenames)
     for admin in admins:
         user_id = int(admin)

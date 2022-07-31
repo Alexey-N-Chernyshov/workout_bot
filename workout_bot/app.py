@@ -23,10 +23,10 @@ def scheduler():
 
 if __name__ == '__main__':
     # print version
-    config_file = Path(VERSION_FILE_NAME)
-    if config_file.is_file():
-        with open(VERSION_FILE_NAME, encoding="utf-8") as f:
-            version = f.readline().strip()
+    version_file = Path(VERSION_FILE_NAME)
+    if version_file.is_file():
+        with open(VERSION_FILE_NAME, encoding="utf-8") as file:
+            version = file.readline().strip()
             print('workout_bot ' + version)
 
     scheduleThread = threading.Thread(target=scheduler)

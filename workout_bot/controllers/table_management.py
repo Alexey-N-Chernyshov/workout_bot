@@ -54,13 +54,15 @@ class TableManagement:
         message_text = message.text.strip().lower()
 
         if not user_context.administrative_permission:
-            user_context.action = UserAction.training
+            self.data_model.users.set_user_action(user_context.user_id,
+                                                  UserAction.training)
             return False
 
         if user_context.action == UserAction.admin_adding_table:
             table_id = get_table_id_from_link(message.text)
             user_context.user_input_data.table_id = table_id
             user_context.action = UserAction.admin_adding_pages
+            self.data_model.users.set_user_context(user_context)
             self.prompt_pages(message.chat.id, user_context, show_table=False)
             return True
 
@@ -68,6 +70,7 @@ class TableManagement:
             table_id = get_table_id_from_link(message.text)
             user_context.user_input_data.table_id = table_id
             user_context.action = UserAction.admin_removing_pages
+            self.data_model.users.set_user_context(user_context)
             self.prompt_pages(message.chat.id, user_context)
             return True
 
@@ -80,9 +83,11 @@ class TableManagement:
                         user_context.user_input_data.pages)
                 user_context.action = UserAction.admin_table_management
                 user_context.user_input_data = None
+                self.data_model.users.set_user_context(user_context)
                 self.show_table_management_panel(message.chat.id, user_context)
             else:
                 user_context.user_input_data.pages.append(message.text)
+                self.data_model.users.set_user_context(user_context)
                 self.prompt_pages(message.chat.id, user_context)
             return True
 
@@ -95,9 +100,11 @@ class TableManagement:
                         user_context.user_input_data.pages)
                 user_context.action = UserAction.admin_table_management
                 user_context.user_input_data = None
+                self.data_model.users.set_user_context(user_context)
                 self.show_table_management_panel(message.chat.id, user_context)
             else:
                 user_context.user_input_data.pages.append(message.text)
+                self.data_model.users.set_user_context(user_context)
                 self.prompt_pages(message.chat.id, user_context)
             return True
 
@@ -112,6 +119,7 @@ class TableManagement:
                 or message_text == "добавить страницу"):
             user_context.action = UserAction.admin_adding_table
             user_context.user_input_data = AddTableContext()
+            self.data_model.users.set_user_context(user_context)
             self.prompt_table_id(message.chat.id)
             return True
 
@@ -120,6 +128,7 @@ class TableManagement:
                 or message_text == "удалить страницу"):
             user_context.action = UserAction.admin_removing_table
             user_context.user_input_data = RemoveTableContext()
+            self.data_model.users.set_user_context(user_context)
             self.prompt_table_id(message.chat.id)
             return True
 

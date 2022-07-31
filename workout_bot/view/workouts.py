@@ -15,7 +15,9 @@ def excercise_to_text_message(data_model, excercise):
 
 
 def set_to_text_message(data_model, set):
-    text = "\nСет {}".format(set.number)
+    text = ""
+    if set.number != 0:
+        text += "\nСет {}".format(set.number)
     if set.rounds:
         text += escape_text(", количество раундов: {}".format(set.rounds))
     text += '\n'

@@ -161,6 +161,7 @@ class UserManagement:
                 user_context.action = UserAction.admin_user_blocking
                 user_context.user_input_data = \
                     BlockUserContext(target_user_context.user_id)
+                self.data_model.users.set_user_context(user_context)
                 self.prompt_confirm_block(chat_id, user_context)
                 return True
             if message_text.startswith("авторизовать "):
@@ -174,6 +175,7 @@ class UserManagement:
                 user_context.action = UserAction.admin_user_assigning_table
                 user_context.user_input_data = \
                     AssignTableUserContext(target_user_context.user_id)
+                self.data_model.users.set_user_context(user_context)
                 self.prompt_assign_table(chat_id, user_context)
                 return True
 
@@ -187,12 +189,14 @@ class UserManagement:
                     .users.block_user(user_context.user_input_data.user_id)
                 user_context.action = UserAction.admin_user_management
                 user_context.user_input_data = None
+                self.data_model.users.set_user_context(user_context)
                 self.bot.send_message(chat_id,
                                       f"{target_username} заблокрирован.")
                 self.show_user_management_panel(chat_id)
             elif message_text == "нет":
                 user_context.action = UserAction.admin_user_management
                 user_context.user_input_data = None
+                self.data_model.users.set_user_context(user_context)
                 self.show_user_management_panel(chat_id)
             else:
                 self.prompt_confirm_block(chat_id, user_context)
@@ -210,6 +214,7 @@ class UserManagement:
                                                       UserAction.choosing_plan)
                 user_context.action = UserAction.admin_user_management
                 user_context.user_input_data = None
+                self.data_model.users.set_user_context(user_context)
                 self.show_user_management_panel(chat_id)
             else:
                 self.prompt_assign_table(chat_id, user_context)
@@ -229,6 +234,7 @@ class UserManagement:
                 .users.set_administrative_permission(new_admin.user_id)
             user_context.action = UserAction.admin_user_management
             user_context.user_input_data = None
+            self.data_model.users.set_user_context(user_context)
             self.show_user_management_panel(chat_id)
             return True
 
@@ -245,7 +251,9 @@ class UserManagement:
                 return True
 
             if message_text == "добавить администратора":
-                user_context.action = UserAction.admin_adding_admin
+                self.data_model.users \
+                    .set_user_action(user_context.user_id,
+                                     UserAction.admin_adding_admin)
                 self.prompt_add_admin(chat_id, user_context)
                 return True
 
