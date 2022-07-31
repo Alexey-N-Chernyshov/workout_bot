@@ -1,4 +1,5 @@
 import enum
+import shelve
 from dataclasses import dataclass, field
 from typing import Any
 from typing import Optional
@@ -84,23 +85,30 @@ class UserContext:
 
 
 class Users:
+    __storage_filename = ""
+
     # map user_id -> UserContext
     __users = {}
+
+    def set_storage(self, filename):
+        self.__storage_filename = filename
+        self.__users = shelve.open(self.__storage_filename, writeback=True)
 
     def get_all_users(self):
         return set(self.__users.values())
 
     def set_user_context(self, user_context):
-        self.__users[user_context.user_id] = user_context
+        self.__users[str(user_context.user_id)] = user_context
+        self.__users.sync()
 
     def get_user_context(self, user_id):
         """
         Returns UserContext for user_id or None if user_id is unknow.
         """
 
-        if user_id not in self.__users:
+        if str(user_id) not in self.__users:
             return None
-        return self.__users[user_id]
+        return self.__users[str(user_id)]
 
     def get_user_context_by_username(self, username):
         if username.startswith('@'):
@@ -116,27 +124,32 @@ class Users:
         creates new one.
         """
 
-        if user_id not in self.__users:
-            self.__users[user_id] = UserContext(user_id=user_id)
-        return self.__users[user_id]
+        if str(user_id) not in self.__users:
+            self.__users[str(user_id)] = UserContext(user_id=user_id)
+            self.__users.sync()
+        return self.__users[str(user_id)]
 
     def set_user_action(self, user_id, action):
         user_context = self.get_or_create_user_context(user_id)
         user_context.action = action
+        self.__users.sync()
 
     def set_table_for_user(self, user_id, table_id):
         user_context = self.get_or_create_user_context(user_id)
         user_context.current_table_id = table_id
+        self.__users.sync()
 
     def set_administrative_permission(self, user_id):
         user_context = self.get_or_create_user_context(user_id)
         user_context.administrative_permission = True
         user_context.action = UserAction.administration
         user_context.user_input_data = None
+        self.__users.sync()
 
     def block_user(self, user_id):
         user_context = self.get_or_create_user_context(user_id)
         user_context.action = UserAction.blocked
+        self.__users.sync()
 
     def get_users_number(self):
         """

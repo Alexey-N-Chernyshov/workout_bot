@@ -1,12 +1,5 @@
 from workout_bot.data_model.workout_table_names import WorkoutTableNames
-import os
-
-
-def delete_file(filename):
-    try:
-        os.remove(filename)
-    except OSError:
-        pass
+from .utils import delete_file
 
 
 def test_persistence_when_new_item_added():

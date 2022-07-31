@@ -63,12 +63,15 @@ class Administration:
             name = message_text
             if name in self.data_model.excercise_links:
                 user_context.user_input_data.name = name
+                self.data_model.users.set_user_context(user_context)
                 self.remove_excercise_link_prompt(message.chat.id,
                                                   user_context)
                 user_context.action = UserAction.admin_removing_excercise_prove
             else:
                 self.bot.send_message(message.chat.id, "Нет такого упражнения")
-                user_context.action = UserAction.administration
+                self.data_model.users \
+                    .set_user_action(user_context.user_id,
+                                     UserAction.administration)
                 self.show_admin_panel(message.chat.id, user_context)
             return True
 
@@ -78,10 +81,12 @@ class Administration:
                     .excercise_links[user_context.user_input_data.name]
                 user_context.action = UserAction.administration
                 user_context.user_input_data = None
+                self.data_model.users.set_user_context(user_context)
                 self.show_admin_panel(message.chat.id, user_context)
             elif message_text == "нет":
                 user_context.action = UserAction.administration
                 user_context.user_input_data = None
+                self.data_model.users.set_user_context(user_context)
                 self.show_admin_panel(message.chat.id, user_context)
             else:
                 self.remove_excercise_link_prompt(message.chat.id,
@@ -89,15 +94,17 @@ class Administration:
             return True
 
         if user_context.action == UserAction.admin_adding_excercise_name:
-            user_context.user_input_data.name = message_text
-            self.bot.send_message(message.chat.id, "Введите ссылку")
             user_context.action = UserAction.admin_adding_excercise_link
+            user_context.user_input_data.name = message_text
+            self.data_model.users.set_user_context(user_context)
+            self.bot.send_message(message.chat.id, "Введите ссылку")
             return True
 
         if user_context.action == UserAction.admin_adding_excercise_link:
-            user_context.user_input_data.link = message.text.strip()
-            self.add_excercise_link_prompt(message.chat.id, user_context)
             user_context.action = UserAction.admin_adding_excercise_prove
+            user_context.user_input_data.link = message.text.strip()
+            self.data_model.users.set_user_context(user_context)
+            self.add_excercise_link_prompt(message.chat.id, user_context)
             return True
 
         if user_context.action == UserAction.admin_adding_excercise_prove:
@@ -107,10 +114,12 @@ class Administration:
                     user_context.user_input_data.link
                 user_context.action = UserAction.administration
                 user_context.user_input_data = None
+                self.data_model.users.set_user_context(user_context)
                 self.show_admin_panel(message.chat.id, user_context)
             elif message_text == "нет":
                 user_context.action = UserAction.administration
                 user_context.user_input_data = None
+                self.data_model.users.set_user_context(user_context)
                 self.show_admin_panel(message.chat.id, user_context)
             else:
                 self.add_excercise_link_prompt(message.chat.id, user_context)
@@ -125,6 +134,7 @@ class Administration:
             if message_text == "удалить ссылку на упражнение":
                 user_context.action = UserAction.admin_removing_excercise_name
                 user_context.user_input_data = RemoveExcerciseLinkContext()
+                self.data_model.users.set_user_context(user_context)
                 self.bot.send_message(message.chat.id,
                                       "Введите название упражнения")
                 return True
@@ -132,6 +142,7 @@ class Administration:
             if message_text == "добавить ссылку на упражнение":
                 user_context.action = UserAction.admin_adding_excercise_name
                 user_context.user_input_data = AddExcerciseLinkContext()
+                self.data_model.users.set_user_context(user_context)
                 self.bot.send_message(message.chat.id,
                                       "Введите название упражнения")
                 return True
