@@ -1,3 +1,7 @@
+"""
+Telegram bot related code resides here.
+"""
+
 import telebot
 import yaml
 from controllers.administration import Administration
@@ -27,7 +31,10 @@ table_management = TableManagement(bot, data_model)
 
 
 def update_workout_tables():
-    global data_model
+    """
+    Updates workout tables.
+    """
+
     data_model.update_tables()
 
 
@@ -60,7 +67,7 @@ def change_plan_prompt(chat_id, user_context):
         bot.send_message(chat_id, "Вам не назначена программа тренировок")
         if user_context.administrative_permission:
             data_model.users.set_user_action(user_context.user_id,
-                                             UserAction.administration)
+                                             UserAction.ADMINISTRATION)
             administration.show_admin_panel(chat_id, user_context)
         return
 
@@ -93,7 +100,7 @@ def change_plan(chat_id, user_context, plan):
         user_context.current_workout = 0
         data_model.users.set_user_context(user_context)
         data_model.users.set_user_action(user_context.user_id,
-                                         UserAction.training)
+                                         UserAction.TRAINING)
         bot.send_message(chat_id, 'Программа выбрана.')
         send_week_schedule(chat_id, user_context)
         send_workout(chat_id, user_context)
@@ -103,6 +110,10 @@ def change_plan(chat_id, user_context, plan):
 
 
 def send_week_schedule(chat_id, user_context):
+    """
+    Sends week workout schedule.
+    """
+
     message = get_week_routine_text_message(data_model,
                                             user_context.current_table_id,
                                             user_context.current_page,
@@ -111,6 +122,10 @@ def send_week_schedule(chat_id, user_context):
 
 
 def send_workout(chat_id, user_context):
+    """
+    Sends workout.
+    """
+
     message = get_workout_text_message(data_model,
                                        user_context.current_table_id,
                                        user_context.current_page,
@@ -119,7 +134,11 @@ def send_workout(chat_id, user_context):
     send_with_next_or_all_buttons(chat_id, user_context, message)
 
 
-def send_all_actions(chat_id, user_context):
+def send_all_actions(chat_id):
+    """
+    Sends extended keyboard with all the keys.
+    """
+
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     key_change_plan = telebot.types.KeyboardButton(text='Сменить программу')
     keyboard.add(key_change_plan)
@@ -139,7 +158,10 @@ def send_all_actions(chat_id, user_context):
 
 @bot.message_handler(commands=["start"])
 def start(message):
-    global data_model
+    """
+    Handler for command /start that initializes a new user.
+    """
+
     data_model.statistics.record_command()
     if message.chat.type != "private":
         bot.send_message(message.chat.id,
@@ -161,7 +183,10 @@ def start(message):
 
 @bot.message_handler(commands=["system_stats"])
 def system_stats(message):
-    global data_model
+    """
+    Handler for command /system_stats shows statistics.
+    """
+
     data_model.statistics.record_command()
     user_context = data_model.users.get_user_context(message.from_user.id)
 
@@ -183,7 +208,9 @@ def system_stats(message):
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
-    global data_model
+    """
+    Handles all text messages.
+    """
 
     data_model.statistics.record_request()
 
@@ -197,49 +224,49 @@ def get_text_messages(message):
     # change state actions
     if (user_context is not None
             and user_context.administrative_permission
-            and (user_context.action == UserAction.training
-                 or user_context.action == UserAction.administration)
+            and user_context.action in (UserAction.TRAINING,
+                                        UserAction.ADMINISTRATION)
             and message_text == "управление таблицами"):
         data_model.users.set_user_action(user_context.user_id,
-                                         UserAction.admin_table_management)
+                                         UserAction.ADMIN_TABLE_MANAGEMENT)
         table_management.show_table_management_panel(message.chat.id,
                                                      user_context)
         return
 
     if (user_context is not None
             and user_context.administrative_permission
-            and (user_context.action == UserAction.training
-                 or user_context.action == UserAction.administration)
+            and user_context.action in (UserAction.TRAINING,
+                                        UserAction.ADMINISTRATION)
             and message_text == "управление пользователями"):
         data_model.users.set_user_action(user_context.user_id,
-                                         UserAction.admin_user_management)
+                                         UserAction.ADMIN_USER_MANAGEMENT)
         user_management.show_user_management_panel(message.chat.id)
         return
 
     if (user_context is not None
             and user_context.administrative_permission
-            and (user_context.action == UserAction.admin_user_management
-                 or user_context.action == UserAction.admin_table_management
-                 or user_context.action == UserAction.training)
+            and user_context.action in (UserAction.ADMIN_USER_MANAGEMENT,
+                                        UserAction.ADMIN_TABLE_MANAGEMENT,
+                                        UserAction.TRAINING)
             and message_text == "администрирование"):
         data_model.users.set_user_action(user_context.user_id,
-                                         UserAction.administration)
+                                         UserAction.ADMINISTRATION)
         administration.show_admin_panel(message.chat.id, user_context)
         return
 
     if (user_context is not None
-            and (user_context.action == UserAction.training
-                 or user_context.action == UserAction.administration
-                 or user_context.action == UserAction.admin_table_management)
+            and user_context.action in (UserAction.TRAINING,
+                                        UserAction.ADMINISTRATION,
+                                        UserAction.ADMIN_TABLE_MANAGEMENT)
             and message.text.strip().lower() == "перейти к тренировкам"):
         if (user_context.current_table_id is None
                 or user_context.current_page is None):
             data_model.users.set_user_action(user_context.user_id,
-                                             UserAction.choosing_plan)
+                                             UserAction.CHOOSING_PLAN)
             change_plan_prompt(message.chat.id, user_context)
         else:
             data_model.users.set_user_action(user_context.user_id,
-                                             UserAction.training)
+                                             UserAction.TRAINING)
             send_workout(message.chat.id, user_context)
         return
 
@@ -253,23 +280,22 @@ def get_text_messages(message):
         return
 
     # actions
-    if user_context.action == UserAction.choosing_plan:
+    if user_context.action == UserAction.CHOOSING_PLAN:
         change_plan(message.chat.id, user_context, message.text.strip())
         return
 
-    if user_context.action == UserAction.training:
+    if user_context.action == UserAction.TRAINING:
         if (user_context.current_table_id is None
                 or user_context.current_page is None):
             data_model.users.set_user_action(user_context.user_id,
-                                             UserAction.choosing_plan)
-        if (message_text == "выбрать программу"
-                or message_text == "сменить программу"
-                or message_text == "поменять программу"):
+                                             UserAction.CHOOSING_PLAN)
+        if (message_text in ("выбрать программу", "сменить программу",
+                             "поменять программу")):
             data_model.users.set_user_action(user_context.user_id,
-                                             UserAction.choosing_plan)
+                                             UserAction.CHOOSING_PLAN)
             change_plan_prompt(message.chat.id, user_context)
 
-        if (message_text == "далее" or message_text == "следующая тренировка"):
+        if message_text in ("далее", "следующая тренировка"):
             if user_context.current_workout < data_model.workout_plans \
                     .get_workout_number(user_context.current_table_id,
                                         user_context.current_page,
@@ -287,11 +313,10 @@ def get_text_messages(message):
             return
 
         if message_text == "все действия":
-            send_all_actions(message.chat.id, user_context)
+            send_all_actions(message.chat.id)
             return
 
-        if (message_text == "первая неделя"
-                or message_text == "начальная неделя"):
+        if message_text in ("первая неделя", "начальная неделя"):
             user_context.current_week = 0
             user_context.current_workout = 0
             data_model.users.set_user_context(user_context)
@@ -299,9 +324,8 @@ def get_text_messages(message):
             send_workout(message.chat.id, user_context)
             return
 
-        if (message_text == "последняя неделя"
-                or message_text == "крайняя неделя"
-                or message_text == "текущая неделя"):
+        if (message_text in ("последняя неделя",
+                             "крайняя неделя", "текущая неделя")):
             user_context.current_week = data_model.workout_plans \
                 .get_week_number(user_context.current_table_id,
                                  user_context.current_page) - 1
@@ -322,8 +346,7 @@ def get_text_messages(message):
             send_workout(message.chat.id, user_context)
             return
 
-        if (message_text == "прошлая неделя"
-                or message_text == "предыдущая неделя"):
+        if message_text in ("прошлая неделя", "предыдущая неделя"):
             if user_context.current_week > 0:
                 user_context.current_week -= 1
             user_context.current_workout = 0
@@ -334,28 +357,31 @@ def get_text_messages(message):
 
 
 def start_bot():
-    global data_model
+    """
+    Starts telegram bot and enters infinity polling loop.
+    """
 
-    config = yaml.safe_load(open("secrets/config.yml"))
-    table_id = config["spreadsheet_id"]
-    pagenames = config["pagenames"]
-    admins = config["admins"]
-    users_storage = config["users_storage"]
-    data_model.users.set_storage(users_storage)
-    workout_table_ids_storage = config["workout_table_ids_storage"]
-    data_model.workout_table_names.set_storage(workout_table_ids_storage)
-    data_model.workout_table_names.add_table(table_id, pagenames)
-    for admin in admins:
-        user_id = int(admin)
-        data_model.users.get_or_create_user_context(user_id)
-        data_model.users.set_administrative_permission(user_id)
-        data_model.users.set_table_for_user(user_id, table_id)
+    with open("secrets/config.yml", encoding="utf-8") as file:
+        config = yaml.safe_load(file)
+        table_id = config["spreadsheet_id"]
+        pagenames = config["pagenames"]
+        admins = config["admins"]
+        users_storage = config["users_storage"]
+        data_model.users.set_storage(users_storage)
+        workout_table_ids_storage = config["workout_table_ids_storage"]
+        data_model.workout_table_names.set_storage(workout_table_ids_storage)
+        data_model.workout_table_names.add_table(table_id, pagenames)
+        for admin in admins:
+            user_id = int(admin)
+            data_model.users.get_or_create_user_context(user_id)
+            data_model.users.set_administrative_permission(user_id)
+            data_model.users.set_table_for_user(user_id, table_id)
 
     update_workout_tables()
 
-    start = telebot.types.BotCommand("start", "Start using the bot")
-    system_stats = telebot.types.BotCommand("system_stats",
-                                            "Show system statistics")
-    bot.set_my_commands([start, system_stats])
+    start_command = telebot.types.BotCommand("start", "Start using the bot")
+    system_stats_command = telebot.types.BotCommand("system_stats",
+                                                    "Show system statistics")
+    bot.set_my_commands([start_command, system_stats_command])
 
     bot.infinity_polling(none_stop=True, interval=1, timeout=30)

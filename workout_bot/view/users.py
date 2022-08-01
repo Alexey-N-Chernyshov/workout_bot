@@ -1,7 +1,15 @@
+"""
+Representation of users.
+"""
+
 from .utils import escape_text
 
 
 def user_to_text_message(user_context):
+    """
+    Returns telegram user representation.
+    """
+
     text = ""
     is_username_printed = False
     if user_context.username:
@@ -25,12 +33,20 @@ def user_to_text_message(user_context):
 
 
 def user_to_short_text_message(user_context):
+    """
+    Returns short user representation: username if present, otherwise user id.
+    """
+
     if user_context.username:
         return "@" + user_context.username
     return "id: " + str(user_context.user_id)
 
 
 def get_user_message(data_model, user_id):
+    """
+    Returns user representation from data_model by user_id.
+    """
+
     text = ""
     user_context = data_model.users.get_user_context(user_id)
     if user_context:

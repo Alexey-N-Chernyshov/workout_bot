@@ -1,3 +1,8 @@
+"""
+Helper functions for representation.
+"""
+
+
 def escape_text(text):
     """
     Escape text for MarkdownV2

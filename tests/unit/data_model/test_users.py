@@ -8,11 +8,11 @@ STORAGE = "storage"
 def test_get_users_awaiting_authorization():
     users = Users()
     users.set_storage(STORAGE)
-    alice = UserContext(user_id=1, action=UserAction.awaiting_authorization)
+    alice = UserContext(user_id=1, action=UserAction.AWAITING_AUTHORIZATION)
     users.set_user_context(alice)
-    bob = UserContext(user_id=2, action=UserAction.blocked)
+    bob = UserContext(user_id=2, action=UserAction.BLOCKED)
     users.set_user_context(bob)
-    charlie = UserContext(user_id=3, action=UserAction.awaiting_authorization)
+    charlie = UserContext(user_id=3, action=UserAction.AWAITING_AUTHORIZATION)
     users.set_user_context(charlie)
 
     actual = users.get_users_awaiting_authorization()

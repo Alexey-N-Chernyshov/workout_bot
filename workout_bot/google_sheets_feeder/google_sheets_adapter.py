@@ -1,3 +1,7 @@
+"""
+Transforms loaded Google spreadsheets into data model.
+"""
+
 import re
 from datetime import date
 from data_model.workout_plans import Excercise
@@ -152,8 +156,7 @@ def load_table_page(spreadsheet_id, pagename):
             end_week_date = date(end_year, end_month, end_day)
 
         # Workout end
-        if (i == workout_indeces[current_workout][1] - 1
-                or i == len(values) - 1):
+        if i in (workout_indeces[current_workout][1] - 1, len(values) - 1):
             workout_sets.append(Set(set_description, set_number,
                                     set_excercises, set_rounds))
             week_workouts.append(Workout(workout_description, workout_sets,
@@ -168,8 +171,7 @@ def load_table_page(spreadsheet_id, pagename):
             current_workout += 1
 
         # week end
-        if (i == week_indeces[current_week][1] - 1
-                or i == len(values) - 1):
+        if i in (week_indeces[current_week][1] - 1, len(values) - 1):
             all_weeks.append(WeekRoutine(start_week_date, end_week_date,
                                          current_week + 1, week_workouts,
                                          week_comment.strip()))
