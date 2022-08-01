@@ -8,11 +8,10 @@ from controllers.administration import Administration
 from controllers.authorization import Authorization
 from controllers.table_management import TableManagement
 from controllers.user_management import UserManagement
+from controllers.training_management import TrainingManagement
 from data_model.data_model import DataModel
 from data_model.users import UserAction
 from google_sheets_feeder import google_sheets_adapter
-from view.workouts import get_workout_text_message
-from view.workouts import get_week_routine_text_message
 
 
 telegram_bot_token_file = 'secrets/telegram_token.txt'
@@ -28,6 +27,7 @@ administration = Administration(bot, data_model)
 authorization = Authorization(bot, data_model)
 user_management = UserManagement(bot, data_model)
 table_management = TableManagement(bot, data_model)
+training_management = TrainingManagement(bot, data_model)
 
 
 def update_workout_tables():
@@ -36,124 +36,6 @@ def update_workout_tables():
     """
 
     data_model.update_tables()
-
-
-def send_with_next_or_all_buttons(chat_id, user_context, message):
-    """
-    Sends message and adds buttons "Далее", "Все действия"
-    """
-
-    keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    key_all = telebot.types.KeyboardButton(text='Все действия')
-    key_next = telebot.types.KeyboardButton(text='Далее')
-    keyboard.row(key_all, key_next)
-
-    if user_context.administrative_permission:
-        key_admin = telebot.types.KeyboardButton(text='Администрирование')
-        keyboard.add(key_admin)
-
-    bot.send_message(chat_id, message, disable_web_page_preview=True,
-                     reply_markup=keyboard, parse_mode="MarkdownV2")
-
-
-def change_plan_prompt(chat_id, user_context):
-    """
-    Asks the user with user_id to choose plan.
-    """
-
-    table_id = user_context.current_table_id
-    if (not table_id
-            or not data_model.workout_plans.is_table_id_present(table_id)):
-        bot.send_message(chat_id, "Вам не назначена программа тренировок")
-        if user_context.administrative_permission:
-            data_model.users.set_user_action(user_context.user_id,
-                                             UserAction.ADMINISTRATION)
-            administration.show_admin_panel(chat_id, user_context)
-        return
-
-    plans = data_model.workout_plans.get_plan_names(table_id)
-    if plans:
-        keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-        text = 'Выберите программу из списка:'
-        for plan in plans:
-            text += '\n - ' + plan
-            button = telebot.types.KeyboardButton(text=plan)
-            keyboard.add(button)
-        bot.send_message(chat_id, text, reply_markup=keyboard)
-    else:
-        bot.send_message(chat_id, "Для вас ещё нет программы тренировок.")
-
-
-def change_plan(chat_id, user_context, plan):
-    """
-    Changes plan to the selected one for user.
-    """
-
-    plans = (
-        data_model.
-        workout_plans.get_plan_names(user_context.current_table_id)
-    )
-    if plan in plans:
-        user_context.current_page = plan
-        user_context.current_week = data_model.workout_plans.get_week_number(
-            user_context.current_table_id, user_context.current_page) - 1
-        user_context.current_workout = 0
-        data_model.users.set_user_context(user_context)
-        data_model.users.set_user_action(user_context.user_id,
-                                         UserAction.TRAINING)
-        bot.send_message(chat_id, 'Программа выбрана.')
-        send_week_schedule(chat_id, user_context)
-        send_workout(chat_id, user_context)
-    else:
-        bot.send_message(chat_id, 'Нет такой программы.')
-        change_plan_prompt(chat_id, user_context)
-
-
-def send_week_schedule(chat_id, user_context):
-    """
-    Sends week workout schedule.
-    """
-
-    message = get_week_routine_text_message(data_model,
-                                            user_context.current_table_id,
-                                            user_context.current_page,
-                                            user_context.current_week)
-    send_with_next_or_all_buttons(chat_id, user_context, message)
-
-
-def send_workout(chat_id, user_context):
-    """
-    Sends workout.
-    """
-
-    message = get_workout_text_message(data_model,
-                                       user_context.current_table_id,
-                                       user_context.current_page,
-                                       user_context.current_week,
-                                       user_context.current_workout)
-    send_with_next_or_all_buttons(chat_id, user_context, message)
-
-
-def send_all_actions(chat_id):
-    """
-    Sends extended keyboard with all the keys.
-    """
-
-    keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    key_change_plan = telebot.types.KeyboardButton(text='Сменить программу')
-    keyboard.add(key_change_plan)
-    key_first_week = telebot.types.KeyboardButton(text='Начальная неделя')
-    key_last_week = telebot.types.KeyboardButton(text='Последняя неделя')
-    keyboard.row(key_first_week, key_last_week)
-    key_previous_week = telebot.types.KeyboardButton(text='Прошлая неделя')
-    key_next_week = telebot.types.KeyboardButton(text='Следующая неделя')
-    keyboard.row(key_previous_week, key_next_week)
-    key_next = telebot.types.KeyboardButton(text='Следующая тренировка')
-    keyboard.add(key_next)
-    key_training = telebot.types.KeyboardButton(text='Перейти к тренировкам')
-    keyboard.add(key_training)
-    bot.send_message(chat_id, "Доступные действия:", reply_markup=keyboard,
-                     parse_mode="MarkdownV2")
 
 
 @bot.message_handler(commands=["start"])
@@ -229,8 +111,7 @@ def get_text_messages(message):
             and message_text == "управление таблицами"):
         data_model.users.set_user_action(user_context.user_id,
                                          UserAction.ADMIN_TABLE_MANAGEMENT)
-        table_management.show_table_management_panel(message.chat.id,
-                                                     user_context)
+        table_management.show_table_management_panel(message.chat.id)
         return
 
     if (user_context is not None
@@ -263,11 +144,12 @@ def get_text_messages(message):
                 or user_context.current_page is None):
             data_model.users.set_user_action(user_context.user_id,
                                              UserAction.CHOOSING_PLAN)
-            change_plan_prompt(message.chat.id, user_context)
+            training_management.change_plan_prompt(message.chat.id,
+                                                   user_context)
         else:
             data_model.users.set_user_action(user_context.user_id,
                                              UserAction.TRAINING)
-            send_workout(message.chat.id, user_context)
+            training_management.send_workout(message.chat.id, user_context)
         return
 
     if administration.handle_message(message):
@@ -279,81 +161,8 @@ def get_text_messages(message):
     if table_management.handle_message(message):
         return
 
-    # actions
-    if user_context.action == UserAction.CHOOSING_PLAN:
-        change_plan(message.chat.id, user_context, message.text.strip())
+    if training_management.handle_message(message):
         return
-
-    if user_context.action == UserAction.TRAINING:
-        if (user_context.current_table_id is None
-                or user_context.current_page is None):
-            data_model.users.set_user_action(user_context.user_id,
-                                             UserAction.CHOOSING_PLAN)
-        if (message_text in ("выбрать программу", "сменить программу",
-                             "поменять программу")):
-            data_model.users.set_user_action(user_context.user_id,
-                                             UserAction.CHOOSING_PLAN)
-            change_plan_prompt(message.chat.id, user_context)
-
-        if message_text in ("далее", "следующая тренировка"):
-            if user_context.current_workout < data_model.workout_plans \
-                    .get_workout_number(user_context.current_table_id,
-                                        user_context.current_page,
-                                        user_context.current_week) - 1:
-                user_context.current_workout += 1
-                data_model.users.set_user_context(user_context)
-            elif user_context.current_week < data_model.workout_plans \
-                    .get_week_number(user_context.current_table_id,
-                                     user_context.current_page) - 1:
-                user_context.current_week += 1
-                user_context.current_workout = 0
-                data_model.users.set_user_context(user_context)
-                send_week_schedule(message.chat.id, user_context)
-            send_workout(message.chat.id, user_context)
-            return
-
-        if message_text == "все действия":
-            send_all_actions(message.chat.id)
-            return
-
-        if message_text in ("первая неделя", "начальная неделя"):
-            user_context.current_week = 0
-            user_context.current_workout = 0
-            data_model.users.set_user_context(user_context)
-            send_week_schedule(message.chat.id, user_context)
-            send_workout(message.chat.id, user_context)
-            return
-
-        if (message_text in ("последняя неделя",
-                             "крайняя неделя", "текущая неделя")):
-            user_context.current_week = data_model.workout_plans \
-                .get_week_number(user_context.current_table_id,
-                                 user_context.current_page) - 1
-            user_context.current_workout = 0
-            data_model.users.set_user_context(user_context)
-            send_week_schedule(message.chat.id, user_context)
-            send_workout(message.chat.id, user_context)
-            return
-
-        if message_text == "следующая неделя":
-            if user_context.current_week < data_model.workout_plans \
-                    .get_week_number(user_context.current_table_id,
-                                     user_context.current_page) - 1:
-                user_context.current_week += 1
-            user_context.current_workout = 0
-            data_model.users.set_user_context(user_context)
-            send_week_schedule(message.chat.id, user_context)
-            send_workout(message.chat.id, user_context)
-            return
-
-        if message_text in ("прошлая неделя", "предыдущая неделя"):
-            if user_context.current_week > 0:
-                user_context.current_week -= 1
-            user_context.current_workout = 0
-            data_model.users.set_user_context(user_context)
-            send_week_schedule(message.chat.id, user_context)
-            send_workout(message.chat.id, user_context)
-            return
 
 
 def start_bot():
