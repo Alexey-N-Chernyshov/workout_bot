@@ -64,7 +64,7 @@ class TrainingManagement:
         """
         Changes plan to the selected one for user.
         """
-        
+
         plans = (
             self.data_model
             .workout_plans.get_plan_names(user_context.current_table_id)
