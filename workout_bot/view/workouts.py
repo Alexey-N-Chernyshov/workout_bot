@@ -1,49 +1,69 @@
+"""
+Representation of workouts.
+"""
+
 from .utils import escape_text
 
 
 def excercise_to_text_message(data_model, excercise):
-    text = "- {}".format(excercise.description)
+    """
+    Returns single excersise text representation.
+    """
+
+    text = f"- {excercise.description}"
     if excercise.reps_window:
-        text += ", {}".format(excercise.reps_window)
+        text += f", {excercise.reps_window}"
     text += "\n"
     text = escape_text(text)
     for name, link in data_model.excercise_links.items():
         if name in text:
-            text = text.replace(name, "[{}]({})".format(name, link))
+            text = text.replace(name, f"[{name}]({link})")
             break
     return text
 
 
-def set_to_text_message(data_model, set):
+def set_to_text_message(data_model, workout_set):
+    """
+    Returns workout set text representation.
+    """
+
     text = ""
-    if set.number != 0:
-        text += "\nСет {}".format(set.number)
-    if set.rounds:
-        text += escape_text(", количество раундов: {}".format(set.rounds))
+    if workout_set.number != 0:
+        text += f"\nСет {workout_set.number}"
+    if workout_set.rounds:
+        text += escape_text(f", количество раундов: {workout_set.rounds}")
     text += '\n'
-    if set.description:
-        text += escape_text('{}\n'.format(set.description))
-    for excercise in set.excersises:
+    if workout_set.description:
+        text += escape_text(f"{workout_set.description}\n")
+    for excercise in workout_set.excersises:
         text += excercise_to_text_message(data_model, excercise)
     return text
 
 
 def workout_to_text_message(data_model, workout):
+    """
+    Returns workout text representation.
+    """
+
     text = ""
     if workout.number == 0:
         text = "*Промежуточная тренировка*\n"
     else:
-        text = "*Тренировка {}*\n".format(workout.number)
+        text = f"*Тренировка {workout.number}*\n"
     if workout.description:
         text += escape_text(
             "\n{}\n".format(workout.description.replace('\n', ' ')))
-    for set in workout.sets:
-        text += set_to_text_message(data_model, set)
+    for workout_set in workout.sets:
+        text += set_to_text_message(data_model, workout_set)
     return text
 
 
 def get_workout_text_message(data_model, table_id, page_name, week_number,
                              workout_number):
+    """
+    Returns workout text representation by it ids.
+    """
+
     workout = (
         data_model.workout_plans
         .get_workout(table_id, page_name, week_number, workout_number)
@@ -54,13 +74,17 @@ def get_workout_text_message(data_model, table_id, page_name, week_number,
 
 def get_week_routine_text_message(data_model, table_id, page_name,
                                   week_number):
+    """
+    Returns short week routine representation.
+    """
+
     week_routine = (
         data_model.workout_plans
         .get_week_routine(table_id, page_name, week_number)
     )
     text = "*" + \
-           escape_text("Неделя {} - {}".format(week_routine.start_date,
-                                               week_routine.end_date)) + \
+           escape_text(f"Неделя {week_routine.start_date} -"
+                       f" {week_routine.end_date}") + \
            "*\n"
     if week_routine.comment:
         text += escape_text(week_routine.comment + "\n\n")
@@ -71,6 +95,6 @@ def get_week_routine_text_message(data_model, table_id, page_name,
             homework_number += 1
         else:
             workout_number += 1
-    text += "Тренировок: {}\n".format(workout_number)
-    text += "Промежуточных тренировок: {}\n".format(homework_number)
+    text += f"Тренировок: {workout_number}\n"
+    text += f"Промежуточных тренировок: {homework_number}\n"
     return text

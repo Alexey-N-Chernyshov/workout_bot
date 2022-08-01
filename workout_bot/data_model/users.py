@@ -1,3 +1,7 @@
+"""
+Provides access to user data.
+"""
+
 import enum
 import shelve
 from dataclasses import dataclass, field
@@ -7,63 +11,95 @@ from typing import List
 
 
 class UserAction(enum.Enum):
-    blocked = 0
-    awaiting_authorization = 1
-    choosing_plan = 2
-    training = 3
-    administration = 4
-    admin_removing_excercise_name = 5
-    admin_removing_excercise_prove = 6
-    admin_adding_excercise_name = 7
-    admin_adding_excercise_link = 8
-    admin_adding_excercise_prove = 9
-    admin_table_management = 10
-    admin_removing_table = 11
-    admin_adding_table = 12
-    admin_removing_pages = 13
-    admin_adding_pages = 14
-    admin_user_management = 15
-    admin_user_authorization = 16
-    admin_user_blocking = 17
-    admin_user_assigning_table = 18
-    admin_adding_admin = 19
+    """
+    Current user state. What the user is doing right now.
+    """
+
+    BLOCKED = 0
+    AWAITING_AUTHORIZATION = 1
+    CHOOSING_PLAN = 2
+    TRAINING = 3
+    ADMINISTRATION = 4
+    ADMIN_REMOVING_EXCERCISE_NAME = 5
+    ADMIN_REMOVING_EXCERCISE_PROVE = 6
+    ADMIN_ADDING_EXCERCISE_NAME = 7
+    ADMIN_ADDING_EXCERCISE_LINK = 8
+    ADMIN_ADDING_EXCERCISE_PROVE = 9
+    ADMIN_TABLE_MANAGEMENT = 10
+    ADMIN_REMOVING_TABLE = 11
+    ADMIN_ADDING_TABLE = 12
+    ADMIN_REMOVING_PAGES = 13
+    ADMIN_ADDING_PAGES = 14
+    ADMIN_USER_MANAGEMENT = 15
+    ADMIN_USER_AUTHORIZATION = 16
+    ADMIN_USER_BLOCKING = 17
+    ADMIN_USER_ASSIGNING_TABLE = 18
+    ADMIN_ADDING_ADMIN = 19
 
 
 @dataclass
 class RemoveTableContext:
+    """
+    Stores table_id when the user is asked to confirm removing.
+    """
+
     table_id: str = ""
     pages: List[str] = field(default_factory=list)
 
 
 @dataclass
 class AddTableContext:
+    """
+    Stores table_id and pages when the user is asked to add tables.
+    """
+
     table_id: str = ""
     pages: List[str] = field(default_factory=list)
 
 
 @dataclass
 class RemoveExcerciseLinkContext:
+    """
+    Stores excercise when the user is asked to confirm removing.
+    """
+
     name: str = ""
 
 
 @dataclass
 class AddExcerciseLinkContext:
+    """
+    Stores excercise and link when the user is asked to add excercise.
+    """
+
     name: str = ""
     link: str = ""
 
 
 @dataclass
 class BlockUserContext:
+    """
+    Stores user_id when the admin is blocking the user.
+    """
+
     user_id: int
 
 
 @dataclass
 class AssignTableUserContext:
+    """
+    Stores user_id when the admin is assigning a new plan to the user.
+    """
+
     user_id: int
 
 
 @dataclass
 class UserContext:
+    """
+    Stores all the data related to user.
+    """
+
     user_id: int = 0
     first_name: str = ""
     last_name: str = ""
@@ -74,7 +110,7 @@ class UserContext:
     current_page: Optional[str] = None
     current_week: Optional[int] = None
     current_workout: Optional[int] = None
-    action: UserAction = UserAction.awaiting_authorization
+    action: UserAction = UserAction.AWAITING_AUTHORIZATION
     # permissions
     administrative_permission: bool = False
     # additional stored user input, may be anything
@@ -85,19 +121,35 @@ class UserContext:
 
 
 class Users:
+    """
+    Provides methods for the user data manipulation.
+    """
+
     __storage_filename = ""
 
     # map user_id -> UserContext
     __users = {}
 
     def set_storage(self, filename):
+        """
+        Sets shelve storage filename.
+        """
+
         self.__storage_filename = filename
         self.__users = shelve.open(self.__storage_filename, writeback=True)
 
     def get_all_users(self):
+        """
+        Returns all user contexts
+        """
+
         return set(self.__users.values())
 
     def set_user_context(self, user_context):
+        """
+        Stores user_context.
+        """
+
         self.__users[str(user_context.user_id)] = user_context
         self.__users.sync()
 
@@ -111,6 +163,11 @@ class Users:
         return self.__users[str(user_id)]
 
     def get_user_context_by_username(self, username):
+        """
+        Returns user contexts by user_id if user_id is present. Otherwise
+        returns None.
+        """
+
         if username.startswith('@'):
             username = username[1:]
         for user in self.__users.values():
@@ -130,25 +187,42 @@ class Users:
         return self.__users[str(user_id)]
 
     def set_user_action(self, user_id, action):
+        """
+        Sets action for user_id. If user_id is not present, creates a new one.
+        """
+
         user_context = self.get_or_create_user_context(user_id)
         user_context.action = action
         self.__users.sync()
 
     def set_table_for_user(self, user_id, table_id):
+        """
+        Sets table for user_id. If user_id is not present, creates a new one.
+        """
+
         user_context = self.get_or_create_user_context(user_id)
         user_context.current_table_id = table_id
         self.__users.sync()
 
     def set_administrative_permission(self, user_id):
+        """
+        Sets administrative_permission for user_id. If user_id is not present,
+        creates a new one.
+        """
+
         user_context = self.get_or_create_user_context(user_id)
         user_context.administrative_permission = True
-        user_context.action = UserAction.administration
+        user_context.action = UserAction.ADMINISTRATION
         user_context.user_input_data = None
         self.__users.sync()
 
     def block_user(self, user_id):
+        """
+        Sets blocked action for user_id. If user_id is not present, creates a
+        new one.
+        """
         user_context = self.get_or_create_user_context(user_id)
-        user_context.action = UserAction.blocked
+        user_context.action = UserAction.BLOCKED
         self.__users.sync()
 
     def get_users_number(self):
@@ -159,9 +233,13 @@ class Users:
         return len(self.__users)
 
     def get_users_awaiting_authorization(self):
+        """
+        Returns the set of users awaiting authorization.
+        """
+
         result = set()
         for user in self.__users.values():
-            if user.action == UserAction.awaiting_authorization:
+            if user.action == UserAction.AWAITING_AUTHORIZATION:
                 result.add(user)
         return result
 
@@ -172,7 +250,7 @@ class Users:
 
         result = set()
         for user in self.__users.values():
-            if (not user.action == UserAction.blocked
+            if (not user.action == UserAction.BLOCKED
                     and not user.administrative_permission):
                 result.add(user)
         return result

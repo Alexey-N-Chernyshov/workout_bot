@@ -1,3 +1,7 @@
+"""
+Provides access to workouts and plans.
+"""
+
 import threading
 from datetime import date
 from dataclasses import dataclass
@@ -7,12 +11,20 @@ from typing import Dict
 
 @dataclass
 class Excercise:
+    """
+    Is a single excercise.
+    """
+
     description: str
     reps_window: str = ''
 
 
 @dataclass
 class Set:
+    """
+    Is a set of excercises.
+    """
+
     description: str
     number: int
     excersises: List[Excercise]
@@ -21,6 +33,10 @@ class Set:
 
 @dataclass
 class Workout:
+    """
+    Single workout consists of excercises combined into sets.
+    """
+
     description: str
     sets: List[Set]
     actual_number: int
@@ -29,6 +45,10 @@ class Workout:
 
 @dataclass
 class WeekRoutine:
+    """
+    Workouts for a single week.
+    """
+
     start_date: date
     end_date: date
     number: int
@@ -38,6 +58,11 @@ class WeekRoutine:
 
 @dataclass
 class WorkoutTable:
+    """
+    One workout table can have several plans each on one page. Plan is a list
+    of week routines.
+    """
+
     table_id: str
     table_name: str
     pages: Dict[str, List[WeekRoutine]]
@@ -52,77 +77,99 @@ class WorkoutPlans:
     lock = threading.Lock()
 
     def update_workout_table(self, workout_table):
-        self.lock.acquire()
-        self.__workout_tables[workout_table.table_id] = workout_table
-        self.lock.release()
+        """
+        Loads tables.
+        """
+
+        with self.lock:
+            self.__workout_tables[workout_table.table_id] = workout_table
 
     def is_table_id_present(self, table_id):
-        return table_id in self.__workout_tables
+        """
+        Checks if table id is present.
+        """
+        with self.lock:
+            return table_id in self.__workout_tables
 
     def get_table_names(self):
-        self.lock.acquire()
-        result = set()
-        for table in self.__workout_tables.values():
-            result.add(table.table_name)
-        self.lock.release()
-        return result
+        """
+        Returns all table names.
+        """
+
+        with self.lock:
+            result = set()
+            for table in self.__workout_tables.values():
+                result.add(table.table_name)
+            return result
 
     def get_plan_names(self, table_id):
+        """
+        Returns all plans for a table with table_id.
+        """
+
         plans = []
-        self.lock.acquire()
-        if table_id in self.__workout_tables:
-            table = self.__workout_tables[table_id]
-            for pagename in table.pages.keys():
-                plans.append(pagename)
-        self.lock.release()
-        return plans
+        with self.lock:
+            if table_id in self.__workout_tables:
+                table = self.__workout_tables[table_id]
+                for pagename in table.pages.keys():
+                    plans.append(pagename)
+            return plans
 
     def get_plan_name(self, table_id):
+        """
+        Returns talbe name for table with table_id.
+        """
+
         name = None
-        self.lock.acquire()
-        if table_id in self.__workout_tables:
-            name = self.__workout_tables[table_id].table_name
-        self.lock.release()
-        return name
+        with self.lock:
+            if table_id in self.__workout_tables:
+                name = self.__workout_tables[table_id].table_name
+            return name
 
     def get_table_id_by_name(self, name):
+        """
+        Returns table id by table name.
+        """
+
         res = None
-        self.lock.acquire()
-        for table_id, table in self.__workout_tables.items():
-            if table.table_name == name:
-                res = table_id
-        self.lock.release()
-        return res
+        with self.lock:
+            for table_id, table in self.__workout_tables.items():
+                if table.table_name == name:
+                    res = table_id
+            return res
 
     def get_week_routine(self, table_id, page_name, week_number):
-        self.lock.acquire()
-        week_routine = (
-            self.__workout_tables[table_id]
-            .pages[page_name][week_number]
-        )
-        self.lock.release()
-        return week_routine
+        """
+        Returns week routine by table_id, page_name, and week_number.
+        """
+
+        with self.lock:
+            return self.__workout_tables[table_id] \
+                .pages[page_name][week_number]
 
     def get_workout(self, table_id, page_name, week_number, workout_number):
-        self.lock.acquire()
-        workout = (
-            self.__workout_tables[table_id]
-            .pages[page_name][week_number]
-            .workouts[workout_number]
-        )
-        self.lock.release()
-        return workout
+        """
+        Returns workout by table_id, page_name, week_number, and
+        workout_number.
+        """
+        with self.lock:
+            return self.__workout_tables[table_id] \
+                .pages[page_name][week_number].workouts[workout_number]
 
     def get_week_number(self, table_id, page_name):
-        self.lock.acquire()
-        week_number = len(self.__workout_tables[table_id].pages[page_name])
-        self.lock.release()
-        return week_number
+        """
+        Returns number of weeks in the plan with page_name in table with
+        table_id.
+        """
+        with self.lock:
+            return len(self.__workout_tables[table_id].pages[page_name])
 
     def get_workout_number(self, table_id, page_name, week_number):
-        self.lock.acquire()
-        workout_number = \
-            len(self.__workout_tables[table_id].pages[page_name][week_number]
-                .workouts)
-        self.lock.release()
-        return workout_number
+        """
+        Returns number of workouts in the plan with page_name in table with
+        table_id in a week with week_number.
+        """
+        with self.lock:
+            return len(self.__workout_tables[table_id]
+                       .pages[page_name][week_number]
+                       .workouts)
