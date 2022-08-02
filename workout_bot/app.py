@@ -7,12 +7,13 @@ import threading
 from pathlib import Path
 import schedule
 
-from telegram_bot import telegram_bot
+from telegram_bot.telegram_bot import TelegramBot
 
 VERSION_FILE_NAME = 'git_commit_version.txt'
+TELEGRAM_TOKEN_FILE = "secrets/telegram_token.txt"
 
 
-def scheduler():
+def scheduler(telegram_bot):
     "Schedules google table updates daily at 3 a.m."
 
     schedule.every().day.at("03:00").do(telegram_bot.update_workout_tables)
@@ -27,10 +28,12 @@ if __name__ == '__main__':
     if version_file.is_file():
         with open(VERSION_FILE_NAME, encoding="utf-8") as file:
             version = file.readline().strip()
-            print('workout_bot ' + version)
+            print("workout_bot " + version)
 
-    scheduleThread = threading.Thread(target=scheduler)
+    bot = TelegramBot(TELEGRAM_TOKEN_FILE)
+
+    scheduleThread = threading.Thread(target=scheduler, args=(bot,))
     scheduleThread.daemon = True
     scheduleThread.start()
 
-    telegram_bot.start_bot()
+    bot.start_bot()

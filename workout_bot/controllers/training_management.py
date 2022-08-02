@@ -128,8 +128,7 @@ class TrainingManagement:
         key_training = KeyboardButton(text='Перейти к тренировкам')
         keyboard.add(key_training)
         self.bot.send_message(chat_id, "Доступные действия:",
-                              reply_markup=keyboard,
-                              parse_mode="MarkdownV2")
+                              reply_markup=keyboard, parse_mode="MarkdownV2")
 
     def handle_message(self, message):
         """
