@@ -2,12 +2,8 @@
 Telegram bot related code resides here.
 """
 
-import telebot
-import yaml
 from controllers.controllers import Controllers
-from data_model.data_model import DataModel
 from data_model.users import UserAction
-from google_sheets_feeder import google_sheets_adapter
 from telebot.types import BotCommand
 
 
@@ -16,12 +12,9 @@ class TelegramBot:
     Telegram bot class.
     """
 
-    def __init__(self, token_filename):
-        with open(token_filename, encoding="utf-8") as token_file:
-            telegram_bot_token = token_file.readline().strip()
-        self.bot = telebot.TeleBot(telegram_bot_token)
-
-        self.data_model = DataModel(google_sheets_adapter)
+    def __init__(self, telebot, data_model):
+        self.bot = telebot
+        self.data_model = data_model
 
         # init controllers
         self.controllers = Controllers(self.bot, self.data_model)
@@ -35,36 +28,10 @@ class TelegramBot:
         self.message_handler = self.bot \
             .message_handler(content_types=["text"])(self.handle_message)
 
-    def update_workout_tables(self):
-        """
-        Updates workout tables.
-        """
-
-        self.data_model.update_tables()
-
     def start_bot(self):
         """
         Starts telegram bot and enters infinity polling loop.
         """
-
-        with open("secrets/config.yml", encoding="utf-8") as file:
-            config = yaml.safe_load(file)
-            table_id = config["spreadsheet_id"]
-            pagenames = config["pagenames"]
-            admins = config["admins"]
-            users_storage = config["users_storage"]
-            self.data_model.users.set_storage(users_storage)
-            workout_table_ids_storage = config["workout_table_ids_storage"]
-            self.data_model \
-                .workout_table_names.set_storage(workout_table_ids_storage)
-            self.data_model.workout_table_names.add_table(table_id, pagenames)
-            for admin in admins:
-                user_id = int(admin)
-                self.data_model.users.get_or_create_user_context(user_id)
-                self.data_model.users.set_administrative_permission(user_id)
-                self.data_model.users.set_table_for_user(user_id, table_id)
-
-        self.update_workout_tables()
 
         start_command = BotCommand("start", "Start using the bot")
         system_stats_command = BotCommand("system_stats",
@@ -184,13 +151,13 @@ class TelegramBot:
             else:
                 self.data_model.users.set_user_action(user_context.user_id,
                                                       UserAction.TRAINING)
-                self.controllers.training_management.send_workout(message.chat.id,
-                                                      user_context)
+                self.controllers.training_management \
+                    .send_workout(message.chat.id, user_context)
             return
 
         if (self.controllers.administration.handle_message(message)
                 or self.controllers.user_management.handle_message(message)
                 or self.controllers.table_management.handle_message(message)
                 or self.controllers
-                    .training_management.handle_message(message)):
+                .training_management.handle_message(message)):
             return

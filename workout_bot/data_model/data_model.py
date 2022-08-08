@@ -13,16 +13,16 @@ class DataModel:
     An interface to all business data model objects.
     """
 
-    users = Users()
     statistics = Statistics()
     # {name: link}
     excercise_links = {}
-    workout_table_names = WorkoutTableNames()
     # Workouts has been read from tables
     workout_plans = WorkoutPlans()
 
-    def __init__(self, feeder):
+    def __init__(self, feeder, users_storage_filename, table_ids_filename):
         self.feeder = feeder
+        self.users = Users(users_storage_filename)
+        self.workout_table_names = WorkoutTableNames(table_ids_filename)
 
     def update_tables(self):
         """
