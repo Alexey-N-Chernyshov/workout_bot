@@ -130,7 +130,7 @@ class Users:
     # map user_id -> UserContext
     __users = {}
 
-    def set_storage(self, filename):
+    def __init__(self, filename):
         """
         Sets shelve storage filename.
         """
@@ -195,6 +195,12 @@ class Users:
         user_context.action = action
         self.__users.sync()
 
+    def is_user_awaiting_authorization(self, user_id):
+        user_context = self.get_user_context(user_id)
+        if user_context is not None:
+            return user_context.action == UserAction.AWAITING_AUTHORIZATION
+        return False
+
     def set_table_for_user(self, user_id, table_id):
         """
         Sets table for user_id. If user_id is not present, creates a new one.
@@ -239,7 +245,7 @@ class Users:
 
         result = set()
         for user in self.__users.values():
-            if user.action == UserAction.AWAITING_AUTHORIZATION:
+            if user.action is UserAction.AWAITING_AUTHORIZATION:
                 result.add(user)
         return result
 
@@ -250,7 +256,7 @@ class Users:
 
         result = set()
         for user in self.__users.values():
-            if (not user.action == UserAction.BLOCKED
+            if (user.action is not UserAction.BLOCKED
                     and not user.administrative_permission):
                 result.add(user)
         return result

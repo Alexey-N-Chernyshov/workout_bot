@@ -16,7 +16,7 @@ class WorkoutTableNames:
     # {google_spreadsheet_id: [page names]}
     __workout_tables = {}
 
-    def set_storage(self, filename):
+    def __init__(self, filename):
         """
         Sets shelve storage filename.
         """

@@ -6,8 +6,7 @@ def test_persistence_when_new_item_added():
     STORAGE = "storage"
     delete_file(STORAGE)
 
-    tables = WorkoutTableNames()
-    tables.set_storage(STORAGE)
+    tables = WorkoutTableNames(STORAGE)
 
     tables.add_table("tablename", ["page1", "page2"])
     stored_tables = tables.get_tables()
@@ -26,8 +25,7 @@ def test_persistence_when_new_item_added():
     # close and reopen storage
     del stored_tables
     del tables
-    tables_loaded = WorkoutTableNames()
-    tables_loaded.set_storage(STORAGE)
+    tables_loaded = WorkoutTableNames(STORAGE)
 
     stored_tables = tables_loaded.get_tables()
     assert len(stored_tables["tablename"]) == 3
@@ -42,8 +40,7 @@ def test_persistence_when_item_deleted():
     STORAGE = "storage"
     delete_file(STORAGE)
 
-    tables = WorkoutTableNames()
-    tables.set_storage(STORAGE)
+    tables = WorkoutTableNames(STORAGE)
 
     tables.add_table("tablename", ["page1", "page2"])
     stored_tables = tables.get_tables()
@@ -62,8 +59,7 @@ def test_persistence_when_item_deleted():
     # close and reopen storage
     del stored_tables
     del tables
-    tables_loaded = WorkoutTableNames()
-    tables_loaded.set_storage(STORAGE)
+    tables_loaded = WorkoutTableNames(STORAGE)
 
     stored_tables = tables_loaded.get_tables()
     assert len(stored_tables["tablename"]) == 1
@@ -76,8 +72,7 @@ def test_table_deleted_when_all_pages_deleted():
     STORAGE = "storage"
     delete_file(STORAGE)
 
-    tables = WorkoutTableNames()
-    tables.set_storage(STORAGE)
+    tables = WorkoutTableNames(STORAGE)
 
     tables.add_table("tablename", ["page1"])
     stored_tables = tables.get_tables()

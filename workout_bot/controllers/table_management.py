@@ -59,9 +59,7 @@ class TableManagement:
             text += "Текущая таблица:\n"
             text += get_table_message(self.data_model,
                                       user_context.user_input_data.table_id)
-        self.bot.send_message(chat_id,
-                              text,
-                              reply_markup=keyboard,
+        self.bot.send_message(chat_id, text, reply_markup=keyboard,
                               parse_mode="MarkdownV2")
 
     def handle_message(self, message):

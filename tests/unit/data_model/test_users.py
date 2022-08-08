@@ -6,8 +6,7 @@ STORAGE = "storage"
 
 
 def test_get_users_awaiting_authorization():
-    users = Users()
-    users.set_storage(STORAGE)
+    users = Users(STORAGE)
     alice = UserContext(user_id=1, action=UserAction.AWAITING_AUTHORIZATION)
     users.set_user_context(alice)
     bob = UserContext(user_id=2, action=UserAction.BLOCKED)
@@ -24,8 +23,7 @@ def test_get_users_awaiting_authorization():
 def test_user_context_persistent_storage():
     delete_file(STORAGE)
 
-    users = Users()
-    users.set_storage(STORAGE)
+    users = Users(STORAGE)
 
     user_id = 42
     user_context = UserContext(user_id)
@@ -45,8 +43,7 @@ def test_user_context_persistent_storage():
     del user_context
 
     # load again
-    users = Users()
-    users.set_storage(STORAGE)
+    users = Users(STORAGE)
     actual = users.get_user_context(user_id)
     assert actual.user_id == user_id
     assert type(actual.user_input_data) is AddTableContext
