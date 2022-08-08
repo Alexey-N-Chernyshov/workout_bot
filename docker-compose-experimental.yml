@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  workout_bot:
+  experimental_workout_bot:
     image: alexeynchernyshov/workout_bot:latest
     container_name: experimental
     volumes:
