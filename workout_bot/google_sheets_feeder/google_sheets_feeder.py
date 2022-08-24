@@ -14,6 +14,7 @@ from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+GOOGLE_TOKEN_FILENAME = 'secrets/google_token.json'
 
 
 def get_values(spreadsheet_id, pagename):
@@ -30,7 +31,6 @@ def get_values(spreadsheet_id, pagename):
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    GOOGLE_TOKEN_FILENAME = 'secrets/google_token.json'
     google_token_file = Path(GOOGLE_TOKEN_FILENAME)
     if google_token_file.is_file():
         creds = Credentials.from_authorized_user_file(GOOGLE_TOKEN_FILENAME,

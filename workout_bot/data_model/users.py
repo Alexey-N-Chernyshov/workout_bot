@@ -100,6 +100,8 @@ class UserContext:
     Stores all the data related to user.
     """
 
+    # pylint: disable=too-many-instance-attributes
+
     user_id: int = 0
     first_name: str = ""
     last_name: str = ""
@@ -196,6 +198,10 @@ class Users:
         self.__users.sync()
 
     def is_user_awaiting_authorization(self, user_id):
+        """
+        If user is present and user action status is AWAITING_AUTHORIZATION.
+        """
+
         user_context = self.get_user_context(user_id)
         if user_context is not None:
             return user_context.action == UserAction.AWAITING_AUTHORIZATION

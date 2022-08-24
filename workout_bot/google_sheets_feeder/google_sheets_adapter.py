@@ -115,10 +115,10 @@ def load_table_page(spreadsheet_id, pagename):
             # it is an excercise
             if len(row) >= 4:
                 # excercise reps present
-                set_excercises.append(Excercise(row[2], row[3]))
+                set_excercises.append(Excercise(row[2].strip(), row[3].strip()))
             elif len(row) >= 3:
                 # excercise reps not present
-                set_excercises.append(Excercise(row[2]))
+                set_excercises.append(Excercise(row[2].strip()))
             # otherwise empty string - no excercise
 
         # workout begin

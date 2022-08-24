@@ -22,8 +22,8 @@ def init_data_model():
     Initializes data model.
     """
 
-    with open("secrets/config.yml", encoding="utf-8") as file:
-        config = yaml.safe_load(file)
+    with open("secrets/config.yml", encoding="utf-8") as config_file:
+        config = yaml.safe_load(config_file)
         table_id = config["spreadsheet_id"]
         pagenames = config["pagenames"]
         admins = config["admins"]
@@ -67,11 +67,11 @@ if __name__ == '__main__':
         telegram_bot_token = token_file.readline().strip()
     telebot = telebot.TeleBot(telegram_bot_token)
 
-    data_model = init_data_model()
+    app_data_model = init_data_model()
 
-    bot = TelegramBot(telebot, data_model)
+    bot = TelegramBot(telebot, app_data_model)
 
-    scheduleThread = threading.Thread(target=scheduler, args=(data_model,))
+    scheduleThread = threading.Thread(target=scheduler, args=(app_data_model,))
     scheduleThread.daemon = True
     scheduleThread.start()
 

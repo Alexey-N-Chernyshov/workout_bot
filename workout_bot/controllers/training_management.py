@@ -136,8 +136,8 @@ class TrainingManagement:
         Returns True if messsage was processed, False otherwise.
         """
 
-        user_context = \
-            self.data_model.users.get_user_context(message.from_user.id)
+        user_id = message.from_user.id
+        user_context = self.data_model.users.get_user_context(user_id)
         message_text = message.text.strip().lower()
 
         if user_context.action == UserAction.CHOOSING_PLAN:
@@ -148,29 +148,19 @@ class TrainingManagement:
         if user_context.action == UserAction.TRAINING:
             if (user_context.current_table_id is None
                     or user_context.current_page is None):
-                self.data_model.users.set_user_action(user_context.user_id,
+                self.data_model.users.set_user_action(user_id,
                                                       UserAction.CHOOSING_PLAN)
             if (message_text in ("выбрать программу", "сменить программу",
                                  "поменять программу")):
-                self.data_model.users.set_user_action(user_context.user_id,
+                self.data_model.users.set_user_action(user_id,
                                                       UserAction.CHOOSING_PLAN)
                 self.change_plan_prompt(message.chat.id, user_context)
 
             if message_text in ("далее", "следующая тренировка"):
-                if user_context.current_workout < self.data_model\
-                        .workout_plans \
-                        .get_workout_number(user_context.current_table_id,
-                                            user_context.current_page,
-                                            user_context.current_week) - 1:
-                    user_context.current_workout += 1
-                    self.data_model.users.set_user_context(user_context)
-                elif user_context.current_week < self.data_model \
-                        .workout_plans \
-                        .get_week_number(user_context.current_table_id,
-                                         user_context.current_page) - 1:
-                    user_context.current_week += 1
-                    user_context.current_workout = 0
-                    self.data_model.users.set_user_context(user_context)
+                week_previous = user_context.current_week
+                self.data_model.next_workout_for_user(user_id)
+                if week_previous != user_context.current_week:
+                    # show week schedule if week changes
                     self.send_week_schedule(message.chat.id, user_context)
                 self.send_workout(message.chat.id, user_context)
                 return True
