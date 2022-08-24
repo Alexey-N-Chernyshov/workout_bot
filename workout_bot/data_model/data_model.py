@@ -33,7 +33,6 @@ class DataModel:
                                   self.workout_table_names)
         self.statistics.set_training_plan_update_time()
 
-
     def next_workout_for_user(self, user_id):
         """
         Shifts the current workout for user if there are more workouts, if
