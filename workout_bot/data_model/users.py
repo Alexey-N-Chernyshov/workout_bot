@@ -20,21 +20,18 @@ class UserAction(enum.Enum):
     CHOOSING_PLAN = 2
     TRAINING = 3
     ADMINISTRATION = 4
-    ADMIN_REMOVING_EXCERCISE_NAME = 5
-    ADMIN_REMOVING_EXCERCISE_PROVE = 6
-    ADMIN_ADDING_EXCERCISE_NAME = 7
-    ADMIN_ADDING_EXCERCISE_LINK = 8
-    ADMIN_ADDING_EXCERCISE_PROVE = 9
-    ADMIN_TABLE_MANAGEMENT = 10
-    ADMIN_REMOVING_TABLE = 11
-    ADMIN_ADDING_TABLE = 12
-    ADMIN_REMOVING_PAGES = 13
-    ADMIN_ADDING_PAGES = 14
-    ADMIN_USER_MANAGEMENT = 15
-    ADMIN_USER_AUTHORIZATION = 16
-    ADMIN_USER_BLOCKING = 17
-    ADMIN_USER_ASSIGNING_TABLE = 18
-    ADMIN_ADDING_ADMIN = 19
+    ADMIN_REMOVING_EXCERCISE_PROVE = 5
+    ADMIN_ADDING_EXCERCISE_PROVE = 6
+    ADMIN_TABLE_MANAGEMENT = 7
+    ADMIN_REMOVING_TABLE = 8
+    ADMIN_ADDING_TABLE = 9
+    ADMIN_REMOVING_PAGES = 10
+    ADMIN_ADDING_PAGES = 11
+    ADMIN_USER_MANAGEMENT = 12
+    ADMIN_USER_AUTHORIZATION = 13
+    ADMIN_USER_BLOCKING = 14
+    ADMIN_USER_ASSIGNING_TABLE = 15
+    ADMIN_ADDING_ADMIN = 16
 
 
 @dataclass
@@ -55,25 +52,6 @@ class AddTableContext:
 
     table_id: str = ""
     pages: List[str] = field(default_factory=list)
-
-
-@dataclass
-class RemoveExcerciseLinkContext:
-    """
-    Stores excercise when the user is asked to confirm removing.
-    """
-
-    name: str = ""
-
-
-@dataclass
-class AddExcerciseLinkContext:
-    """
-    Stores excercise and link when the user is asked to add excercise.
-    """
-
-    name: str = ""
-    link: str = ""
 
 
 @dataclass

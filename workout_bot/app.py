@@ -28,9 +28,14 @@ def init_data_model():
         pagenames = config["pagenames"]
         admins = config["admins"]
         users_storage = config["users_storage"]
+        excercise_links_table_id = config["excercise_links_table_id"]
+        excercise_links_pagename = config["excercise_links_pagename"]
         workout_table_ids_storage = config["workout_table_ids_storage"]
 
-        data_model = DataModel(google_sheets_adapter, users_storage,
+        data_model = DataModel(google_sheets_adapter,
+                               users_storage,
+                               excercise_links_table_id,
+                               excercise_links_pagename,
                                workout_table_ids_storage)
         data_model.workout_table_names.add_table(table_id, pagenames)
         for admin in admins:

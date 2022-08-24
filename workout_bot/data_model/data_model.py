@@ -2,6 +2,7 @@
 Provides business data model objects.
 """
 
+from .excercise_links import ExcerciseLinks
 from .statistics import Statistics
 from .users import Users
 from .workout_plans import WorkoutPlans
@@ -14,14 +15,20 @@ class DataModel:
     """
 
     statistics = Statistics()
-    # {name: link}
-    excercise_links = {}
     # Workouts has been read from tables
     workout_plans = WorkoutPlans()
 
-    def __init__(self, feeder, users_storage_filename, table_ids_filename):
+    def __init__(self,
+            feeder,
+            users_storage_filename,
+            excercise_links_table_id,
+            excercise_links_pagename,
+            table_ids_filename):
         self.feeder = feeder
         self.users = Users(users_storage_filename)
+        self.excercise_links = ExcerciseLinks(excercise_links_table_id,
+                                              excercise_links_pagename,
+                                              feeder)
         self.workout_table_names = WorkoutTableNames(table_ids_filename)
 
     def update_tables(self):
@@ -29,6 +36,7 @@ class DataModel:
         Loads latest workout plans from google spreadsheets.
         """
 
+        self.excercise_links.load_excercise_links()
         self.feeder.load_workouts(self.workout_plans,
                                   self.workout_table_names)
         self.statistics.set_training_plan_update_time()

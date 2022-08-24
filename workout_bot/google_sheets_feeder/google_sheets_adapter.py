@@ -12,6 +12,21 @@ from data_model.workout_plans import WeekRoutine
 from . import google_sheets_feeder
 
 
+def load_excercise_links(spreadsheet_id, pagename):
+    """
+    Loads excercise links from google table.
+
+    Returns excercises sorted by name length in reverse order.
+    """
+
+    excercise_links = \
+        google_sheets_feeder.get_values(spreadsheet_id, pagename)
+
+    return dict(sorted(filter(lambda item: item, excercise_links),
+                       key=lambda x: len(x[0]),
+                       reverse=True))
+
+
 def load_workouts(workout_plans, tables):
     """
     Updates workout plans from google spreadsheet tables.
@@ -46,7 +61,7 @@ def load_table_page(spreadsheet_id, pagename):
     """
 
     (tablename, merges, values) = \
-        google_sheets_feeder.get_values(spreadsheet_id, pagename)
+        google_sheets_feeder.get_values_and_merges(spreadsheet_id, pagename)
     start_week_date = date.today()
     end_week_date = date.today()
     week_comment = ""
