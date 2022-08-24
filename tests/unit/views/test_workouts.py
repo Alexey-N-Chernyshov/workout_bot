@@ -6,7 +6,11 @@ from workout_bot.view.workouts import workout_to_text_message
 
 
 class StubDataModel:
-    excercise_links = {}
+    class StubExcerciseLinks:
+        def get_excercise_links(self):
+            return {}
+
+    excercise_links = StubExcerciseLinks()
 
 
 data_model = StubDataModel()

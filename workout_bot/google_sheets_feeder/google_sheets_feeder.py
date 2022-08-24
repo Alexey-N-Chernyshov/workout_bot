@@ -16,6 +16,7 @@ from googleapiclient.errors import HttpError
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 GOOGLE_TOKEN_FILENAME = 'secrets/google_token.json'
 
+
 def get_credentials(google_token_file):
     """
     Reads google credentials from token file.
@@ -40,6 +41,7 @@ def get_credentials(google_token_file):
             token.write(creds.to_json())
 
     return creds
+
 
 def get_values(spreadsheet_id, pagename):
     """

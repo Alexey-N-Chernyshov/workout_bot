@@ -19,11 +19,11 @@ class DataModel:
     workout_plans = WorkoutPlans()
 
     def __init__(self,
-            feeder,
-            users_storage_filename,
-            excercise_links_table_id,
-            excercise_links_pagename,
-            table_ids_filename):
+                feeder,
+                users_storage_filename,
+                excercise_links_table_id,
+                excercise_links_pagename,
+                table_ids_filename):
         self.feeder = feeder
         self.users = Users(users_storage_filename)
         self.excercise_links = ExcerciseLinks(excercise_links_table_id,
