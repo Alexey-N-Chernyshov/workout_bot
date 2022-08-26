@@ -1,6 +1,5 @@
 import asyncio
 import os
-import pytest
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
 from workout_bot.data_model.statistics import Statistics
 from workout_bot.data_model.users import Users
@@ -133,8 +132,3 @@ class BehavioralTest:
         self.user_counter += 1
         self.users.append(user)
         return user
-
-
-@pytest.fixture
-def behavioral_test_fixture():
-    return BehavioralTest()

@@ -1,0 +1,7 @@
+import pytest
+from .behavioral_test_fixture import BehavioralTest
+
+
+@pytest.fixture
+def behavioral_test_fixture():
+    return BehavioralTest()

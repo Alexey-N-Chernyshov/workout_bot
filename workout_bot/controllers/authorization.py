@@ -3,7 +3,6 @@ Provides user interaction for authorization process.
 """
 
 from telegram import Update
-from data_model.users import UserAction
 
 
 class Authorization:
