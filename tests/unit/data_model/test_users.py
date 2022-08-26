@@ -51,3 +51,5 @@ def test_user_context_persistent_storage():
     assert len(actual.user_input_data.pages) == 2
     assert "page1" in actual.user_input_data.pages
     assert "page2" in actual.user_input_data.pages
+
+    delete_file(STORAGE)

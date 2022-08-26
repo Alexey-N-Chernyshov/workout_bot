@@ -107,15 +107,22 @@ class DataModelMock:
     USERS_STORAGE = "users_storage"
     TABLE_IDS_STORAGE = "table_ids_storage"
 
-    def __init__(self):
+    def delete_file(self, filename):
         try:
-            os.remove(self.USERS_STORAGE)
-            os.remove(self.TABLE_IDS_STORAGE)
+            os.remove(filename)
         except OSError:
             pass
 
+    def __init__(self):
+        self.delete_file(self.USERS_STORAGE)
+        self.delete_file(self.TABLE_IDS_STORAGE)
+
         self.statistics = Statistics()
         self.users = Users(self.USERS_STORAGE)
+
+    def cleanup(self):
+        self.delete_file(self.USERS_STORAGE)
+        self.delete_file(self.TABLE_IDS_STORAGE)
 
 
 class BehavioralTest:
@@ -132,3 +139,6 @@ class BehavioralTest:
         self.user_counter += 1
         self.users.append(user)
         return user
+
+    def teardown(self):
+        self.data_model.cleanup()
