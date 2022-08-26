@@ -2,7 +2,7 @@
 Provides user interaction for authorization process.
 """
 
-from data_model.users import UserAction
+from telegram import Update
 
 
 class Authorization:
@@ -14,27 +14,27 @@ class Authorization:
         self.bot = bot
         self.data_model = data_model
 
-    def handle_message(self, message):
+    async def handle_message(self, update: Update):
         """
         Handles text messages from user.
         """
 
-        user_id = message.from_user.id
-        user_context = self.data_model.users.get_user_context(user_id)
+        user_id = update.message.from_user.id
+        chat_id = update.effective_chat.id
 
-        if user_context is None:
+        if self.data_model.users.get_user_context(user_id) is None:
             text = "Вы не авторизованы.\n"
             text += "Нажмите /start"
-            self.bot.send_message(message.chat.id, text)
+            await self.bot.send_message(chat_id, text)
             return True
 
-        if user_context.action == UserAction.BLOCKED:
-            self.bot.send_message(message.chat.id, "Вы заблокированы.")
+        if self.data_model.users.is_user_blocked(user_id):
+            await self.bot.send_message(chat_id, "Вы заблокированы.")
             return True
 
         if self.data_model.users.is_user_awaiting_authorization(user_id):
-            self.bot.send_message(message.chat.id,
-                                  "Ожидайте подтверждения авторизации")
+            await self.bot.send_message(chat_id,
+                                        "Ожидайте подтверждения авторизации")
             return True
 
         return False

@@ -18,6 +18,7 @@ class DataModel:
     # Workouts has been read from tables
     workout_plans = WorkoutPlans()
 
+    # pylint: disable=too-many-arguments
     def __init__(self,
                  feeder,
                  users_storage_filename,

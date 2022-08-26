@@ -185,6 +185,16 @@ class Users:
             return user_context.action == UserAction.AWAITING_AUTHORIZATION
         return False
 
+    def is_user_blocked(self, user_id):
+        """
+        If user is present and user action status is BLOCKED.
+        """
+
+        user_context = self.get_user_context(user_id)
+        if user_context is not None:
+            return user_context.action == UserAction.BLOCKED
+        return False
+
     def set_table_for_user(self, user_id, table_id):
         """
         Sets table for user_id. If user_id is not present, creates a new one.

@@ -2,6 +2,7 @@
 Transforms loaded Google spreadsheets into data model.
 """
 
+import logging
 import re
 from datetime import date
 from data_model.workout_plans import Excercise
@@ -33,7 +34,7 @@ def load_workouts(workout_plans, tables):
     tables - {table_id: str : [page_name]}
     """
 
-    print('Updating workouts')
+    logging.info('Updating workouts')
     for spreadsheet_id, pagenames in tables.get_tables().items():
         table = WorkoutTable(spreadsheet_id, "", {})
         for pagename in pagenames:
@@ -42,14 +43,14 @@ def load_workouts(workout_plans, tables):
                 "https://docs.google.com/spreadsheets/d/"
                 f"{spreadsheet_id}/edit#gid=0 - \"{pagename}\""
             )
-            print(text)
+            logging.info(text)
             (tablename, pagename, all_weeks) = load_table_page(spreadsheet_id,
                                                                pagename)
             table.table_name = tablename
             table.pages[pagename] = all_weeks
-            print(f'Loaded "{tablename}" - "{pagename}"')
+            logging.info("Loaded %s - %s", tablename, pagename)
         workout_plans.update_workout_table(table)
-    print('Updated workouts')
+    logging.info('Updated workouts')
 
 
 def load_table_page(spreadsheet_id, pagename):
