@@ -80,6 +80,4 @@ def test_table_deleted_when_all_pages_deleted():
     tables.remove_table("tablename", ["page1"])
     stored_tables = tables.get_tables()
 
-    print(stored_tables)
-
     assert "tablename" not in stored_tables

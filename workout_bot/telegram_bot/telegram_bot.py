@@ -4,7 +4,8 @@ Telegram bot related code resides here.
 
 from controllers.controllers import Controllers
 from data_model.users import UserAction
-from telebot.types import BotCommand
+from telegram import Update
+from telegram.ext import filters, ContextTypes, CommandHandler, MessageHandler
 
 
 class TelegramBot:
@@ -12,65 +13,64 @@ class TelegramBot:
     Telegram bot class.
     """
 
-    def __init__(self, telebot, data_model):
-        self.bot = telebot
+    def __init__(self, application, data_model):
+        self.telegram_application = application
+        self.bot = application.bot
         self.data_model = data_model
 
         # init controllers
         self.controllers = Controllers(self.bot, self.data_model)
 
-        self.start_handler = self.bot \
-            .message_handler(commands=["start"])(self.handle_start)
-        self.system_stats_handler = self.bot \
-            .message_handler(
-                                commands=["system_stats"]
-                            )(self.handle_system_stats)
-        self.message_handler = self.bot \
-            .message_handler(content_types=["text"])(self.handle_message)
+        start_handler = CommandHandler('start', self.handle_start)
+        self.telegram_application.add_handler(start_handler)
+
+        system_stats_handler = CommandHandler('system_stats',
+                                              self.handle_system_stats)
+        self.telegram_application.add_handler(system_stats_handler)
+
+        message_handler = MessageHandler(filters.TEXT, self.handle_message)
+        self.telegram_application.add_handler(message_handler)
 
     def start_bot(self):
         """
         Starts telegram bot and enters infinity polling loop.
         """
 
-        start_command = BotCommand("start", "Start using the bot")
-        system_stats_command = BotCommand("system_stats",
-                                          "Show system statistics")
-        self.bot.set_my_commands([start_command, system_stats_command])
+        self.telegram_application.run_polling()
 
-        self.bot.infinity_polling(none_stop=True, interval=1, timeout=30)
-
-    def handle_start(self, message):
+    async def handle_start(self, update: Update,
+                           context: ContextTypes.DEFAULT_TYPE):
         """
         Handler for command /start that initializes a new user.
         """
 
         self.data_model.statistics.record_command()
-        if message.chat.type != "private":
-            self.bot.send_message(message.chat.id,
+        if update.effective_chat.type != "private":
+            self.bot.send_message(update.effective_chat.id,
                                   "Бот доступен только в приватном чате.")
             return
         user_context = self.data_model \
-            .users.get_or_create_user_context(message.from_user.id)
-        user_context.user_id = message.from_user.id
-        user_context.first_name = message.from_user.first_name
-        user_context.last_name = message.from_user.last_name
-        user_context.username = message.from_user.username
-        user_context.chat_id = message.chat.id
+            .users.get_or_create_user_context(update.message.from_user.id)
+        user_context.user_id = update.message.from_user.id
+        user_context.first_name = update.message.from_user.first_name
+        user_context.last_name = update.message.from_user.last_name
+        user_context.username = update.message.from_user.username
+        user_context.chat_id = update.effective_chat.id
         user_context.current_page = None
         user_context.current_week = None
         user_context.current_workout = None
         self.data_model.users.set_user_context(user_context)
-        self.handle_message(message)
+        await self.handle_message(update, context)
 
-    def handle_system_stats(self, message):
+    async def handle_system_stats(self, update: Update,
+                                  _context: ContextTypes.DEFAULT_TYPE):
         """
         Handler for command /system_stats shows statistics.
         """
 
         self.data_model.statistics.record_command()
         user_context = self.data_model \
-            .users.get_user_context(message.from_user.id)
+            .users.get_user_context(update.message.from_user.id)
 
         text = 'Системная статистика:\n\n'
         time = self.data_model.statistics.get_training_plan_update_time()
@@ -84,21 +84,23 @@ class TelegramBot:
             text += 'Количество пользователей: '
             text += str(self.data_model.users.get_users_number()) + "\n"
 
-        self.bot.send_message(message.chat.id, text)
+        await self.bot.send_message(update.effective_chat.id, text)
 
-    def handle_message(self, message):
+    async def handle_message(self, update: Update,
+                             _context: ContextTypes.DEFAULT_TYPE):
         """
         Handles all text messages.
         """
 
         self.data_model.statistics.record_request()
 
-        if self.controllers.authorization.handle_message(message):
+        if await self.controllers \
+                .authorization.handle_message(update):
             return
 
         user_context = \
-            self.data_model.users.get_user_context(message.from_user.id)
-        message_text = message.text.strip().lower()
+            self.data_model.users.get_user_context(update.message.from_user.id)
+        message_text = update.message.text.strip().lower()
 
         # change state actions
         if (user_context is not None
@@ -109,8 +111,8 @@ class TelegramBot:
             self.data_model \
                 .users.set_user_action(user_context.user_id,
                                        UserAction.ADMIN_TABLE_MANAGEMENT)
-            self.controllers.table_management \
-                .show_table_management_panel(message.chat.id)
+            await self.controllers.table_management \
+                .show_table_management_panel(update.effective_chat.id)
             return
 
         if (user_context is not None
@@ -121,8 +123,8 @@ class TelegramBot:
             self.data_model \
                 .users.set_user_action(user_context.user_id,
                                        UserAction.ADMIN_USER_MANAGEMENT)
-            self.controllers.user_management \
-                .show_user_management_panel(message.chat.id)
+            await self.controllers.user_management \
+                .show_user_management_panel(update.effective_chat.id)
             return
 
         if (user_context is not None
@@ -133,31 +135,34 @@ class TelegramBot:
                 and message_text == "администрирование"):
             self.data_model.users.set_user_action(user_context.user_id,
                                                   UserAction.ADMINISTRATION)
-            self.controllers.administration \
-                .show_admin_panel(message.chat.id, user_context)
+            await self.controllers.administration \
+                .show_admin_panel(update.effective_chat.id, user_context)
             return
 
         if (user_context is not None
                 and user_context.action in (UserAction.TRAINING,
                                             UserAction.ADMINISTRATION,
                                             UserAction.ADMIN_TABLE_MANAGEMENT)
-                and message.text.strip().lower() == "перейти к тренировкам"):
+                and message_text == "перейти к тренировкам"):
             if (user_context.current_table_id is None
                     or user_context.current_page is None):
                 self.data_model.users.set_user_action(user_context.user_id,
                                                       UserAction.CHOOSING_PLAN)
-                self.controllers.training_management \
-                    .change_plan_prompt(message.chat.id, user_context)
+                await self.controllers.training_management \
+                    .change_plan_prompt(update.effective_chat.id, user_context)
             else:
                 self.data_model.users.set_user_action(user_context.user_id,
                                                       UserAction.TRAINING)
-                self.controllers.training_management \
-                    .send_workout(message.chat.id, user_context)
+                await self.controllers.training_management \
+                    .send_workout(update.effective_chat.id, user_context)
             return
 
-        if (self.controllers.administration.handle_message(message)
-                or self.controllers.user_management.handle_message(message)
-                or self.controllers.table_management.handle_message(message)
-                or self.controllers
-                .training_management.handle_message(message)):
+        if (await self.controllers
+            .administration.handle_message(update)
+                or await self.controllers
+                .user_management.handle_message(update)
+                or await self.controllers
+                .table_management.handle_message(update)
+                or await self.controllers
+                .training_management.handle_message(update)):
             return

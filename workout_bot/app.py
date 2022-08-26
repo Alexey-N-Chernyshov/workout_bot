@@ -2,19 +2,26 @@
 Telegram bot for workouts app entry point.
 """
 
+import logging
 import time
 import threading
 from pathlib import Path
 import schedule
-import telebot
 import yaml
 
 from data_model.data_model import DataModel
 from google_sheets_feeder import google_sheets_adapter
 from telegram_bot.telegram_bot import TelegramBot
+from telegram.ext import ApplicationBuilder
 
 VERSION_FILE_NAME = 'git_commit_version.txt'
 TELEGRAM_TOKEN_FILE = "secrets/telegram_token.txt"
+
+
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
 
 def init_data_model():
@@ -66,15 +73,16 @@ if __name__ == '__main__':
     if version_file.is_file():
         with open(VERSION_FILE_NAME, encoding="utf-8") as file:
             version = file.readline().strip()
-            print("workout_bot " + version)
+            logging.info("workout_bot %s", version)
 
     with open(TELEGRAM_TOKEN_FILE, encoding="utf-8") as token_file:
         telegram_bot_token = token_file.readline().strip()
-    telebot = telebot.TeleBot(telegram_bot_token)
+    telegram_application = ApplicationBuilder() \
+        .token(telegram_bot_token).build()
 
     app_data_model = init_data_model()
 
-    bot = TelegramBot(telebot, app_data_model)
+    bot = TelegramBot(telegram_application, app_data_model)
 
     scheduleThread = threading.Thread(target=scheduler, args=(app_data_model,))
     scheduleThread.daemon = True

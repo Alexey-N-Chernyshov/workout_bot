@@ -2,7 +2,8 @@
 Provides user interaction for user manamegent.
 """
 
-from telebot.types import KeyboardButton, ReplyKeyboardMarkup
+from telegram import Update
+from telegram import KeyboardButton, ReplyKeyboardMarkup
 from data_model.users import UserAction, BlockUserContext
 from data_model.users import AssignTableUserContext
 from view.users import get_user_message
@@ -34,27 +35,24 @@ class UserManagement:
                 return None
         return None
 
-    def show_user_management_panel(self, chat_id,
-                                   text="Управление пользователями"):
+    async def show_user_management_panel(self, chat_id,
+                                         text="Управление пользователями"):
         """
         Shows user management panel.
         """
 
-        keyboard = ReplyKeyboardMarkup(resize_keyboard=True,
-                                       one_time_keyboard=True)
-        key_user_authz = KeyboardButton(text="Авторизация пользователей")
-        keyboard.add(key_user_authz)
-        key_show_all = KeyboardButton(text="Показать всех")
-        keyboard.add(key_show_all)
-        key_add_admin = KeyboardButton(text="Добавить администратора")
-        keyboard.add(key_add_admin)
-        key_administration = KeyboardButton(text="Администрирование")
-        keyboard.add(key_administration)
-        self.bot.send_message(chat_id, text,
-                              reply_markup=keyboard,
-                              parse_mode="MarkdownV2")
+        keyboard = [
+            [KeyboardButton("Авторизация пользователей")],
+            [KeyboardButton("Показать всех")],
+            [KeyboardButton("Добавить администратора")],
+            [KeyboardButton("Администрирование")],
+        ]
+        reply_markup = ReplyKeyboardMarkup(keyboard)
+        await self.bot.send_message(chat_id, text,
+                                    reply_markup=reply_markup,
+                                    parse_mode="MarkdownV2")
 
-    def show_user_authorization(self, chat_id, user_context):
+    async def show_user_authorization(self, chat_id, user_context):
         """
         Shows user authorization.
         """
@@ -65,23 +63,25 @@ class UserManagement:
             self.data_model.users\
                 .set_user_action(user_context.user_id,
                                  UserAction.ADMIN_USER_MANAGEMENT)
-            self.show_user_management_panel(chat_id,
-                                            text="Никто не ждёт авторизации")
+            await self. \
+                show_user_management_panel(chat_id,
+                                           text="Никто не ждёт авторизации")
             return
         text = "Ожидают авторизации:\n"
-        keyboard = ReplyKeyboardMarkup(resize_keyboard=True,
-                                       one_time_keyboard=True)
+        keyboard = []
         for user in users_in_line:
             text += " \\- " + user_to_text_message(user) + "\n"
             username = user_to_short_text_message(user)
-            key_block = KeyboardButton(text="Блокировать " + username)
-            key_authorize = KeyboardButton(text="Авторизовать " + username)
-            keyboard.row(key_block, key_authorize)
+            keyboard += [
+                KeyboardButton(text="Блокировать " + username),
+                KeyboardButton(text="Авторизовать " + username)
+            ]
+        reply_markup = ReplyKeyboardMarkup(keyboard)
+        await self.bot.send_message(chat_id, text,
+                                    reply_markup=reply_markup,
+                                    parse_mode="MarkdownV2")
 
-        self.bot.send_message(chat_id, text, reply_markup=keyboard,
-                              parse_mode="MarkdownV2")
-
-    def prompt_confirm_block(self, chat_id, user_context):
+    async def prompt_confirm_block(self, chat_id, user_context):
         """
         Asks to confirm user blocking.
         """
@@ -92,51 +92,50 @@ class UserManagement:
                     .get_user_context(user_context.user_input_data.user_id)
             )
         text = f"Заблокировать пользователя {username}?\n\n"
-        keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-        key_no = KeyboardButton(text="Нет")
-        key_yes = KeyboardButton(text="Да")
-        keyboard.row(key_no, key_yes)
-        self.bot.send_message(chat_id, text,
-                              reply_markup=keyboard)
+        keyboard = [[KeyboardButton("Нет"), KeyboardButton("Да")]]
+        reply_markup = ReplyKeyboardMarkup(keyboard)
+        await self.bot.send_message(chat_id, text,
+                                    reply_markup=reply_markup)
 
-    def prompt_assign_table(self, chat_id, user_context):
+    async def prompt_assign_table(self, chat_id, user_context):
         """
         Asks to assign a table to the user with user_context.
         """
 
-        keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
         username = user_to_text_message(
                 self.data_model
                     .users
                     .get_user_context(user_context.user_input_data.user_id)
             )
         text = f"Какую таблицу назначим для {username}?\n\n"
+        keyboard = []
         for table_name in self.data_model.workout_plans.get_table_names():
             text += " \\- " + table_name + "\n"
-            key_talbe_name = KeyboardButton(text=table_name)
-            keyboard.add(key_talbe_name)
-        self.bot.send_message(chat_id, text,
-                              reply_markup=keyboard,
-                              parse_mode="MarkdownV2")
+            key_talbe_name = [KeyboardButton(text=table_name)]
+            keyboard.append(key_talbe_name)
+        reply_markup = ReplyKeyboardMarkup(keyboard)
+        await self.bot.send_message(chat_id, text,
+                                    reply_markup=reply_markup,
+                                    parse_mode="MarkdownV2")
 
-    def prompt_add_admin(self, chat_id):
+    async def prompt_add_admin(self, chat_id):
         """
         Asks to assign administrative_permission to the user with user_context.
         """
 
         text = "Кому дать права администратора?\n"
-        keyboard = ReplyKeyboardMarkup(resize_keyboard=True,
-                                       one_time_keyboard=True)
+        keyboard = []
         users = self.data_model.users.get_potential_admins()
         for user in users:
             text += " \\- " + user_to_text_message(user) + "\n"
             username = user_to_short_text_message(user)
-            key = KeyboardButton(text=username)
-            keyboard.add(key)
-        self.bot.send_message(chat_id, text, reply_markup=keyboard,
-                              parse_mode="MarkdownV2")
+            key = [KeyboardButton(text=username)]
+            keyboard.append(key)
+        reply_markup = ReplyKeyboardMarkup(keyboard)
+        await self.bot.send_message(chat_id, text, reply_markup=reply_markup,
+                                    parse_mode="MarkdownV2")
 
-    def show_all_users(self, chat_id):
+    async def show_all_users(self, chat_id):
         """
         Shows all the users.
         """
@@ -175,18 +174,18 @@ class UserManagement:
             for user in blocked:
                 text += " \\- " + user_to_text_message(user) + "\n"
 
-        self.show_user_management_panel(chat_id, text)
+        await self.show_user_management_panel(chat_id, text)
 
-    def handle_message(self, message):
+    async def handle_message(self, update: Update):
         """
         Handles messages related to user management.
         Returns True if messsage was processed, False otherwise.
         """
 
         user_context = \
-            self.data_model.users.get_user_context(message.from_user.id)
-        chat_id = message.chat.id
-        message_text = message.text.strip().lower()
+            self.data_model.users.get_user_context(update.message.from_user.id)
+        chat_id = update.effective_chat.id
+        message_text = update.message.text.strip().lower()
 
         if user_context is None or not user_context.administrative_permission:
             return False
@@ -197,28 +196,30 @@ class UserManagement:
                 target_user_context = \
                     self.get_user_context_from_short_username(short_username)
                 if target_user_context is None:
-                    self.bot.send_message(chat_id, "Нет такого пользователя.")
-                    self.show_user_management_panel(chat_id)
+                    await self.bot.send_message(chat_id,
+                                                "Нет такого пользователя.")
+                    await self.show_user_management_panel(chat_id)
                     return True
                 user_context.action = UserAction.ADMIN_USER_BLOCKING
                 user_context.user_input_data = \
                     BlockUserContext(target_user_context.user_id)
                 self.data_model.users.set_user_context(user_context)
-                self.prompt_confirm_block(chat_id, user_context)
+                await self.prompt_confirm_block(chat_id, user_context)
                 return True
             if message_text.startswith("авторизовать "):
                 short_username = message_text[13:]
                 target_user_context = \
                     self.get_user_context_from_short_username(short_username)
                 if target_user_context is None:
-                    self.bot.send_message(chat_id, "Нет такого пользователя.")
-                    self.show_user_management_panel(chat_id)
+                    await self.bot.send_message(chat_id,
+                                                "Нет такого пользователя.")
+                    await self.show_user_management_panel(chat_id)
                     return True
                 user_context.action = UserAction.ADMIN_USER_ASSIGNING_TABLE
                 user_context.user_input_data = \
                     AssignTableUserContext(target_user_context.user_id)
                 self.data_model.users.set_user_context(user_context)
-                self.prompt_assign_table(chat_id, user_context)
+                await self.prompt_assign_table(chat_id, user_context)
                 return True
 
         if user_context.action == UserAction.ADMIN_USER_BLOCKING:
@@ -232,20 +233,21 @@ class UserManagement:
                 user_context.action = UserAction.ADMIN_USER_MANAGEMENT
                 user_context.user_input_data = None
                 self.data_model.users.set_user_context(user_context)
-                self.bot.send_message(chat_id,
-                                      f"{target_username} заблокрирован.")
-                self.show_user_management_panel(chat_id)
+                await self.bot \
+                    .send_message(chat_id,
+                                  f"{target_username} заблокрирован.")
+                await self.show_user_management_panel(chat_id)
             elif message_text == "нет":
                 user_context.action = UserAction.ADMIN_USER_MANAGEMENT
                 user_context.user_input_data = None
                 self.data_model.users.set_user_context(user_context)
-                self.show_user_management_panel(chat_id)
+                await self.show_user_management_panel(chat_id)
             else:
-                self.prompt_confirm_block(chat_id, user_context)
+                await self.prompt_confirm_block(chat_id, user_context)
             return True
 
         if user_context.action == UserAction.ADMIN_USER_ASSIGNING_TABLE:
-            table_name = message.text
+            table_name = update.message.text
             if table_name in self.data_model.workout_plans.get_table_names():
                 target_user_id = user_context.user_input_data.user_id
                 table_id = self.data_model \
@@ -257,9 +259,9 @@ class UserManagement:
                 user_context.action = UserAction.ADMIN_USER_MANAGEMENT
                 user_context.user_input_data = None
                 self.data_model.users.set_user_context(user_context)
-                self.show_user_management_panel(chat_id)
+                await self.show_user_management_panel(chat_id)
             else:
-                self.prompt_assign_table(chat_id, user_context)
+                await self.prompt_assign_table(chat_id, user_context)
             return True
 
         if user_context.action == UserAction.ADMIN_ADDING_ADMIN:
@@ -269,7 +271,8 @@ class UserManagement:
                 self.data_model.users\
                     .set_user_action(user_context.user_id,
                                      UserAction.ADMIN_USER_MANAGEMENT)
-                self.show_user_management_panel(chat_id,
+                await self \
+                    .show_user_management_panel(chat_id,
                                                 text="Нет такого пользователя")
                 return True
             self.data_model \
@@ -277,7 +280,7 @@ class UserManagement:
             user_context.action = UserAction.ADMIN_USER_MANAGEMENT
             user_context.user_input_data = None
             self.data_model.users.set_user_context(user_context)
-            self.show_user_management_panel(chat_id)
+            await self.show_user_management_panel(chat_id)
             return True
 
         if user_context.action == UserAction.ADMIN_USER_MANAGEMENT:
@@ -285,18 +288,18 @@ class UserManagement:
                 self.data_model.users \
                     .set_user_action(user_context.user_id,
                                      UserAction.ADMIN_USER_AUTHORIZATION)
-                self.show_user_authorization(chat_id, user_context)
+                await self.show_user_authorization(chat_id, user_context)
                 return True
 
             if message_text == "показать всех":
-                self.show_all_users(chat_id)
+                await self.show_all_users(chat_id)
                 return True
 
             if message_text == "добавить администратора":
                 self.data_model.users \
                     .set_user_action(user_context.user_id,
                                      UserAction.ADMIN_ADDING_ADMIN)
-                self.prompt_add_admin(chat_id)
+                await self.prompt_add_admin(chat_id)
                 return True
 
             if message_text == "администрирование":

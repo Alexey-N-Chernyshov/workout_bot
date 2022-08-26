@@ -18,6 +18,7 @@ class ExcerciseLinks:
         self.table_id = table_id
         self.pagename = pagename
         self.feeder = feeder
+        self.excercise_links = {}
 
     def load_excercise_links(self):
         """

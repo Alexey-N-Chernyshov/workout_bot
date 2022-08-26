@@ -10,6 +10,10 @@ from .training_management import TrainingManagement
 
 
 class Controllers:
+    """
+    One place of all controllers used in the bot.
+    """
+
     def __init__(self, bot, data_model):
         self.administration = Administration(bot, data_model)
         self.authorization = Authorization(bot, data_model)

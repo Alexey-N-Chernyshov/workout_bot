@@ -2,7 +2,8 @@
 Provides user interaction for administation process.
 """
 
-from telebot.types import KeyboardButton, ReplyKeyboardMarkup
+from telegram import Update
+from telegram import KeyboardButton, ReplyKeyboardMarkup
 from data_model.users import UserAction
 
 
@@ -15,33 +16,30 @@ class Administration:
         self.bot = bot
         self.data_model = data_model
 
-    def show_admin_panel(self, chat_id, user_context):
+    async def show_admin_panel(self, chat_id, user_context):
         """
         Shows administation panel.
         """
 
         if user_context.administrative_permission:
-            keyboard = ReplyKeyboardMarkup(resize_keyboard=True,
-                                           one_time_keyboard=True)
-            key_user_management = KeyboardButton(
-                text="Управление пользователями")
-            keyboard.add(key_user_management)
-            key_table_management = KeyboardButton(text="Управление таблицами")
-            keyboard.add(key_table_management)
-            key_training = KeyboardButton(text='Перейти к тренировкам')
-            keyboard.add(key_training)
-            self.bot.send_message(chat_id, "Администрирование",
-                                  reply_markup=keyboard,
-                                  parse_mode="MarkdownV2")
+            keyboard = [
+                [KeyboardButton("Управление пользователями")],
+                [KeyboardButton("Управление таблицами")],
+                [KeyboardButton("Перейти к тренировкам")]
+            ]
+            reply_markup = ReplyKeyboardMarkup(keyboard)
+            await self.bot.send_message(chat_id, "Администрирование",
+                                        reply_markup=reply_markup,
+                                        parse_mode="MarkdownV2")
 
-    def handle_message(self, message):
+    async def handle_message(self, update: Update):
         """
         Handles text messages related to administration.
         """
 
         user_context = \
-            self.data_model.users.get_user_context(message.from_user.id)
-        message_text = message.text.strip().lower()
+            self.data_model.users.get_user_context(update.message.from_user.id)
+        message_text = update.message.text.strip().lower()
 
         if user_context is None or not user_context.administrative_permission:
             return False
@@ -52,7 +50,7 @@ class Administration:
                 # return to above menu
                 return False
 
-            self.show_admin_panel(message.chat.id, user_context)
+            await self.show_admin_panel(update.effective_chat.id, user_context)
             return True
 
         return False
