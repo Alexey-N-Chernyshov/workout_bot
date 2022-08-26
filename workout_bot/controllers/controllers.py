@@ -2,6 +2,7 @@
 All controllers for telegram bot interaction.
 """
 
+from dataclasses import dataclass
 from .administration import Administration
 from .authorization import Authorization
 from .table_management import TableManagement
@@ -9,6 +10,7 @@ from .user_management import UserManagement
 from .training_management import TrainingManagement
 
 
+@dataclass
 class Controllers:
     """
     One place of all controllers used in the bot.
