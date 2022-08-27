@@ -29,7 +29,7 @@ class Authorization:
             return True
 
         if self.data_model.users.is_user_blocked(user_id):
-            await self.bot.send_message(chat_id, "Вы заблокированы.")
+            await self.bot.send_message(chat_id, "Вы заблокированы")
             return True
 
         if self.data_model.users.is_user_awaiting_authorization(user_id):
