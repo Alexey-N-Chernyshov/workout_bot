@@ -144,8 +144,8 @@ class TelegramBot:
             return
 
         if (user_context.action in (UserAction.TRAINING,
-                                            UserAction.ADMINISTRATION,
-                                            UserAction.ADMIN_TABLE_MANAGEMENT)
+                                    UserAction.ADMINISTRATION,
+                                    UserAction.ADMIN_TABLE_MANAGEMENT)
                 and message_text == "перейти к тренировкам"):
             if (user_context.current_table_id is None
                     or user_context.current_page is None):
