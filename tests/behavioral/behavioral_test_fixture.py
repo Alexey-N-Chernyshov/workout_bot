@@ -2,7 +2,6 @@
 Infrastructure and mocks for behavioral tests.
 """
 
-import asyncio
 import os
 from dataclasses import dataclass
 from telegram.ext import CommandHandler, MessageHandler
@@ -133,7 +132,7 @@ class UserMock:
         self.chat_with_bot = ChatMock(self.chat_id)
         self.user = TelegramUserMock(user_id, first_name, last_name, username)
 
-    def send_message(self, text):
+    async def send_message(self, text):
         """
         The user sends message to the bot private chat.
         """
@@ -142,16 +141,11 @@ class UserMock:
         update = UpdateMock(self.chat_with_bot, message)
         context = ContextTypeMock()
 
-        async def async_send():
-            if text.startswith('/'):
-                await self.application \
-                    .command_handlers[text[1:]](update, context)
-            else:
-                await self.application.message_handler(update, context)
-
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(async_send())
-        loop.close()
+        if text.startswith('/'):
+            await self.application \
+                .command_handlers[text[1:]](update, context)
+        else:
+            await self.application.message_handler(update, context)
 
     def expect_answer(self, expected_text):
         """
@@ -218,7 +212,7 @@ class BehavioralTest:
         self.user_counter = 1
         self.users = []
 
-    def add_user(self, first_name, last_name, user_name):
+    def add_user(self, first_name="", last_name="", user_name=""):
         """
         Adds user to the test and returns UserMock.
         """

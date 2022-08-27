@@ -60,15 +60,12 @@ class TelegramBot:
         user_context.current_week = None
         user_context.current_workout = None
 
-        print(user_context)
-        print(user_context.action == UserAction.AWAITING_AUTHORIZATION)
         if not (self.data_model.users
                 .is_user_awaiting_authorization(user_context.user_id)
                 or self.data_model.users
                 .is_user_blocked(user_context.user_id)):
             user_context.action = UserAction.CHOOSING_PLAN
 
-        print(user_context)
         self.data_model.users.set_user_context(user_context)
         await self.handle_message(update, context)
 
@@ -108,13 +105,12 @@ class TelegramBot:
                 .authorization.handle_message(update):
             return
 
-        user_context = \
-            self.data_model.users.get_user_context(update.message.from_user.id)
+        user_context = self.data_model \
+            .users.get_or_create_user_context(update.message.from_user.id)
         message_text = update.message.text.strip().lower()
 
         # change state actions
-        if (user_context is not None
-                and user_context.administrative_permission
+        if (user_context.administrative_permission
                 and user_context.action in (UserAction.TRAINING,
                                             UserAction.ADMINISTRATION)
                 and message_text == "управление таблицами"):
@@ -125,8 +121,7 @@ class TelegramBot:
                 .show_table_management_panel(update.effective_chat.id)
             return
 
-        if (user_context is not None
-                and user_context.administrative_permission
+        if (user_context.administrative_permission
                 and user_context.action in (UserAction.TRAINING,
                                             UserAction.ADMINISTRATION)
                 and message_text == "управление пользователями"):
@@ -137,8 +132,7 @@ class TelegramBot:
                 .show_user_management_panel(update.effective_chat.id)
             return
 
-        if (user_context is not None
-                and user_context.administrative_permission
+        if (user_context.administrative_permission
                 and user_context.action in (UserAction.ADMIN_USER_MANAGEMENT,
                                             UserAction.ADMIN_TABLE_MANAGEMENT,
                                             UserAction.TRAINING)
@@ -149,10 +143,9 @@ class TelegramBot:
                 .show_admin_panel(update.effective_chat.id, user_context)
             return
 
-        if (user_context is not None
-                and user_context.action in (UserAction.TRAINING,
-                                            UserAction.ADMINISTRATION,
-                                            UserAction.ADMIN_TABLE_MANAGEMENT)
+        if (user_context.action in (UserAction.TRAINING,
+                                    UserAction.ADMINISTRATION,
+                                    UserAction.ADMIN_TABLE_MANAGEMENT)
                 and message_text == "перейти к тренировкам"):
             if (user_context.current_table_id is None
                     or user_context.current_page is None):

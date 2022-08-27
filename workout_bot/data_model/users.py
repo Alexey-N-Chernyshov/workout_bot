@@ -180,20 +180,16 @@ class Users:
         If user is present and user action status is AWAITING_AUTHORIZATION.
         """
 
-        user_context = self.get_user_context(user_id)
-        if user_context is not None:
-            return user_context.action == UserAction.AWAITING_AUTHORIZATION
-        return False
+        user_context = self.get_or_create_user_context(user_id)
+        return user_context.action == UserAction.AWAITING_AUTHORIZATION
 
     def is_user_blocked(self, user_id):
         """
         If user is present and user action status is BLOCKED.
         """
 
-        user_context = self.get_user_context(user_id)
-        if user_context is not None:
-            return user_context.action == UserAction.BLOCKED
-        return False
+        user_context = self.get_or_create_user_context(user_id)
+        return user_context.action == UserAction.BLOCKED
 
     def set_table_for_user(self, user_id, table_id):
         """
