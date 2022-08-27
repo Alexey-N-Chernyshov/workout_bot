@@ -60,15 +60,12 @@ class TelegramBot:
         user_context.current_week = None
         user_context.current_workout = None
 
-        print(user_context)
-        print(user_context.action == UserAction.AWAITING_AUTHORIZATION)
         if not (self.data_model.users
                 .is_user_awaiting_authorization(user_context.user_id)
                 or self.data_model.users
                 .is_user_blocked(user_context.user_id)):
             user_context.action = UserAction.CHOOSING_PLAN
 
-        print(user_context)
         self.data_model.users.set_user_context(user_context)
         await self.handle_message(update, context)
 
