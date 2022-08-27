@@ -88,6 +88,7 @@ class BotMock:
         """
         Returns a message sent by the bot in the chat with chat_id.
         """
+
         if chat_id in self.chats and self.chats[chat_id]:
             return self.chats[chat_id].pop()
         return None
