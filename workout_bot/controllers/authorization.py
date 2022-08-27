@@ -22,12 +22,6 @@ class Authorization:
         user_id = update.message.from_user.id
         chat_id = update.effective_chat.id
 
-        if self.data_model.users.get_user_context(user_id) is None:
-            text = "Вы не авторизованы.\n"
-            text += "Нажмите /start"
-            await self.bot.send_message(chat_id, text)
-            return True
-
         if self.data_model.users.is_user_blocked(user_id):
             await self.bot.send_message(chat_id, "Вы заблокированы.")
             return True

@@ -105,13 +105,12 @@ class TelegramBot:
                 .authorization.handle_message(update):
             return
 
-        user_context = \
-            self.data_model.users.get_user_context(update.message.from_user.id)
+        user_context = self.data_model \
+            .users.get_or_create_user_context(update.message.from_user.id)
         message_text = update.message.text.strip().lower()
 
         # change state actions
-        if (user_context is not None
-                and user_context.administrative_permission
+        if (user_context.administrative_permission
                 and user_context.action in (UserAction.TRAINING,
                                             UserAction.ADMINISTRATION)
                 and message_text == "управление таблицами"):
@@ -122,8 +121,7 @@ class TelegramBot:
                 .show_table_management_panel(update.effective_chat.id)
             return
 
-        if (user_context is not None
-                and user_context.administrative_permission
+        if (user_context.administrative_permission
                 and user_context.action in (UserAction.TRAINING,
                                             UserAction.ADMINISTRATION)
                 and message_text == "управление пользователями"):
@@ -134,8 +132,7 @@ class TelegramBot:
                 .show_user_management_panel(update.effective_chat.id)
             return
 
-        if (user_context is not None
-                and user_context.administrative_permission
+        if (user_context.administrative_permission
                 and user_context.action in (UserAction.ADMIN_USER_MANAGEMENT,
                                             UserAction.ADMIN_TABLE_MANAGEMENT,
                                             UserAction.TRAINING)
@@ -146,8 +143,7 @@ class TelegramBot:
                 .show_admin_panel(update.effective_chat.id, user_context)
             return
 
-        if (user_context is not None
-                and user_context.action in (UserAction.TRAINING,
+        if (user_context.action in (UserAction.TRAINING,
                                             UserAction.ADMINISTRATION,
                                             UserAction.ADMIN_TABLE_MANAGEMENT)
                 and message_text == "перейти к тренировкам"):
