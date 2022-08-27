@@ -2,6 +2,7 @@
 Tests related to user authorization.
 """
 
+
 def test_unauthorized(behavioral_test_fixture):
     """
     Given: Alice not authorized.

@@ -41,7 +41,8 @@ def test_set_to_text_message():
     excercise1 = Excercise("squats", "15 times")
     excercise2 = Excercise("plank", "1 minute")
     excercise3 = Excercise("stretching")
-    workout_set = Set("take a rest", 1, [excercise1, excercise2, excercise3], 3)
+    workout_set = Set("take a rest", 1,
+                      [excercise1, excercise2, excercise3], 3)
     expected = (
         "\nСет 1, количество раундов: 3\n"
         "take a rest\n"

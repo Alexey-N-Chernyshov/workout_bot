@@ -25,7 +25,8 @@ def test_user_to_message():
 
 def test_user_to_message_only_id():
     """
-    Test text representation of user without first name, last name and user name.
+    Test text representation of user without first name, last name and user
+    name.
     """
     user = UserContext(user_id=42)
 
