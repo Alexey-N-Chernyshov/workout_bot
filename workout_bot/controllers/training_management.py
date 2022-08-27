@@ -157,7 +157,7 @@ class TrainingManagement:
         if user_context.action == UserAction.TRAINING:
             if (user_context.current_table_id is None
                     or user_context.current_page is None):
-                await self.data_model \
+                self.data_model \
                     .users.set_user_action(user_id, UserAction.CHOOSING_PLAN)
             if (message_text in ("выбрать программу", "сменить программу",
                                  "поменять программу")):

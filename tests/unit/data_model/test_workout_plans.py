@@ -1,8 +1,17 @@
+"""
+Tests for workout plans data model.
+"""
+
 from workout_bot.data_model.workout_plans import WorkoutPlans
 from workout_bot.data_model.workout_plans import WorkoutTable
 
 
-def test_():
+def test_workout_table_ids():
+    """
+    is_table_id_present returns True when table id is present and False
+    otherwise.
+    """
+
     table = WorkoutTable("table_id", "table_name", {})
     workout_plans = WorkoutPlans()
     workout_plans.update_workout_table(table)
@@ -12,6 +21,10 @@ def test_():
 
 
 def test_workout_plans_not_found():
+    """
+    Retruns empty list when there is no table with table id.
+    """
+
     workout_plans = WorkoutPlans()
 
     plans = workout_plans.get_plan_names("not_present")
@@ -20,6 +33,10 @@ def test_workout_plans_not_found():
 
 
 def test_workout_plans_found():
+    """
+    Returns plans for table with table id if present.
+    """
+
     table = WorkoutTable("table_id", "table_name", {"page1": [], "page2": []})
     workout_plans = WorkoutPlans()
     workout_plans.update_workout_table(table)

@@ -72,10 +72,10 @@ class UserManagement:
         for user in users_in_line:
             text += " \\- " + user_to_text_message(user) + "\n"
             username = user_to_short_text_message(user)
-            keyboard += [
+            keyboard.append([
                 KeyboardButton(text="Блокировать " + username),
                 KeyboardButton(text="Авторизовать " + username)
-            ]
+            ])
         reply_markup = ReplyKeyboardMarkup(keyboard)
         await self.bot.send_message(chat_id, text,
                                     reply_markup=reply_markup,
@@ -192,7 +192,7 @@ class UserManagement:
 
         if user_context.action == UserAction.ADMIN_USER_AUTHORIZATION:
             if message_text.startswith("блокировать "):
-                short_username = message_text[12:]
+                short_username = update.message.text.strip()[12:]
                 target_user_context = \
                     self.get_user_context_from_short_username(short_username)
                 if target_user_context is None:
@@ -207,7 +207,7 @@ class UserManagement:
                 await self.prompt_confirm_block(chat_id, user_context)
                 return True
             if message_text.startswith("авторизовать "):
-                short_username = message_text[13:]
+                short_username = update.message.text.strip()[13:]
                 target_user_context = \
                     self.get_user_context_from_short_username(short_username)
                 if target_user_context is None:
@@ -265,8 +265,9 @@ class UserManagement:
             return True
 
         if user_context.action == UserAction.ADMIN_ADDING_ADMIN:
-            new_admin = \
-                self.get_user_context_from_short_username(message_text)
+            new_admin = self.get_user_context_from_short_username(
+                update.message.text.strip()
+            )
             if new_admin is None:
                 self.data_model.users\
                     .set_user_action(user_context.user_id,
