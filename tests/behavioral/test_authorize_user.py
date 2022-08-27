@@ -38,7 +38,7 @@ async def test_blocked(behavioral_test_fixture):
     await alice.send_message("hello")
 
     # she gets message she is blocked
-    alice.expect_answer("Вы заблокированы")
+    alice.expect_answer("Вы заблокированы.")
     alice.expect_no_more_answers()
     behavioral_test_fixture.data_model.users.is_user_blocked(alice.user.id)
 
@@ -58,6 +58,6 @@ async def test_blocked_start(behavioral_test_fixture):
     await alice.send_message("\\start")
 
     # she gets message she is blocked
-    alice.expect_answer("Вы заблокированы")
+    alice.expect_answer("Вы заблокированы.")
     alice.expect_no_more_answers()
     behavioral_test_fixture.data_model.users.is_user_blocked(alice.user.id)
