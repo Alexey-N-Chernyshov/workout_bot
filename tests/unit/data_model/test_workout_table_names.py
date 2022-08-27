@@ -1,9 +1,19 @@
+"""
+Tests for workout talbe names data model.
+"""
+
 from workout_bot.data_model.workout_table_names import WorkoutTableNames
 from .utils import delete_file
 
 
+STORAGE = "storage"
+
+
 def test_persistence_when_new_item_added():
-    STORAGE = "storage"
+    """
+    Test persistence storage allows add items.
+    """
+
     delete_file(STORAGE)
 
     tables = WorkoutTableNames(STORAGE)
@@ -37,7 +47,10 @@ def test_persistence_when_new_item_added():
 
 
 def test_persistence_when_item_deleted():
-    STORAGE = "storage"
+    """
+    Test persistence storage allows remove items.
+    """
+
     delete_file(STORAGE)
 
     tables = WorkoutTableNames(STORAGE)
@@ -69,7 +82,10 @@ def test_persistence_when_item_deleted():
 
 
 def test_table_deleted_when_all_pages_deleted():
-    STORAGE = "storage"
+    """
+    Test that table is deleted when there is no more pages left.
+    """
+
     delete_file(STORAGE)
 
     tables = WorkoutTableNames(STORAGE)

@@ -1,3 +1,7 @@
+"""
+Tests for user data model.
+"""
+
 from workout_bot.data_model.users import Users, UserAction, UserContext
 from workout_bot.data_model.users import AddTableContext
 from .utils import delete_file
@@ -6,6 +10,11 @@ STORAGE = "storage"
 
 
 def test_get_users_awaiting_authorization():
+    """
+    get_users_awaiting_authorization returns only users with status
+    AWAITING_AUTHORIZATION
+    """
+
     users = Users(STORAGE)
     alice = UserContext(user_id=1, action=UserAction.AWAITING_AUTHORIZATION)
     users.set_user_context(alice)
@@ -21,6 +30,10 @@ def test_get_users_awaiting_authorization():
 
 
 def test_user_context_persistent_storage():
+    """
+    Users data model provides persistent storage.
+    """
+
     delete_file(STORAGE)
 
     users = Users(STORAGE)
@@ -32,7 +45,7 @@ def test_user_context_persistent_storage():
     users.set_user_context(user_context)
     actual = users.get_user_context(user_id)
     assert actual.user_id == user_id
-    assert type(actual.user_input_data) is AddTableContext
+    assert isinstance(actual.user_input_data, AddTableContext)
     assert actual.user_input_data.table_id == "table_id"
     assert len(actual.user_input_data.pages) == 2
     assert "page1" in actual.user_input_data.pages
@@ -46,7 +59,7 @@ def test_user_context_persistent_storage():
     users = Users(STORAGE)
     actual = users.get_user_context(user_id)
     assert actual.user_id == user_id
-    assert type(actual.user_input_data) is AddTableContext
+    assert isinstance(actual.user_input_data, AddTableContext)
     assert actual.user_input_data.table_id == "table_id"
     assert len(actual.user_input_data.pages) == 2
     assert "page1" in actual.user_input_data.pages
