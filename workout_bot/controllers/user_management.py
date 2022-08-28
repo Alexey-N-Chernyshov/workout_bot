@@ -47,7 +47,7 @@ class UserManagement:
             [KeyboardButton("Добавить администратора")],
             [KeyboardButton("Администрирование")],
         ]
-        reply_markup = ReplyKeyboardMarkup(keyboard)
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await self.bot.send_message(chat_id, text,
                                     reply_markup=reply_markup,
                                     parse_mode="MarkdownV2")
@@ -76,7 +76,7 @@ class UserManagement:
                 KeyboardButton(text="Блокировать " + username),
                 KeyboardButton(text="Авторизовать " + username)
             ])
-        reply_markup = ReplyKeyboardMarkup(keyboard)
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await self.bot.send_message(chat_id, text,
                                     reply_markup=reply_markup,
                                     parse_mode="MarkdownV2")
@@ -93,7 +93,7 @@ class UserManagement:
             )
         text = f"Заблокировать пользователя {username}?\n\n"
         keyboard = [[KeyboardButton("Нет"), KeyboardButton("Да")]]
-        reply_markup = ReplyKeyboardMarkup(keyboard)
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await self.bot.send_message(chat_id, text,
                                     reply_markup=reply_markup)
 
@@ -113,7 +113,7 @@ class UserManagement:
             text += " \\- " + table_name + "\n"
             key_talbe_name = [KeyboardButton(text=table_name)]
             keyboard.append(key_talbe_name)
-        reply_markup = ReplyKeyboardMarkup(keyboard)
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await self.bot.send_message(chat_id, text,
                                     reply_markup=reply_markup,
                                     parse_mode="MarkdownV2")
@@ -131,7 +131,7 @@ class UserManagement:
             username = user_to_short_text_message(user)
             key = [KeyboardButton(text=username)]
             keyboard.append(key)
-        reply_markup = ReplyKeyboardMarkup(keyboard)
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await self.bot.send_message(chat_id, text, reply_markup=reply_markup,
                                     parse_mode="MarkdownV2")
 
