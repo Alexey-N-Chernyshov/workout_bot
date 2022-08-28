@@ -27,7 +27,7 @@ class Administration:
                 [KeyboardButton("Управление таблицами")],
                 [KeyboardButton("Перейти к тренировкам")]
             ]
-            reply_markup = ReplyKeyboardMarkup(keyboard)
+            reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
             await self.bot.send_message(chat_id, "Администрирование",
                                         reply_markup=reply_markup,
                                         parse_mode="MarkdownV2")

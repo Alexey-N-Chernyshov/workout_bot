@@ -28,7 +28,7 @@ class TrainingManagement:
         if user_context.administrative_permission:
             key_admin = [KeyboardButton("Администрирование")]
             keyboard.append(key_admin)
-        reply_markup = ReplyKeyboardMarkup(keyboard)
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await self.bot.send_message(chat_id,
                                     message,
                                     disable_web_page_preview=True,
@@ -55,7 +55,7 @@ class TrainingManagement:
             for plan in plans:
                 text += '\n - ' + plan
                 keyboard.append([KeyboardButton(plan)])
-            reply_markup = ReplyKeyboardMarkup(keyboard)
+            reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
             await self.bot.send_message(chat_id, text,
                                         reply_markup=reply_markup)
         else:
@@ -131,7 +131,7 @@ class TrainingManagement:
             [KeyboardButton("Следующая тренировка")],
             [KeyboardButton("Перейти к тренировкам")],
         ]
-        reply_markup = ReplyKeyboardMarkup(keyboard)
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await self.bot.send_message(chat_id,
                                     "Доступные действия:",
                                     reply_markup=reply_markup,

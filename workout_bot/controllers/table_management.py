@@ -34,7 +34,7 @@ class TableManagement:
             [KeyboardButton("Прочитать таблицы")],
             [KeyboardButton("Администрирование")]
         ]
-        reply_markup = ReplyKeyboardMarkup(keyboard)
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
         await self.bot.send_message(chat_id, text, reply_markup=reply_markup,
                                     parse_mode="MarkdownV2")
@@ -58,7 +58,7 @@ class TableManagement:
                                       user_context.user_input_data.table_id)
 
         keyboard = [[KeyboardButton("Готово")]]
-        reply_markup = ReplyKeyboardMarkup(keyboard)
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
         await self.bot.send_message(chat_id, text, reply_markup=reply_markup,
                                     parse_mode="MarkdownV2")
