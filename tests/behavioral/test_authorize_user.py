@@ -93,8 +93,6 @@ async def test_admin_authorizes_usesr(behavioral_test_fixture):
 
     # Alice starts the bot
     await alice.send_message("/start")
-    print(behavioral_test_fixture.data_model \
-        .users.get_user_context(alice.user.id))
     alice.expect_answer("Ожидайте подтверждения авторизации")
     alice.expect_no_more_answers()
 

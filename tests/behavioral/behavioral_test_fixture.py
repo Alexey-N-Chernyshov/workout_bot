@@ -130,7 +130,8 @@ class UserMock:
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, application, data_model, user_id, first_name, last_name, username):
+    def __init__(self, application, data_model, user_id,
+                 first_name, last_name, username):
         self.application = application
         self.data_model = data_model
         self.bot = application.bot
@@ -179,6 +180,7 @@ class UserMock:
             .users.get_user_context(self.user.id).action
 
         assert actual_action == expected_action
+
 
 class DataModelMock:
     """
