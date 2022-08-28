@@ -2,33 +2,38 @@
 Provides user interaction for authorization process.
 """
 
-from telegram import Update
 
-
-class Authorization:
+def handle_blocked():
     """
-    Prvides user interaction methods for authorization.
+    Shows blocking message for blocked users.
     """
 
-    def __init__(self, bot, data_model):
-        self.bot = bot
-        self.data_model = data_model
+    def handler_filter(data_model, update):
+        return data_model.users.is_user_blocked(update.message.from_user.id)
 
-    async def handle_message(self, update: Update):
-        """
-        Handles text messages from user.
-        """
+    async def handler(_data_model, update, context):
+        await context.bot.send_message(update.effective_chat.id,
+                                       "Вы заблокированы.")
+        return True
 
-        user_id = update.message.from_user.id
-        chat_id = update.effective_chat.id
+    return (handler_filter, handler)
 
-        if self.data_model.users.is_user_blocked(user_id):
-            await self.bot.send_message(chat_id, "Вы заблокированы.")
-            return True
 
-        if self.data_model.users.is_user_awaiting_authorization(user_id):
-            await self.bot.send_message(chat_id,
-                                        "Ожидайте подтверждения авторизации")
-            return True
+def handle_unauthorized():
+    """
+    Asks unathorized users wait for authorization.
+    """
 
-        return False
+    def handler_filter(data_model, update):
+        return data_model.users \
+            .is_user_awaiting_authorization(update.message.from_user.id)
+
+    async def handler(_data_model, update, context):
+        await context.bot.send_message(update.effective_chat.id,
+                                       "Ожидайте подтверждения авторизации")
+        return True
+
+    return (handler_filter, handler)
+
+
+authorization_handlers = [handle_blocked(), handle_unauthorized()]

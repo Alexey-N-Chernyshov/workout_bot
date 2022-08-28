@@ -65,6 +65,9 @@ class ContextTypeMock:
     Class used by python-telegram-bot.
     """
 
+    def __init__(self, bot):
+        self.bot = bot
+
 
 class BotMock:
     """
@@ -139,7 +142,7 @@ class UserMock:
 
         message = MessageMock(text, self.user, self.chat_with_bot)
         update = UpdateMock(self.chat_with_bot, message)
-        context = ContextTypeMock()
+        context = ContextTypeMock(self.bot)
 
         if text.startswith('/'):
             await self.application \

@@ -94,15 +94,14 @@ class TelegramBot:
         await self.bot.send_message(update.effective_chat.id, text)
 
     async def handle_message(self, update: Update,
-                             _context: ContextTypes.DEFAULT_TYPE):
+                             context: ContextTypes.DEFAULT_TYPE):
         """
         Handles all text messages.
         """
 
         self.data_model.statistics.record_request()
 
-        if await self.controllers \
-                .authorization.handle_message(update):
+        if await self.controllers.handle(self.data_model, update, context):
             return
 
         user_context = self.data_model \
