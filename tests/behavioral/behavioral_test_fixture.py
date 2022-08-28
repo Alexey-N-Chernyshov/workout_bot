@@ -83,6 +83,9 @@ class BotMock:
         Method is called by the bot, stores text message to compare.
         """
 
+        del reply_markup
+        del parse_mode
+
         if chat_id not in self.chats:
             self.chats[chat_id] = []
 
