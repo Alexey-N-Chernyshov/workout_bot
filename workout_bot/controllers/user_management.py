@@ -256,6 +256,13 @@ class UserManagement:
                                                          table_id)
                 self.data_model.users.set_user_action(target_user_id,
                                                       UserAction.CHOOSING_PLAN)
+                # notify target user
+                target_user_context = self.data_model \
+                    .users.get_user_context(target_user_id)
+                await self.bot \
+                    .send_message(target_user_context.chat_id,
+                                  f'Назначена таблица "{table_name}"')
+
                 user_context.action = UserAction.ADMIN_USER_MANAGEMENT
                 user_context.user_input_data = None
                 self.data_model.users.set_user_context(user_context)

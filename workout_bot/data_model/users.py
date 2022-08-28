@@ -10,7 +10,7 @@ from typing import Optional
 from typing import List
 
 
-class UserAction(enum.Enum):
+class UserAction(enum.IntEnum):
     """
     Current user state. What the user is doing right now.
     """

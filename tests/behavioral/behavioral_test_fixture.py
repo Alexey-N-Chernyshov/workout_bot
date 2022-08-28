@@ -8,6 +8,7 @@ from telegram.ext import CommandHandler, MessageHandler
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
 from workout_bot.data_model.statistics import Statistics
 from workout_bot.data_model.users import Users
+from workout_bot.data_model.workout_plans import WorkoutPlans
 
 
 @dataclass
@@ -76,7 +77,8 @@ class BotMock:
 
     chats = {}
 
-    async def send_message(self, chat_id, text):
+    async def send_message(self, chat_id, text,
+                           reply_markup=None, parse_mode=None):
         """
         Method is called by the bot, stores text message to compare.
         """
@@ -128,11 +130,11 @@ class UserMock:
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, application, user_id, first_name, last_name, username):
+    def __init__(self, application, data_model, user_id, first_name, last_name, username):
         self.application = application
+        self.data_model = data_model
         self.bot = application.bot
-        self.chat_id = user_id
-        self.chat_with_bot = ChatMock(self.chat_id)
+        self.chat_with_bot = ChatMock(user_id)
         self.user = TelegramUserMock(user_id, first_name, last_name, username)
 
     async def send_message(self, text):
@@ -155,7 +157,7 @@ class UserMock:
         The user expects answer from the bot.
         """
 
-        actual = self.bot.get_message(self.chat_id)
+        actual = self.bot.get_message(self.chat_with_bot.id)
 
         assert actual == expected_text
 
@@ -164,10 +166,19 @@ class UserMock:
         Ensures there is no more messages from the bot.
         """
 
-        actual = self.bot.get_message(self.chat_id)
+        actual = self.bot.get_message(self.chat_with_bot.id)
 
         assert actual is None
 
+    def assert_user_action(self, expected_action):
+        """
+        Asserts that user action is expected one in data model.
+        """
+
+        actual_action = self.data_model \
+            .users.get_user_context(self.user.id).action
+
+        assert actual_action == expected_action
 
 class DataModelMock:
     """
@@ -193,6 +204,7 @@ class DataModelMock:
 
         self.statistics = Statistics()
         self.users = Users(self.USERS_STORAGE)
+        self.workout_plans = WorkoutPlans()
 
     def cleanup(self):
         """
@@ -215,20 +227,20 @@ class BehavioralTest:
         self.user_counter = 1
         self.users = []
 
-    def add_user(self, first_name="", last_name="", user_name=""):
-        """
-        Adds user to the test and returns UserMock.
-        """
-
-        user = UserMock(self.application, self.user_counter, first_name,
-                        last_name, user_name)
-        self.user_counter += 1
-        self.users.append(user)
-        return user
-
     def teardown(self):
         """
         Tear down the fixture.
         """
 
         self.data_model.cleanup()
+
+    def add_user(self, first_name="", last_name="", user_name=""):
+        """
+        Adds user to the test and returns UserMock.
+        """
+
+        user = UserMock(self.application, self.data_model, self.user_counter,
+                        first_name, last_name, user_name)
+        self.user_counter += 1
+        self.users.append(user)
+        return user
