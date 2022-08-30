@@ -2,9 +2,7 @@
 Tests related to user authorization.
 """
 
-
 from workout_bot.data_model.users import UserAction
-from workout_bot.data_model.workout_plans import WorkoutTable
 
 
 async def test_unauthorized(behavioral_test_fixture):
@@ -23,8 +21,7 @@ async def test_unauthorized(behavioral_test_fixture):
     # she gets an answer about authorization
     alice.expect_answer("Ожидайте подтверждения авторизации")
     alice.expect_no_more_answers()
-    behavioral_test_fixture.data_model \
-        .users.is_user_awaiting_authorization(alice.user.id)
+    alice.assert_user_action(UserAction.AWAITING_AUTHORIZATION)
 
 
 async def test_blocked(behavioral_test_fixture):
@@ -44,7 +41,7 @@ async def test_blocked(behavioral_test_fixture):
     # she gets message she is blocked
     alice.expect_answer("Вы заблокированы.")
     alice.expect_no_more_answers()
-    behavioral_test_fixture.data_model.users.is_user_blocked(alice.user.id)
+    alice.assert_user_action(UserAction.BLOCKED)
 
 
 async def test_blocked_start(behavioral_test_fixture):
@@ -58,16 +55,16 @@ async def test_blocked_start(behavioral_test_fixture):
     alice = behavioral_test_fixture.add_user()
     behavioral_test_fixture.data_model.users.block_user(alice.user.id)
 
-    # sends start command
+    # sends /start command
     await alice.send_message("/start")
 
     # she gets message she is blocked
     alice.expect_answer("Вы заблокированы.")
     alice.expect_no_more_answers()
-    behavioral_test_fixture.data_model.users.is_user_blocked(alice.user.id)
+    alice.assert_user_action(UserAction.BLOCKED)
 
 
-async def test_admin_authorizes_usesr(behavioral_test_fixture):
+async def test_admin_authorizes_usesr(test_with_workout_tables):
     """
     Given: User Alice is waiting for authorization.
     When: Admin Bob authorizes Alice and assignes her a table.
@@ -75,21 +72,14 @@ async def test_admin_authorizes_usesr(behavioral_test_fixture):
     """
 
     # Alice is a user
-    alice = behavioral_test_fixture.add_user()
+    alice = test_with_workout_tables.add_user()
 
     # Bob is an admin
-    bob = behavioral_test_fixture.add_user()
-    behavioral_test_fixture.data_model \
-        .users.set_administrative_permission(bob.user.id)
-    behavioral_test_fixture.data_model \
-        .users.set_user_action(bob.user.id,
-                               UserAction.ADMIN_USER_AUTHORIZATION)
+    bob = test_with_workout_tables.add_admin()
+    bob.set_user_action(UserAction.ADMIN_USER_AUTHORIZATION)
 
     # There is a workout table
-    table_name = "table_name"
-    table = WorkoutTable("table_id", table_name, {"plan": []})
-    behavioral_test_fixture.data_model \
-        .workout_plans.update_workout_table(table)
+    table_name = test_with_workout_tables.workout_tables[0].table_name
 
     # Alice starts the bot
     await alice.send_message("/start")

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from telegram.ext import CommandHandler, MessageHandler
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
 from workout_bot.data_model.statistics import Statistics
-from workout_bot.data_model.users import Users
+from workout_bot.data_model.users import Users, UserAction
 from workout_bot.data_model.workout_plans import WorkoutPlans
 
 
@@ -75,8 +75,10 @@ class BotMock:
     Telegram bot mock.
     """
 
-    chats = {}
+    def __init__(self):
+        self.chats = {}
 
+    # pylint: disable=too-many-arguments
     async def send_message(self, chat_id, text,
                            parse_mode=None,
                            disable_notification=None,
@@ -85,8 +87,9 @@ class BotMock:
         Method is called by the bot, stores text message to compare.
         """
 
-        del reply_markup
-        del parse_mode
+        _ = parse_mode
+        _ = disable_notification
+        _ = reply_markup
 
         if chat_id not in self.chats:
             self.chats[chat_id] = []
@@ -108,9 +111,10 @@ class ApplicationMock:
     Python-telegram-bot application mock is used for handler registration.
     """
 
-    bot = BotMock()
-    command_handlers = {}
-    message_handler = None
+    def __init__(self):
+        self.bot = BotMock()
+        self.command_handlers = {}
+        self.message_handler = None
 
     def add_handler(self, handler):
         """
@@ -142,6 +146,27 @@ class UserMock:
         self.bot = application.bot
         self.chat_with_bot = ChatMock(user_id)
         self.user = TelegramUserMock(user_id, first_name, last_name, username)
+
+    def set_user_action(self, action):
+        """
+        Sets state for the user.
+        """
+
+        self.data_model.users.set_user_action(self.user.id, action)
+
+    def set_table(self, table_id):
+        """
+        Sets table id for the user.
+        """
+
+        self.data_model.users.set_table_for_user(self.user.id, table_id)
+
+    def set_page(self, page):
+        """
+        Sets page for the user.
+        """
+
+        self.data_model.users.set_page_for_user(self.user.id, page)
 
     async def send_message(self, text):
         """
@@ -251,4 +276,25 @@ class BehavioralTest:
                         first_name, last_name, user_name)
         self.user_counter += 1
         self.users.append(user)
+        return user
+
+    def add_authorized_user(self, first_name="", last_name="", user_name=""):
+        """
+        Adds and authorizes user.
+        """
+
+        user = self.add_user(first_name, last_name, user_name)
+        self.data_model.users.set_user_action(user.user.id,
+                                              UserAction.CHOOSING_PLAN)
+        return user
+
+    def add_admin(self, first_name="", last_name="", user_name=""):
+        """
+        Adds user with administrative permissions.
+        """
+
+        user = self.add_user(first_name, last_name, user_name)
+        self.data_model.users.set_administrative_permission(user.user.id)
+        self.data_model.users.set_user_action(user.user.id,
+                                              UserAction.CHOOSING_PLAN)
         return user
