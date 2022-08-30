@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from telegram.ext import CommandHandler, MessageHandler
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
 from workout_bot.data_model.statistics import Statistics
-from workout_bot.data_model.users import Users
+from workout_bot.data_model.users import Users, UserAction
+from workout_bot.data_model.workout_plans import WorkoutPlans
 
 
 @dataclass
@@ -65,18 +66,30 @@ class ContextTypeMock:
     Class used by python-telegram-bot.
     """
 
+    def __init__(self, bot):
+        self.bot = bot
+
 
 class BotMock:
     """
     Telegram bot mock.
     """
 
-    chats = {}
+    def __init__(self):
+        self.chats = {}
 
-    async def send_message(self, chat_id, text):
+    # pylint: disable=too-many-arguments
+    async def send_message(self, chat_id, text,
+                           parse_mode=None,
+                           disable_notification=None,
+                           reply_markup=None):
         """
         Method is called by the bot, stores text message to compare.
         """
+
+        _ = parse_mode
+        _ = disable_notification
+        _ = reply_markup
 
         if chat_id not in self.chats:
             self.chats[chat_id] = []
@@ -89,7 +102,7 @@ class BotMock:
         """
 
         if chat_id in self.chats and self.chats[chat_id]:
-            return self.chats[chat_id].pop()
+            return self.chats[chat_id].pop(0)
         return None
 
 
@@ -98,9 +111,10 @@ class ApplicationMock:
     Python-telegram-bot application mock is used for handler registration.
     """
 
-    bot = BotMock()
-    command_handlers = {}
-    message_handler = None
+    def __init__(self):
+        self.bot = BotMock()
+        self.command_handlers = {}
+        self.message_handler = None
 
     def add_handler(self, handler):
         """
@@ -125,12 +139,34 @@ class UserMock:
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, application, user_id, first_name, last_name, username):
+    def __init__(self, application, data_model, user_id,
+                 first_name, last_name, username):
         self.application = application
+        self.data_model = data_model
         self.bot = application.bot
-        self.chat_id = user_id
-        self.chat_with_bot = ChatMock(self.chat_id)
+        self.chat_with_bot = ChatMock(user_id)
         self.user = TelegramUserMock(user_id, first_name, last_name, username)
+
+    def set_user_action(self, action):
+        """
+        Sets state for the user.
+        """
+
+        self.data_model.users.set_user_action(self.user.id, action)
+
+    def set_table(self, table_id):
+        """
+        Sets table id for the user.
+        """
+
+        self.data_model.users.set_table_for_user(self.user.id, table_id)
+
+    def set_page(self, page):
+        """
+        Sets page for the user.
+        """
+
+        self.data_model.users.set_page_for_user(self.user.id, page)
 
     async def send_message(self, text):
         """
@@ -139,7 +175,7 @@ class UserMock:
 
         message = MessageMock(text, self.user, self.chat_with_bot)
         update = UpdateMock(self.chat_with_bot, message)
-        context = ContextTypeMock()
+        context = ContextTypeMock(self.bot)
 
         if text.startswith('/'):
             await self.application \
@@ -152,7 +188,8 @@ class UserMock:
         The user expects answer from the bot.
         """
 
-        actual = self.bot.get_message(self.chat_id)
+        actual = self.bot.get_message(self.chat_with_bot.id)
+        print(actual)
 
         assert actual == expected_text
 
@@ -161,9 +198,19 @@ class UserMock:
         Ensures there is no more messages from the bot.
         """
 
-        actual = self.bot.get_message(self.chat_id)
+        actual = self.bot.get_message(self.chat_with_bot.id)
 
         assert actual is None
+
+    def assert_user_action(self, expected_action):
+        """
+        Asserts that user action is expected one in data model.
+        """
+
+        actual_action = self.data_model \
+            .users.get_user_context(self.user.id).action
+
+        assert actual_action == expected_action
 
 
 class DataModelMock:
@@ -190,6 +237,7 @@ class DataModelMock:
 
         self.statistics = Statistics()
         self.users = Users(self.USERS_STORAGE)
+        self.workout_plans = WorkoutPlans()
 
     def cleanup(self):
         """
@@ -212,20 +260,41 @@ class BehavioralTest:
         self.user_counter = 1
         self.users = []
 
-    def add_user(self, first_name="", last_name="", user_name=""):
-        """
-        Adds user to the test and returns UserMock.
-        """
-
-        user = UserMock(self.application, self.user_counter, first_name,
-                        last_name, user_name)
-        self.user_counter += 1
-        self.users.append(user)
-        return user
-
     def teardown(self):
         """
         Tear down the fixture.
         """
 
         self.data_model.cleanup()
+
+    def add_user(self, first_name="", last_name="", user_name=""):
+        """
+        Adds user to the test and returns UserMock.
+        """
+
+        user = UserMock(self.application, self.data_model, self.user_counter,
+                        first_name, last_name, user_name)
+        self.user_counter += 1
+        self.users.append(user)
+        return user
+
+    def add_authorized_user(self, first_name="", last_name="", user_name=""):
+        """
+        Adds and authorizes user.
+        """
+
+        user = self.add_user(first_name, last_name, user_name)
+        self.data_model.users.set_user_action(user.user.id,
+                                              UserAction.CHOOSING_PLAN)
+        return user
+
+    def add_admin(self, first_name="", last_name="", user_name=""):
+        """
+        Adds user with administrative permissions.
+        """
+
+        user = self.add_user(first_name, last_name, user_name)
+        self.data_model.users.set_administrative_permission(user.user.id)
+        self.data_model.users.set_user_action(user.user.id,
+                                              UserAction.CHOOSING_PLAN)
+        return user

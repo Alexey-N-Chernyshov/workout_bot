@@ -10,7 +10,7 @@ from typing import Optional
 from typing import List
 
 
-class UserAction(enum.Enum):
+class UserAction(enum.IntEnum):
     """
     Current user state. What the user is doing right now.
     """
@@ -32,6 +32,7 @@ class UserAction(enum.Enum):
     ADMIN_USER_BLOCKING = 14
     ADMIN_USER_ASSIGNING_TABLE = 15
     ADMIN_ADDING_ADMIN = 16
+    USER_NEEDS_PROGRAM = 17
 
 
 @dataclass
@@ -198,6 +199,15 @@ class Users:
 
         user_context = self.get_or_create_user_context(user_id)
         user_context.current_table_id = table_id
+        self.__users.sync()
+
+    def set_page_for_user(self, user_id, page):
+        """
+        Sets page for user_id. If user_id is not present, creates a new one.
+        """
+
+        user_context = self.get_or_create_user_context(user_id)
+        user_context.current_page = page
         self.__users.sync()
 
     def set_administrative_permission(self, user_id):
