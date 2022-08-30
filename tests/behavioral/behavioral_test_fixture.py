@@ -4,7 +4,7 @@ Infrastructure and mocks for behavioral tests.
 
 import os
 from dataclasses import dataclass
-from telegram.ext import CommandHandler, MessageHandler
+from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
 from workout_bot.data_model.statistics import Statistics
 from workout_bot.data_model.users import Users, UserAction
@@ -43,10 +43,25 @@ class MessageMock:
     Telegram message mock.
     """
 
-    def __init__(self, text, from_user, chat):
+    def __init__(self, text, from_user):
         self.text = text
         self.from_user = from_user
-        self.chat = chat
+
+
+@dataclass
+class QueryMock:
+    """
+    Telegram inline query mock.
+    """
+
+    def __init__(self, data, from_user):
+        self.data = data
+        self.from_user = from_user
+
+    async def answer(self):
+        """
+        Querry callback is answered.
+        """
 
 
 @dataclass
@@ -55,9 +70,12 @@ class UpdateMock:
     Class used by python-telegram-bot to notify the bot.
     """
 
-    def __init__(self, chat, message):
+    def __init__(self, chat, message=None, query=None):
         self.effective_chat = chat
-        self.message = message
+        if message:
+            self.message = message
+        if query:
+            self.callback_query = query
 
 
 @dataclass
@@ -81,13 +99,15 @@ class BotMock:
     # pylint: disable=too-many-arguments
     async def send_message(self, chat_id, text,
                            parse_mode=None,
-                           disable_notification=None,
+                           disable_web_page_preview=False,
+                           disable_notification=False,
                            reply_markup=None):
         """
         Method is called by the bot, stores text message to compare.
         """
 
         _ = parse_mode
+        _ = disable_web_page_preview
         _ = disable_notification
         _ = reply_markup
 
@@ -115,6 +135,7 @@ class ApplicationMock:
         self.bot = BotMock()
         self.command_handlers = {}
         self.message_handler = None
+        self.query_handler = None
 
     def add_handler(self, handler):
         """
@@ -126,6 +147,8 @@ class ApplicationMock:
             self.command_handlers[command] = handler.callback
         elif isinstance(handler, MessageHandler):
             self.message_handler = handler.callback
+        elif isinstance(handler, CallbackQueryHandler):
+            self.query_handler = handler.callback
 
     def run_polling(self):
         """
@@ -173,8 +196,8 @@ class UserMock:
         The user sends message to the bot private chat.
         """
 
-        message = MessageMock(text, self.user, self.chat_with_bot)
-        update = UpdateMock(self.chat_with_bot, message)
+        message = MessageMock(text, self.user)
+        update = UpdateMock(self.chat_with_bot, message=message)
         context = ContextTypeMock(self.bot)
 
         if text.startswith('/'):
@@ -182,6 +205,15 @@ class UserMock:
                 .command_handlers[text[1:]](update, context)
         else:
             await self.application.message_handler(update, context)
+
+    async def press_inline_button(self, data):
+        """
+        The user taps inline button with data.
+        """
+        query = QueryMock(data, self.user)
+        update = UpdateMock(self.chat_with_bot, query=query)
+        context = ContextTypeMock(self.bot)
+        await self.application.query_handler(update, context)
 
     def expect_answer(self, expected_text):
         """
