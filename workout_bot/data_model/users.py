@@ -32,6 +32,7 @@ class UserAction(enum.IntEnum):
     ADMIN_USER_BLOCKING = 14
     ADMIN_USER_ASSIGNING_TABLE = 15
     ADMIN_ADDING_ADMIN = 16
+    USER_NEEDS_PROGRAM = 17
 
 
 @dataclass

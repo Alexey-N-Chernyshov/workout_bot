@@ -102,6 +102,13 @@ class WorkoutPlans:
                 result.add(table.table_name)
             return result
 
+    def is_plan_present(self, table_id, plan):
+        """
+        Checks if table with table_id has page named plan.
+        """
+
+        return plan in self.get_plan_names(table_id)
+
     def get_plan_names(self, table_id):
         """
         Returns all plans for a table with table_id.

@@ -87,7 +87,7 @@ async def test_admin_authorizes_usesr(behavioral_test_fixture):
 
     # There is a workout table
     table_name = "table_name"
-    table = WorkoutTable("table_id", table_name, {})
+    table = WorkoutTable("table_id", table_name, {"plan": []})
     behavioral_test_fixture.data_model \
         .workout_plans.update_workout_table(table)
 
@@ -102,6 +102,6 @@ async def test_admin_authorizes_usesr(behavioral_test_fixture):
     await bob.send_message(table_name)
 
     # Alice is notified
-    alice.expect_answer(f'Назначена таблица "{table_name}"')
+    alice.expect_answer(f"Назначена программа тренировок *{table_name}*")
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.CHOOSING_PLAN)

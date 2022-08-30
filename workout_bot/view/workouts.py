@@ -83,6 +83,7 @@ def get_week_routine_text_message(data_model, table_id, page_name,
         .get_week_routine(table_id, page_name, week_number)
     )
     text = "*" + \
+           escape_text(f"{page_name}\n") + \
            escape_text(f"Неделя {week_routine.start_date} -"
                        f" {week_routine.end_date}") + \
            "*\n"

@@ -2,7 +2,6 @@
 Provides user interaction for user manamegent.
 """
 
-from telegram import Update
 from telegram import KeyboardButton, ReplyKeyboardMarkup
 from data_model.users import UserAction, BlockUserContext
 from data_model.users import AssignTableUserContext
@@ -176,7 +175,7 @@ class UserManagement:
 
         await self.show_user_management_panel(chat_id, text)
 
-    async def handle_message(self, update: Update):
+    async def handle_message(self, update, context):
         """
         Handles messages related to user management.
         Returns True if messsage was processed, False otherwise.
@@ -259,9 +258,15 @@ class UserManagement:
                 # notify target user
                 target_user_context = self.data_model \
                     .users.get_user_context(target_user_id)
-                await self.bot \
-                    .send_message(target_user_context.chat_id,
-                                  f'Назначена таблица "{table_name}"')
+                text = f"Назначена программа тренировок *{table_name}*"
+                keyboard = [["Перейти к тренировкам"]]
+                reply_markup = ReplyKeyboardMarkup(keyboard,
+                                                   resize_keyboard=True)
+                await context.bot.send_message(target_user_context.chat_id,
+                                               text,
+                                               disable_notification=True,
+                                               reply_markup=reply_markup,
+                                               parse_mode="MarkdownV2")
 
                 user_context.action = UserAction.ADMIN_USER_MANAGEMENT
                 user_context.user_input_data = None

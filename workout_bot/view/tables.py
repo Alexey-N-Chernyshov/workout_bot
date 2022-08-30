@@ -32,4 +32,8 @@ def get_all_tables_message(data_model):
     for table_id in data_model.workout_table_names.get_tables():
         text += get_table_message(data_model, table_id)
         text += "\n"
+
+    if not text:
+        text = "Нет таблиц"
+
     return text

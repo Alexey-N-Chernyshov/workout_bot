@@ -78,7 +78,9 @@ class BotMock:
     chats = {}
 
     async def send_message(self, chat_id, text,
-                           reply_markup=None, parse_mode=None):
+                           parse_mode=None,
+                           disable_notification=None,
+                           reply_markup=None):
         """
         Method is called by the bot, stores text message to compare.
         """
@@ -162,6 +164,7 @@ class UserMock:
         """
 
         actual = self.bot.get_message(self.chat_with_bot.id)
+        print(actual)
 
         assert actual == expected_text
 

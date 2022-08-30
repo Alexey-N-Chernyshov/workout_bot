@@ -3,9 +3,12 @@ Telegram bot related code resides here.
 """
 
 from controllers.controllers import Controllers
+from controllers.training_management import start_training
 from data_model.users import UserAction
 from telegram import Update
-from telegram.ext import filters, ContextTypes, CommandHandler, MessageHandler
+from telegram.ext import (
+    filters, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler
+)
 
 
 class TelegramBot:
@@ -21,15 +24,21 @@ class TelegramBot:
         # init controllers
         self.controllers = Controllers(self.bot, self.data_model)
 
-        start_handler = CommandHandler('start', self.handle_start)
-        self.telegram_application.add_handler(start_handler)
+        self.telegram_application.add_handler(
+            CommandHandler('start', self.handle_start)
+        )
 
-        system_stats_handler = CommandHandler('system_stats',
-                                              self.handle_system_stats)
-        self.telegram_application.add_handler(system_stats_handler)
+        self.telegram_application.add_handler(
+            CommandHandler('system_stats', self.handle_system_stats)
+        )
 
-        message_handler = MessageHandler(filters.TEXT, self.handle_message)
-        self.telegram_application.add_handler(message_handler)
+        self.telegram_application.add_handler(
+            MessageHandler(filters.TEXT, self.handle_message)
+        )
+
+        self.telegram_application.add_handler(
+            CallbackQueryHandler(self.handle_query)
+        )
 
     def start_bot(self):
         """
@@ -65,6 +74,9 @@ class TelegramBot:
                 or self.data_model.users
                 .is_user_blocked(user_context.user_id)):
             user_context.action = UserAction.CHOOSING_PLAN
+            self.data_model.users.set_user_context(user_context)
+            await start_training(self.data_model, update, context)
+            return
 
         self.data_model.users.set_user_context(user_context)
         await self.handle_message(update, context)
@@ -101,7 +113,8 @@ class TelegramBot:
 
         self.data_model.statistics.record_request()
 
-        if await self.controllers.handle(self.data_model, update, context):
+        if await self.controllers.handle_message(self.data_model,
+                                                 update, context):
             return
 
         user_context = self.data_model \
@@ -142,29 +155,20 @@ class TelegramBot:
                 .show_admin_panel(update.effective_chat.id, user_context)
             return
 
-        if (user_context.action in (UserAction.TRAINING,
-                                    UserAction.ADMINISTRATION,
-                                    UserAction.ADMIN_TABLE_MANAGEMENT)
-                and message_text == "перейти к тренировкам"):
-            if (user_context.current_table_id is None
-                    or user_context.current_page is None):
-                self.data_model.users.set_user_action(user_context.user_id,
-                                                      UserAction.CHOOSING_PLAN)
-                await self.controllers.training_management \
-                    .change_plan_prompt(update.effective_chat.id, user_context)
-            else:
-                self.data_model.users.set_user_action(user_context.user_id,
-                                                      UserAction.TRAINING)
-                await self.controllers.training_management \
-                    .send_workout(update.effective_chat.id, user_context)
-            return
-
         if (await self.controllers
             .administration.handle_message(update)
                 or await self.controllers
-                .user_management.handle_message(update)
+                .user_management.handle_message(update, context)
                 or await self.controllers
-                .table_management.handle_message(update)
-                or await self.controllers
-                .training_management.handle_message(update)):
+                .table_management.handle_message(update)):
             return
+
+    async def handle_query(self, update: Update,
+                           context: ContextTypes.DEFAULT_TYPE):
+        """
+        Handlers for inline queries.
+        """
+
+        query = update.callback_query
+        await self.controllers.handle_query(self.data_model, update, context)
+        await query.answer()
