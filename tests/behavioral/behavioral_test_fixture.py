@@ -97,7 +97,7 @@ class BotMock:
         """
 
         if chat_id in self.chats and self.chats[chat_id]:
-            return self.chats[chat_id].pop()
+            return self.chats[chat_id].pop(0)
         return None
 
 
