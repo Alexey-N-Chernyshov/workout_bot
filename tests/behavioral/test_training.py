@@ -155,3 +155,50 @@ async def test_change_plan_invalid(test_with_workout_tables):
     alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.CHOOSING_PLAN)
+
+
+async def test_user_changes_plan(test_with_workout_tables):
+    """
+    Given: Alice is authorized and plan is chosen and she is TRAINING.
+    When: Alice sends change plan message.
+    Then: Alice is shown message change plan and she is CHOOSING_PLAN.
+    """
+
+    alice = test_with_workout_tables.add_authorized_user()
+    table = test_with_workout_tables.workout_tables[0]
+    alice.set_table(table.table_id)
+    plan = test_with_workout_tables.get_table_plan(table, 0)
+    alice.set_page(plan)
+    alice.set_user_action(UserAction.TRAINING)
+
+    # sends a message
+    await alice.send_message("Сменить программу")
+
+    # asks to change plan again
+    expected = test_with_workout_tables.get_choose_plan_message(table)
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.CHOOSING_PLAN)
+
+
+async def test_user_changes_plan_no_page(test_with_workout_tables):
+    """
+    Given: Alice is authorized and plan is not chosen and she is TRAINING.
+    When: Alice sends change plan message.
+    Then: Alice is shown message change plan and she is CHOOSING_PLAN.
+    """
+
+    alice = test_with_workout_tables.add_authorized_user()
+    table = test_with_workout_tables.workout_tables[0]
+    alice.set_table(table.table_id)
+    plan = test_with_workout_tables.get_table_plan(table, 0)
+    alice.set_user_action(UserAction.TRAINING)
+
+    # sends any message
+    await alice.send_message("Далее")
+
+    # asks to change plan again
+    expected = test_with_workout_tables.get_choose_plan_message(table)
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.CHOOSING_PLAN)

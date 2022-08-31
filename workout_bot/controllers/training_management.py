@@ -181,8 +181,7 @@ def handle_need_change_plan():
         user_context = data_model.users.get_user_context(user_id)
         message_text = update.message.text.strip().lower()
         return user_context.action == UserAction.TRAINING \
-            and (user_context.current_table_id is None
-                 or user_context.current_page is None
+            and (user_context.current_page is None
                  or message_text in ("выбрать программу",
                                      "сменить программу",
                                      "поменять программу"))
