@@ -61,8 +61,10 @@ async def test_choose_plan_on_start(test_with_workout_tables):
     await alice.send_message("/start")
 
     # she gets message she is not assigned table
-    alice.expect_answer("Программа тренировок не выбрана")
-    alice.expect_answer("Выберите программу из списка:")
+    expected = "Выберите программу из списка:\n\n"
+    expected += " - plan\n"
+    expected += " - plan2"
+    alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.CHOOSING_PLAN)
 
@@ -85,8 +87,10 @@ async def test_start_training(test_with_workout_tables):
     await alice.send_message("/start")
 
     # she gets message she is not assigned table
-    alice.expect_answer("Программа тренировок не выбрана")
-    alice.expect_answer("Выберите программу из списка:")
+    expected = "Выберите программу из списка:\n\n"
+    expected += " - plan\n"
+    expected += " - plan2"
+    alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.CHOOSING_PLAN)
 
@@ -109,7 +113,7 @@ async def test_change_plan(test_with_workout_tables):
     new_plan = next(plans)
 
     # sends a message
-    await alice.press_inline_button(new_plan)
+    await alice.send_message(new_plan)
 
     # she gets message she is not assigned table
     expected = get_week_routine_text_message(

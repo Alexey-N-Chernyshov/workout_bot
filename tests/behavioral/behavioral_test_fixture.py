@@ -316,8 +316,18 @@ class BehavioralTest:
         """
 
         user = self.add_user(first_name, last_name, user_name)
-        self.data_model.users.set_user_action(user.user.id,
-                                              UserAction.CHOOSING_PLAN)
+        user_context = self.data_model\
+            .users.get_or_create_user_context(user.user.id)
+        user_context.user_id = user.user.id
+        user_context.first_name = user.user.first_name
+        user_context.last_name = user.user.last_name
+        user_context.username = user.user.username
+        user_context.chat_id = user.user.id
+        user_context.current_page = None
+        user_context.current_week = None
+        user_context.current_workout = None
+        user_context.action = UserAction.CHOOSING_PLAN
+        self.data_model.users.set_user_context(user_context)
         return user
 
     def add_admin(self, first_name="", last_name="", user_name=""):
