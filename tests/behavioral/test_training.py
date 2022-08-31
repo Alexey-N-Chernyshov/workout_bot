@@ -61,9 +61,7 @@ async def test_choose_plan_on_start(test_with_workout_tables):
     await alice.send_message("/start")
 
     # she gets message she is not assigned table
-    expected = "Выберите программу из списка:\n\n"
-    expected += " - plan\n"
-    expected += " - plan2"
+    expected = test_with_workout_tables.get_choose_plan_message(table)
     alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.CHOOSING_PLAN)
@@ -79,7 +77,7 @@ async def test_start_training(test_with_workout_tables):
     alice = test_with_workout_tables.add_authorized_user()
     table = test_with_workout_tables.workout_tables[0]
     alice.set_table(table.table_id)
-    plan = next(iter(table.pages))
+    plan = test_with_workout_tables.get_table_plan(table, 0)
     alice.set_page(plan)
     alice.set_user_action(UserAction.TRAINING)
 
@@ -87,9 +85,7 @@ async def test_start_training(test_with_workout_tables):
     await alice.send_message("/start")
 
     # she gets message she is not assigned table
-    expected = "Выберите программу из списка:\n\n"
-    expected += " - plan\n"
-    expected += " - plan2"
+    expected = test_with_workout_tables.get_choose_plan_message(table)
     alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.CHOOSING_PLAN)
@@ -105,11 +101,10 @@ async def test_change_plan(test_with_workout_tables):
     alice = test_with_workout_tables.add_authorized_user()
     table = test_with_workout_tables.workout_tables[0]
     alice.set_table(table.table_id)
-    plans = iter(table.pages)
-    plan = next(plans)
+    plan = test_with_workout_tables.get_table_plan(table, 0)
     alice.set_page(plan)
 
-    new_plan = next(plans)
+    new_plan = test_with_workout_tables.get_table_plan(table, 1)
 
     # sends a message
     await alice.send_message(new_plan)
@@ -145,8 +140,7 @@ async def test_change_plan_invalid(test_with_workout_tables):
     alice = test_with_workout_tables.add_authorized_user()
     table = test_with_workout_tables.workout_tables[0]
     alice.set_table(table.table_id)
-    plans = iter(table.pages)
-    plan = next(plans)
+    plan = test_with_workout_tables.get_table_plan(table, 0)
     alice.set_page(plan)
 
     new_plan = "wrong plan"
@@ -157,9 +151,7 @@ async def test_change_plan_invalid(test_with_workout_tables):
     # she gets message no such plan
     alice.expect_answer("Нет такой программы")
     # asks to change plan again
-    expected = "Выберите программу из списка:\n\n"
-    expected += " - plan\n"
-    expected += " - plan2"
+    expected = test_with_workout_tables.get_choose_plan_message(table)
     alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.CHOOSING_PLAN)

@@ -341,3 +341,22 @@ class BehavioralTest:
         self.data_model.users.set_user_action(user.user.id,
                                               UserAction.CHOOSING_PLAN)
         return user
+
+    def get_choose_plan_message(self, table):
+        """
+        Returns message from choose plan prompt.
+        """
+
+        plans = self.data_model.workout_plans.get_plan_names(table.table_id)
+        text = "Выберите программу из списка:\n"
+        for plan in plans:
+            text += f"\n - {plan}"
+        return text
+
+    def get_table_plan(self, table, number):
+        """
+        Returns plan name by it's number.
+        """
+
+        plans = self.data_model.workout_plans.get_plan_names(table.table_id)
+        return plans[number]
