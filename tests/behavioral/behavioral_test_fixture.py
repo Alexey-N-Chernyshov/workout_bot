@@ -221,6 +221,8 @@ class UserMock:
         """
 
         actual = self.bot.get_message(self.chat_with_bot.id)
+        if actual != expected_text:
+            print(actual)
 
         assert actual == expected_text
 
@@ -230,6 +232,8 @@ class UserMock:
         """
 
         actual = self.bot.get_message(self.chat_with_bot.id)
+        if actual:
+            print(actual)
 
         assert actual is None
 
