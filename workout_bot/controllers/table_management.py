@@ -74,11 +74,6 @@ class TableManagement:
             self.data_model.users.get_user_context(update.message.from_user.id)
         message_text = update.message.text.strip().lower()
 
-        if not user_context.administrative_permission:
-            self.data_model.users.set_user_action(user_context.user_id,
-                                                  UserAction.TRAINING)
-            return False
-
         if user_context.action == UserAction.ADMIN_ADDING_TABLE:
             table_id = get_table_id_from_link(update.message.text)
             user_context.user_input_data.table_id = table_id

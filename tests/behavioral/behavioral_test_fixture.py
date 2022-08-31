@@ -221,7 +221,6 @@ class UserMock:
         """
 
         actual = self.bot.get_message(self.chat_with_bot.id)
-        print(actual)
 
         assert actual == expected_text
 
@@ -316,6 +315,7 @@ class BehavioralTest:
         """
 
         user = self.add_user(first_name, last_name, user_name)
+
         user_context = self.data_model\
             .users.get_or_create_user_context(user.user.id)
         user_context.user_id = user.user.id
@@ -328,6 +328,7 @@ class BehavioralTest:
         user_context.current_workout = None
         user_context.action = UserAction.CHOOSING_PLAN
         self.data_model.users.set_user_context(user_context)
+
         return user
 
     def add_admin(self, first_name="", last_name="", user_name=""):

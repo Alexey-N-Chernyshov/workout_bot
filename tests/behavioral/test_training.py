@@ -108,14 +108,13 @@ async def test_change_plan(test_with_workout_tables):
     plans = iter(table.pages)
     plan = next(plans)
     alice.set_page(plan)
-    alice.set_user_action(UserAction.CHOOSING_PLAN)
 
     new_plan = next(plans)
 
     # sends a message
     await alice.send_message(new_plan)
 
-    # she gets message she is not assigned table
+    # she gets message with workout
     expected = get_week_routine_text_message(
         test_with_workout_tables.data_model,
         table.table_id,
@@ -133,3 +132,34 @@ async def test_change_plan(test_with_workout_tables):
     alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.TRAINING)
+
+
+async def test_change_plan_invalid(test_with_workout_tables):
+    """
+    Given: Alice is authorized and table is assigned and she is CHOOSING_PLAN.
+    When: Alice chooses wrong plan.
+    Then: Alice is shown message that plan is not valid and she is
+    CHOOSING_PLAN again.
+    """
+
+    alice = test_with_workout_tables.add_authorized_user()
+    table = test_with_workout_tables.workout_tables[0]
+    alice.set_table(table.table_id)
+    plans = iter(table.pages)
+    plan = next(plans)
+    alice.set_page(plan)
+
+    new_plan = "wrong plan"
+
+    # sends a message
+    await alice.send_message(new_plan)
+
+    # she gets message no such plan
+    alice.expect_answer("Нет такой программы")
+    # asks to change plan again
+    expected = "Выберите программу из списка:\n\n"
+    expected += " - plan\n"
+    expected += " - plan2"
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.CHOOSING_PLAN)
