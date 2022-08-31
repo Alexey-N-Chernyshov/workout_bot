@@ -327,9 +327,9 @@ class BehavioralTest:
         user_context.last_name = user.user.last_name
         user_context.username = user.user.username
         user_context.chat_id = user.user.id
-        user_context.current_page = None
-        user_context.current_week = None
-        user_context.current_workout = None
+        user_context.current_page = 0
+        user_context.current_week = 0
+        user_context.current_workout = 0
         user_context.action = UserAction.CHOOSING_PLAN
         self.data_model.users.set_user_context(user_context)
 
