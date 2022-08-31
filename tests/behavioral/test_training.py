@@ -191,7 +191,6 @@ async def test_user_changes_plan_no_page(test_with_workout_tables):
     alice = test_with_workout_tables.add_authorized_user()
     table = test_with_workout_tables.workout_tables[0]
     alice.set_table(table.table_id)
-    plan = test_with_workout_tables.get_table_plan(table, 0)
     alice.set_user_action(UserAction.TRAINING)
 
     # sends any message
