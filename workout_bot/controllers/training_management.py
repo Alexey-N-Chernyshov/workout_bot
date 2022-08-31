@@ -2,10 +2,7 @@
 Provides user interaction for training.
 """
 
-from telegram import (
-    InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
-)
-from telegram import ReplyKeyboardMarkup, KeyboardButton
+from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from data_model.users import UserAction
 from view.workouts import get_workout_text_message
 from view.workouts import get_week_routine_text_message
@@ -28,8 +25,7 @@ async def start_training(data_model, update, context):
         await prompt_change_plan(data_model, update, context)
     else:
         data_model.users.set_user_action(user_id, UserAction.TRAINING)
-        await send_workout(context.bot, data_model,
-                           update.effective_chat.id, user_context)
+        await send_workout(context.bot, data_model, user_context)
 
 
 async def prompt_change_plan(data_model, update, context):
@@ -59,50 +55,17 @@ async def prompt_change_plan(data_model, update, context):
                                          UserAction.USER_NEEDS_PROGRAM)
         return
 
-    # This message is sent just because I want to remove keyboard.
-    await context.bot.send_message(chat_id,
-                                   "Программа тренировок не выбрана",
-                                   reply_markup=ReplyKeyboardRemove())
     plans = data_model.workout_plans.get_plan_names(table_id)
     if plans:
         keyboard = []
-        text = 'Выберите программу из списка:'
+        text = 'Выберите программу из списка:\n'
         for plan in plans:
-            keyboard.append([InlineKeyboardButton(plan, callback_data=plan)])
-        reply_markup = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
+            text += '\n - ' + plan
+            keyboard.append([KeyboardButton(plan, callback_data=plan)])
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await context.bot.send_message(chat_id,
                                        text,
                                        reply_markup=reply_markup)
-
-
-async def change_plan(data_model, update, context):
-    """
-    Changes plan to the selected one for the user.
-    """
-
-    query = update.callback_query
-    new_plan = query.data
-    chat_id = update.effective_chat.id
-    user_id = update.callback_query.from_user.id
-    user_context = data_model.users.get_user_context(user_id)
-    table_id = user_context.current_table_id
-
-    if data_model.workout_plans.is_plan_present(table_id, new_plan):
-        user_context.current_page = new_plan
-        user_context.current_week = data_model.workout_plans \
-            .get_week_number(user_context.current_table_id,
-                             user_context.current_page) - 1
-        user_context.current_workout = 0
-        data_model.users.set_user_context(user_context)
-        data_model.users.set_user_action(user_context.user_id,
-                                         UserAction.TRAINING)
-        await send_week_schedule(context.bot, data_model, chat_id,
-                                 user_context)
-        await send_workout(context.bot, data_model, chat_id,
-                           user_context)
-    else:
-        await context.bot.send_message(chat_id, "Нет такой программы")
-        await prompt_change_plan(data_model, update, context)
 
 
 async def send_all_actions(bot, chat_id):
@@ -130,11 +93,12 @@ async def send_all_actions(bot, chat_id):
                            parse_mode="MarkdownV2")
 
 
-async def send_with_next_or_all_buttons(bot, chat_id, user_context, message):
+async def send_with_next_or_all_buttons(bot, user_context, message):
     """
     Sends message and adds buttons "Далее", "Все действия"
     """
 
+    chat_id = user_context.chat_id
     keyboard = [[KeyboardButton("Все действия"), KeyboardButton("Далее")]]
     if user_context.administrative_permission:
         key_admin = [KeyboardButton("Администрирование")]
@@ -147,7 +111,7 @@ async def send_with_next_or_all_buttons(bot, chat_id, user_context, message):
                            parse_mode="MarkdownV2")
 
 
-async def send_week_schedule(bot, data_model, chat_id, user_context):
+async def send_week_schedule(bot, data_model, user_context):
     """
     Sends week workout schedule.
     """
@@ -156,10 +120,10 @@ async def send_week_schedule(bot, data_model, chat_id, user_context):
                                             user_context.current_table_id,
                                             user_context.current_page,
                                             user_context.current_week)
-    await send_with_next_or_all_buttons(bot, chat_id, user_context, message)
+    await send_with_next_or_all_buttons(bot, user_context, message)
 
 
-async def send_workout(bot, data_model, chat_id, user_context):
+async def send_workout(bot, data_model, user_context):
     """
     Sends workout.
     """
@@ -169,7 +133,7 @@ async def send_workout(bot, data_model, chat_id, user_context):
                                        user_context.current_page,
                                        user_context.current_week,
                                        user_context.current_workout)
-    await send_with_next_or_all_buttons(bot, chat_id, user_context, message)
+    await send_with_next_or_all_buttons(bot, user_context, message)
 
 
 def handle_go_training():
@@ -253,11 +217,29 @@ def handle_message_change_plan():
 
     async def handler(data_model, update, context):
         """
-        Asks to change plan.
+        Changes plan to the selected one for the user.
         """
 
-        await prompt_change_plan(data_model, update, context)
-        return True
+        new_plan = update.message.text
+        user_id = update.message.from_user.id
+        user_context = data_model.users.get_user_context(user_id)
+        chat_id = user_context.chat_id
+        table_id = user_context.current_table_id
+
+        if data_model.workout_plans.is_plan_present(table_id, new_plan):
+            user_context.current_page = new_plan
+            user_context.current_week = data_model.workout_plans \
+                .get_week_number(user_context.current_table_id,
+                                 user_context.current_page) - 1
+            user_context.current_workout = 0
+            data_model.users.set_user_context(user_context)
+            data_model.users.set_user_action(user_context.user_id,
+                                             UserAction.TRAINING)
+            await send_week_schedule(context.bot, data_model, user_context)
+            await send_workout(context.bot, data_model, user_context)
+        else:
+            await context.bot.send_message(chat_id, "Нет такой программы")
+            await prompt_change_plan(data_model, update, context)
 
     return (handler_filter, handler)
 
@@ -314,16 +296,13 @@ def handle_next():
         """
 
         user_id = update.message.from_user.id
-        chat_id = update.effective_chat.id
         user_context = data_model.users.get_user_context(user_id)
         week_previous = user_context.current_week
         data_model.next_workout_for_user(user_id)
         if week_previous != user_context.current_week:
             # show week schedule if week changes
-            await send_week_schedule(context.bot, data_model, chat_id,
-                                     user_context)
-        await send_workout(context.bot, data_model, chat_id,
-                           user_context)
+            await send_week_schedule(context.bot, data_model, user_context)
+        await send_workout(context.bot, data_model, user_context)
         return True
 
     return (handler_filter, handler)
@@ -351,16 +330,13 @@ def handle_first_week():
         """
 
         user_id = update.message.from_user.id
-        chat_id = update.effective_chat.id
         user_context = data_model.users.get_user_context(user_id)
 
         user_context.current_week = 0
         user_context.current_workout = 0
         data_model.users.set_user_context(user_context)
-        await send_week_schedule(context.bot, data_model, chat_id,
-                                 user_context)
-        await send_workout(context.bot, data_model, chat_id,
-                           user_context)
+        await send_week_schedule(context.bot, data_model, user_context)
+        await send_workout(context.bot, data_model, user_context)
         return True
 
     return (handler_filter, handler)
@@ -389,7 +365,6 @@ def handle_last_week():
         """
 
         user_id = update.message.from_user.id
-        chat_id = update.effective_chat.id
         user_context = data_model.users.get_user_context(user_id)
 
         user_context.current_week = data_model.workout_plans \
@@ -397,10 +372,8 @@ def handle_last_week():
                              user_context.current_page) - 1
         user_context.current_workout = 0
         data_model.users.set_user_context(user_context)
-        await send_week_schedule(context.bot, data_model, chat_id,
-                                 user_context)
-        await send_workout(context.bot, data_model, chat_id,
-                           user_context)
+        await send_week_schedule(context.bot, data_model, user_context)
+        await send_workout(context.bot, data_model, user_context)
         return True
 
     return (handler_filter, handler)
@@ -428,7 +401,6 @@ def handle_next_week():
         """
 
         user_id = update.message.from_user.id
-        chat_id = update.effective_chat.id
         user_context = data_model.users.get_user_context(user_id)
 
         if user_context.current_week < data_model.workout_plans \
@@ -437,10 +409,8 @@ def handle_next_week():
             user_context.current_week += 1
         user_context.current_workout = 0
         data_model.users.set_user_context(user_context)
-        await send_week_schedule(context.bot, data_model, chat_id,
-                                 user_context)
-        await send_workout(context.bot, data_model, chat_id,
-                           user_context)
+        await send_week_schedule(context.bot, data_model, user_context)
+        await send_workout(context.bot, data_model, user_context)
         return True
 
     return (handler_filter, handler)
@@ -468,17 +438,14 @@ def handle_previous_week():
         """
 
         user_id = update.message.from_user.id
-        chat_id = update.effective_chat.id
         user_context = data_model.users.get_user_context(user_id)
 
         if user_context.current_week > 0:
             user_context.current_week -= 1
         user_context.current_workout = 0
         data_model.users.set_user_context(user_context)
-        await send_week_schedule(context.bot, data_model, chat_id,
-                                 user_context)
-        await send_workout(context.bot, data_model, chat_id,
-                           user_context)
+        await send_week_schedule(context.bot, data_model, user_context)
+        await send_workout(context.bot, data_model, user_context)
         return True
 
     return (handler_filter, handler)
@@ -495,31 +462,3 @@ table_management_message_handlers = [
     handle_next_week(),
     handle_previous_week()
 ]
-
-
-def handle_change_plan():
-    """
-    Handles change plan query.
-    """
-
-    def handler_filter(data_model, update):
-        """
-        Checks if caller is in CHOOSING_PLAN state.
-        """
-
-        user_id = update.callback_query.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-        return user_context.action == UserAction.CHOOSING_PLAN
-
-    async def handler(data_model, update, context):
-        """
-        Changes plan for user.
-        """
-
-        await change_plan(data_model, update, context)
-        return True
-
-    return (handler_filter, handler)
-
-
-table_management_query_handlers = [handle_change_plan()]

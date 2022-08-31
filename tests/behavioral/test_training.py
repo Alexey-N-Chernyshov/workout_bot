@@ -3,6 +3,9 @@ Tests related to training status.
 """
 
 from workout_bot.data_model.users import UserAction
+from workout_bot.view.workouts import (
+    get_workout_text_message, get_week_routine_text_message
+)
 
 
 async def test_start_training_unassigned(behavioral_test_fixture):
@@ -58,8 +61,8 @@ async def test_choose_plan_on_start(test_with_workout_tables):
     await alice.send_message("/start")
 
     # she gets message she is not assigned table
-    alice.expect_answer("Программа тренировок не выбрана")
-    alice.expect_answer("Выберите программу из списка:")
+    expected = test_with_workout_tables.get_choose_plan_message(table)
+    alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.CHOOSING_PLAN)
 
@@ -74,7 +77,7 @@ async def test_start_training(test_with_workout_tables):
     alice = test_with_workout_tables.add_authorized_user()
     table = test_with_workout_tables.workout_tables[0]
     alice.set_table(table.table_id)
-    plan = next(iter(table.pages))
+    plan = test_with_workout_tables.get_table_plan(table, 0)
     alice.set_page(plan)
     alice.set_user_action(UserAction.TRAINING)
 
@@ -82,7 +85,73 @@ async def test_start_training(test_with_workout_tables):
     await alice.send_message("/start")
 
     # she gets message she is not assigned table
-    alice.expect_answer("Программа тренировок не выбрана")
-    alice.expect_answer("Выберите программу из списка:")
+    expected = test_with_workout_tables.get_choose_plan_message(table)
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.CHOOSING_PLAN)
+
+
+async def test_change_plan(test_with_workout_tables):
+    """
+    Given: Alice is authorized and table is assigned and she is CHOOSING_PLAN.
+    When: Alice chooses plan.
+    Then: Plan is assigned and she is TRAINING and new schedule is displayed.
+    """
+
+    alice = test_with_workout_tables.add_authorized_user()
+    table = test_with_workout_tables.workout_tables[0]
+    alice.set_table(table.table_id)
+    plan = test_with_workout_tables.get_table_plan(table, 0)
+    alice.set_page(plan)
+
+    new_plan = test_with_workout_tables.get_table_plan(table, 1)
+
+    # sends a message
+    await alice.send_message(new_plan)
+
+    # she gets message with workout
+    expected = get_week_routine_text_message(
+        test_with_workout_tables.data_model,
+        table.table_id,
+        new_plan,
+        0
+    )
+    alice.expect_answer(expected)
+    expected = get_workout_text_message(
+        test_with_workout_tables.data_model,
+        table.table_id,
+        new_plan,
+        0,
+        0
+    )
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.TRAINING)
+
+
+async def test_change_plan_invalid(test_with_workout_tables):
+    """
+    Given: Alice is authorized and table is assigned and she is CHOOSING_PLAN.
+    When: Alice chooses wrong plan.
+    Then: Alice is shown message that plan is not valid and she is
+    CHOOSING_PLAN again.
+    """
+
+    alice = test_with_workout_tables.add_authorized_user()
+    table = test_with_workout_tables.workout_tables[0]
+    alice.set_table(table.table_id)
+    plan = test_with_workout_tables.get_table_plan(table, 0)
+    alice.set_page(plan)
+
+    new_plan = "wrong plan"
+
+    # sends a message
+    await alice.send_message(new_plan)
+
+    # she gets message no such plan
+    alice.expect_answer("Нет такой программы")
+    # asks to change plan again
+    expected = test_with_workout_tables.get_choose_plan_message(table)
+    alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.CHOOSING_PLAN)

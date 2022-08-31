@@ -108,13 +108,12 @@ class Users:
 
     __storage_filename = ""
 
-    # map user_id -> UserContext
-    __users = {}
-
     def __init__(self, filename):
         """
         Sets shelve storage filename.
         """
+        # map user_id -> UserContext
+        self.__users = {}
 
         self.__storage_filename = filename
         self.__users = shelve.open(self.__storage_filename, writeback=True)

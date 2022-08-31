@@ -92,6 +92,8 @@ async def test_admin_authorizes_usesr(test_with_workout_tables):
     await bob.send_message(table_name)
 
     # Alice is notified
-    alice.expect_answer(f"Назначена программа тренировок *{table_name}*")
+    expected = f"Назначена программа тренировок *{table_name}*\n\n"
+    expected += "Для продолжения нажмите \"Перейти к тренировкам\""
+    alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.CHOOSING_PLAN)

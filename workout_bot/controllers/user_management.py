@@ -258,7 +258,9 @@ class UserManagement:
                 # notify target user
                 target_user_context = self.data_model \
                     .users.get_user_context(target_user_id)
-                text = f"Назначена программа тренировок *{table_name}*"
+                text = f"Назначена программа тренировок *{table_name}*\n"
+                text += "\n"
+                text += "Для продолжения нажмите \"Перейти к тренировкам\""
                 keyboard = [["Перейти к тренировкам"]]
                 reply_markup = ReplyKeyboardMarkup(keyboard,
                                                    resize_keyboard=True)

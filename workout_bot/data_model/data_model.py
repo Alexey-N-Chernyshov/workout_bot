@@ -14,10 +14,6 @@ class DataModel:
     An interface to all business data model objects.
     """
 
-    statistics = Statistics()
-    # Workouts has been read from tables
-    workout_plans = WorkoutPlans()
-
     # pylint: disable=too-many-arguments
     def __init__(self,
                  feeder,
@@ -31,6 +27,9 @@ class DataModel:
                                               excercise_links_pagename,
                                               feeder)
         self.workout_table_names = WorkoutTableNames(table_ids_filename)
+        self.statistics = Statistics()
+        # Workouts has been read from tables
+        self.workout_plans = WorkoutPlans()
 
     def update_tables(self):
         """
