@@ -464,3 +464,46 @@ async def test_go_last_week(test_with_user_with_workouts):
     alice_context = alice.get_user_context()
     assert alice_context.current_week == 1
     assert alice_context.current_workout == 0
+
+
+async def test_go_next_week(test_with_user_with_workouts):
+    """
+    Given: Alice is authorized and table is assigned and current week is 1nd
+    and current workout is 1nd and she is TRAINING.
+    When: Alice goes to the next week.
+    Then: The current week is the 2nd and current workout is the first and she
+    is TRAINING.
+    """
+
+    alice = test_with_user_with_workouts.users[0]
+    table = test_with_user_with_workouts.workout_tables[0]
+    plan = test_with_user_with_workouts.get_table_plan(table, 0)
+    # last workout of the last week
+    alice.set_week_number(0)
+    alice.set_workout_number(1)
+
+    # sends a message
+    await alice.send_message("Следующая неделя")
+
+    # she gets message with new week number 0
+    expected = get_week_routine_text_message(
+        test_with_user_with_workouts.data_model,
+        table.table_id,
+        plan,
+        1
+    )
+    alice.expect_answer(expected)
+    # she gets message with the last workout of the last week
+    expected = get_workout_text_message(
+        test_with_user_with_workouts.data_model,
+        table.table_id,
+        plan,
+        1,
+        0
+    )
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.TRAINING)
+    alice_context = alice.get_user_context()
+    assert alice_context.current_week == 1
+    assert alice_context.current_workout == 0
