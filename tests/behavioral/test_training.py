@@ -256,7 +256,6 @@ async def test_go_to_training(test_with_user_with_workouts):
     Then: Workout is sent and she is TRAINING.
     """
 
-
     alice = test_with_user_with_workouts.users[0]
     table = test_with_user_with_workouts.workout_tables[0]
     plan = test_with_user_with_workouts.get_table_plan(table, 0)

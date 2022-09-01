@@ -6,9 +6,7 @@ import os
 from dataclasses import dataclass
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
-from workout_bot.data_model.statistics import Statistics
-from workout_bot.data_model.users import Users, UserAction
-from workout_bot.data_model.workout_plans import WorkoutPlans
+from workout_bot.data_model.users import UserAction
 from workout_bot.data_model.data_model import DataModel
 
 
@@ -216,7 +214,6 @@ class UserMock:
         """
 
         return self.data_model.users.get_user_context(self.user.id)
-
 
     async def send_message(self, text):
         """

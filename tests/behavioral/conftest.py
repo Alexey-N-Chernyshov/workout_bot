@@ -10,6 +10,7 @@ from workout_bot.data_model.workout_plans import (
 )
 from .behavioral_test_fixture import BehavioralTest
 
+
 def create_workout_table(table_id="table_id", table_name="table_name"):
     """
     Initializes workout table.
@@ -30,8 +31,8 @@ def create_workout_table(table_id="table_id", table_name="table_name"):
                               "week two comment")
     return WorkoutTable(table_id, table_name,
                         {"plan": [first_week, second_week],
-                         "plan2": [first_week]
-                        })
+                         "plan2": [first_week]})
+
 
 @pytest.fixture
 def behavioral_test_fixture():
