@@ -249,26 +249,24 @@ async def test_training_invalid_plan(test_with_workout_tables):
     alice.assert_user_action(UserAction.CHOOSING_PLAN)
 
 
-async def test_go_to_training(test_with_workout_tables):
+async def test_go_to_training(test_with_user_with_workouts):
     """
     Given: Alice is authorized and table is assigned and she is TRAINING.
     When: Alice sends go to training.
     Then: Workout is sent and she is TRAINING.
     """
 
-    alice = test_with_workout_tables.add_authorized_user()
-    table = test_with_workout_tables.workout_tables[0]
-    alice.set_table(table.table_id)
-    plan = test_with_workout_tables.get_table_plan(table, 0)
-    alice.set_page(plan)
-    alice.set_user_action(UserAction.TRAINING)
+
+    alice = test_with_user_with_workouts.users[0]
+    table = test_with_user_with_workouts.workout_tables[0]
+    plan = test_with_user_with_workouts.get_table_plan(table, 0)
 
     # sends a message
     await alice.send_message("Перейти к тренировкам")
 
     # she gets message with workout
     expected = get_workout_text_message(
-        test_with_workout_tables.data_model,
+        test_with_user_with_workouts.data_model,
         table.table_id,
         plan,
         0,
@@ -277,3 +275,107 @@ async def test_go_to_training(test_with_workout_tables):
     alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.TRAINING)
+
+
+async def test_next_workout(test_with_user_with_workouts):
+    """
+    Given: Alice is authorized and table is assigned and she is TRAINING.
+    When: Alice requests next.
+    Then: The 2nd workout is sent and she is TRAINING.
+    """
+
+    alice = test_with_user_with_workouts.users[0]
+    table = test_with_user_with_workouts.workout_tables[0]
+    plan = test_with_user_with_workouts.get_table_plan(table, 0)
+
+    # sends a message
+    await alice.send_message("Далее")
+
+    # she gets message with workout
+    expected = get_workout_text_message(
+        test_with_user_with_workouts.data_model,
+        table.table_id,
+        plan,
+        0,
+        1
+    )
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.TRAINING)
+    alice_context = alice.get_user_context()
+    assert alice_context.current_week == 0
+    assert alice_context.current_workout == 1
+
+
+async def test_next_week_workout(test_with_user_with_workouts):
+    """
+    Given: Alice is authorized and table is assigned and it is the last workout
+    in the week and she is TRAINING.
+    When: Alice requests next.
+    Then: The 2nd week workout is sent and she is TRAINING.
+    """
+
+    alice = test_with_user_with_workouts.users[0]
+    table = test_with_user_with_workouts.workout_tables[0]
+    plan = test_with_user_with_workouts.get_table_plan(table, 0)
+    alice.set_workout_number(1)
+
+    # sends a message
+    await alice.send_message("Далее")
+
+    # she gets message with new week number 1
+    expected = get_week_routine_text_message(
+        test_with_user_with_workouts.data_model,
+        table.table_id,
+        plan,
+        1
+    )
+    alice.expect_answer(expected)
+    # and 0 workout of week 1
+    expected = get_workout_text_message(
+        test_with_user_with_workouts.data_model,
+        table.table_id,
+        plan,
+        1,
+        0
+    )
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.TRAINING)
+    alice_context = alice.get_user_context()
+    assert alice_context.current_week == 1
+    assert alice_context.current_workout == 0
+
+
+async def test_next_last_week_last_workout(test_with_user_with_workouts):
+    """
+    Given: Alice is authorized and table is assigned and it is the last workout
+    in the last week and there is no more weeks and she is TRAINING.
+    When: Alice requests next.
+    Then: The last workout of last week is sent and she is TRAINING.
+    """
+
+    alice = test_with_user_with_workouts.users[0]
+    table = test_with_user_with_workouts.workout_tables[0]
+    plan = test_with_user_with_workouts.get_table_plan(table, 0)
+    # last workout of the last week
+    alice.set_week_number(1)
+    alice.set_workout_number(1)
+
+    # sends a message
+    await alice.send_message("Далее")
+
+    # she gets message with the last workout of the last week
+    expected = get_workout_text_message(
+        test_with_user_with_workouts.data_model,
+        table.table_id,
+        plan,
+        1,
+        1
+    )
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.TRAINING)
+    alice_context = alice.get_user_context()
+    assert alice_context.current_week == 1
+    assert alice_context.current_workout == 1
