@@ -333,7 +333,7 @@ class BehavioralTest:
         """
 
         telegram_user = TelegramUserMock(self.user_counter, first_name,
-                                        last_name, user_name)
+                                         last_name, user_name)
         user = UserMock(self.application, self.data_model, self.user_counter,
                         telegram_user)
         self.user_counter += 1
