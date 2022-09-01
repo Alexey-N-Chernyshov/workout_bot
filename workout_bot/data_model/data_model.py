@@ -17,7 +17,6 @@ class DataModel:
     An interface to all business data model objects.
     """
 
-    # pylint: disable=too-many-arguments
     def __init__(self,
                  users_storage_filename,
                  excercise_links_table_id,

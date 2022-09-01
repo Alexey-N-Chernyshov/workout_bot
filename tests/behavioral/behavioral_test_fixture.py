@@ -160,14 +160,12 @@ class UserMock:
     Represents the user interaction with the bot.
     """
 
-    # pylint: disable=too-many-arguments
-    def __init__(self, application, data_model, user_id,
-                 first_name, last_name, username):
+    def __init__(self, application, data_model, chat_id, telegram_user):
         self.application = application
         self.data_model = data_model
         self.bot = application.bot
-        self.chat_with_bot = ChatMock(user_id)
-        self.user = TelegramUserMock(user_id, first_name, last_name, username)
+        self.chat_with_bot = ChatMock(chat_id)
+        self.user = telegram_user
 
     def set_user_action(self, action):
         """
@@ -334,8 +332,10 @@ class BehavioralTest:
         Adds user to the test and returns UserMock.
         """
 
+        telegram_user = TelegramUserMock(self.user_counter, first_name,
+                                        last_name, user_name)
         user = UserMock(self.application, self.data_model, self.user_counter,
-                        first_name, last_name, user_name)
+                        telegram_user)
         self.user_counter += 1
         self.users.append(user)
         return user
