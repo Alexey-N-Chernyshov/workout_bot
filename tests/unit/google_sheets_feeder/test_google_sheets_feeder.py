@@ -62,7 +62,6 @@ class GoogleSheetsAdapterMock:
         """
 
 
-
 def success_callback():
     """
     Successfull invocation.

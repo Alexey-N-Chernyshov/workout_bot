@@ -51,7 +51,6 @@ class GoogleSheetsFeeder:
             raise GoogleSheetsFeederParsingException(table_id, pagename) \
                 from exception
 
-
     def get_workouts(self, workout_plans, tables):
         """
         Loads workouts.
