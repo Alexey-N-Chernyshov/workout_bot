@@ -280,6 +280,17 @@ class DataModelMock(DataModel):
     USERS_STORAGE = "users_storage"
     TABLE_IDS_STORAGE = "table_ids_storage"
 
+    def __init__(self):
+        self.delete_file(self.USERS_STORAGE)
+        self.delete_file(self.TABLE_IDS_STORAGE)
+
+        super().__init__(
+            self.USERS_STORAGE,
+            "excercise_links_table_id",
+            "excercise_links_pagename",
+            self.TABLE_IDS_STORAGE
+        )
+
     def delete_file(self, filename):
         """
         Helper function to delete a file.
@@ -289,18 +300,6 @@ class DataModelMock(DataModel):
             os.remove(filename)
         except OSError:
             pass
-
-    def __init__(self):
-        self.delete_file(self.USERS_STORAGE)
-        self.delete_file(self.TABLE_IDS_STORAGE)
-
-        super().__init__(
-            None,
-            self.USERS_STORAGE,
-            "excercise_links_table_id",
-            "excercise_links_pagename",
-            self.TABLE_IDS_STORAGE
-        )
 
     def cleanup(self):
         """
