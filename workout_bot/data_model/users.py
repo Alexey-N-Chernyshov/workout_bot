@@ -106,8 +106,6 @@ class Users:
     Provides methods for the user data manipulation.
     """
 
-    __storage_filename = ""
-
     def __init__(self, filename):
         """
         Sets shelve storage filename.

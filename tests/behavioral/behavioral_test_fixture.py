@@ -6,9 +6,8 @@ import os
 from dataclasses import dataclass
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
-from workout_bot.data_model.statistics import Statistics
-from workout_bot.data_model.users import Users, UserAction
-from workout_bot.data_model.workout_plans import WorkoutPlans
+from workout_bot.data_model.users import UserAction
+from workout_bot.data_model.data_model import DataModel
 
 
 @dataclass
@@ -191,6 +190,31 @@ class UserMock:
 
         self.data_model.users.set_page_for_user(self.user.id, page)
 
+    def set_week_number(self, week):
+        """
+        Sets week number for the user.
+        """
+
+        user_context = self.data_model.users.get_user_context(self.user.id)
+        user_context.current_week = week
+        self.data_model.users.set_user_context(user_context)
+
+    def set_workout_number(self, workout):
+        """
+        Sets workout number for the user.
+        """
+
+        user_context = self.data_model.users.get_user_context(self.user.id)
+        user_context.current_workout = workout
+        self.data_model.users.set_user_context(user_context)
+
+    def get_user_context(self):
+        """
+        Returns data model user context.
+        """
+
+        return self.data_model.users.get_user_context(self.user.id)
+
     async def send_message(self, text):
         """
         The user sends message to the bot private chat.
@@ -248,7 +272,7 @@ class UserMock:
         assert actual_action == expected_action
 
 
-class DataModelMock:
+class DataModelMock(DataModel):
     """
     Data model used for the bot.
     """
@@ -270,9 +294,13 @@ class DataModelMock:
         self.delete_file(self.USERS_STORAGE)
         self.delete_file(self.TABLE_IDS_STORAGE)
 
-        self.statistics = Statistics()
-        self.users = Users(self.USERS_STORAGE)
-        self.workout_plans = WorkoutPlans()
+        super().__init__(
+            None,
+            self.USERS_STORAGE,
+            "excercise_links_table_id",
+            "excercise_links_pagename",
+            self.TABLE_IDS_STORAGE
+        )
 
     def cleanup(self):
         """
