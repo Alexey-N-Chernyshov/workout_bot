@@ -72,9 +72,11 @@ class WorkoutPlans:
     """
     Thread-safe workout plans storage
     """
-    # map {table_id -> WorkoutTable}
-    __workout_tables = {}
-    lock = threading.Lock()
+
+    def __init__(self):
+        # map {table_id -> WorkoutTable}
+        self.__workout_tables = {}
+        self.lock = threading.Lock()
 
     def update_workout_table(self, workout_table):
         """

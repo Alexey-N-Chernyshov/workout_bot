@@ -39,8 +39,7 @@ class DataModel:
         """
 
         self.excercise_links.load_excercise_links()
-        self.feeder.get_workouts(self.workout_plans,
-                                 self.workout_table_names)
+        self.workout_plans = self.feeder.get_workouts(self.workout_table_names)
         self.statistics.set_training_plan_update_time()
 
     def next_workout_for_user(self, user_id):

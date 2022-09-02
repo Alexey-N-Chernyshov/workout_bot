@@ -2,13 +2,11 @@
 Transforms loaded Google spreadsheets into data model.
 """
 
-import logging
 import re
 from datetime import date
 from data_model.workout_plans import Excercise
 from data_model.workout_plans import Set
 from data_model.workout_plans import Workout
-from data_model.workout_plans import WorkoutTable
 from data_model.workout_plans import WeekRoutine
 
 
@@ -28,42 +26,14 @@ class GoogleSheetsAdapter:
                       key=lambda x: len(x[0]),
                       reverse=True)
 
-    def parse_workouts(self, google_sheets_loader, workout_plans, tables):
-        """
-        Updates workout plans from google spreadsheet tables.
-        tables - {table_id: str : [page_name]}
-        """
-
-        logging.info('Updating workouts')
-        for spreadsheet_id, pagenames in tables.get_tables().items():
-            table = WorkoutTable(spreadsheet_id, "", {})
-            for pagename in pagenames:
-                text = (
-                    "Loading "
-                    "https://docs.google.com/spreadsheets/d/"
-                    f"{spreadsheet_id}/edit#gid=0 - \"{pagename}\""
-                )
-                logging.info(text)
-                (tablename, pagename, all_weeks) = \
-                    self.load_table_page(google_sheets_loader,
-                                         spreadsheet_id, pagename)
-                table.table_name = tablename
-                table.pages[pagename] = all_weeks
-                logging.info("Loaded %s - %s", tablename, pagename)
-            workout_plans.update_workout_table(table)
-        logging.info('Updated workouts')
-
-    def load_table_page(self, google_sheets_loader, spreadsheet_id, pagename):
+    def parse_table_page(self, merges, values):
         """
         Parses google spreadsheet page with a training program.
         Parses cell merges to determine workouts and sets.
 
-        Retruns (tablename, pagename, list_of_week_workouts)
+        Retruns list_of_week_workouts
         """
 
-        (tablename, merges, values) = \
-            google_sheets_loader.get_values_and_merges(spreadsheet_id,
-                                                       pagename)
         start_week_date = date.today()
         end_week_date = date.today()
         week_comment = ""
@@ -197,4 +167,4 @@ class GoogleSheetsAdapter:
                 workout_actual_number = 0
                 current_week += 1
 
-        return tablename, pagename, all_weeks
+        return all_weeks
