@@ -6,28 +6,6 @@ import logging
 from data_model.workout_plans import WorkoutTable, WorkoutPlans
 
 
-class GoogleSheetsFeederLoadingException(Exception):
-    """
-    Error during loading happened.
-    """
-
-    def __init__(self, table_id, page_name):
-        self.table_id = table_id
-        self.pagename = page_name
-        super().__init__(f"Error while loading {table_id} {page_name}")
-
-
-class GoogleSheetsFeederParsingException(Exception):
-    """
-    Error during parsing happened.
-    """
-
-    def __init__(self, table_id, page_name):
-        self.table_id = table_id
-        self.pagename = page_name
-        super().__init__(f"Error while parsing {table_id} {page_name}")
-
-
 class GoogleSheetsFeeder:
     """
     Loads and transforms data from Google Spreadsheets.
@@ -41,18 +19,9 @@ class GoogleSheetsFeeder:
         """
         Loads excercise links.
         """
-        values = None
-        try:
-            values = self.loader.get_values(table_id, page_name)
-        except Exception as exception:
-            raise GoogleSheetsFeederLoadingException(table_id, page_name) \
-                from exception
 
-        try:
-            return self.adapter.parse_excercise_links(values)
-        except Exception as exception:
-            raise GoogleSheetsFeederParsingException(table_id, page_name) \
-                from exception
+        values = self.loader.get_values(table_id, page_name)
+        return self.adapter.parse_excercise_links(values)
 
     def get_workout_table(self, table_id, page_names):
         """
