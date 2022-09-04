@@ -54,4 +54,5 @@ class GoogleSheetsFeeder:
         for table_id, page_names in workout_tables.get_tables().items():
             plans.update_workout_table(self.get_workout_table(table_id,
                                                               page_names))
+
         return plans
