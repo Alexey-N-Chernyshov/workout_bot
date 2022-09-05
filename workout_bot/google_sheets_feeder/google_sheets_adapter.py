@@ -26,7 +26,7 @@ class GoogleSheetsAdapter:
                       key=lambda x: len(x[0]),
                       reverse=True)
 
-    def parse_merges(self, merges):
+    def parse_merges(self, merges, values):
         """
         Parses merges in order to determine week indeces (begins and ends).
         """
@@ -47,12 +47,22 @@ class GoogleSheetsAdapter:
         week_indeces.sort()
         workout_indeces.sort()
 
+        workout_num = 0
+        i = 0
+        while i < len(values):
+            if i < workout_indeces[workout_num][0]:
+                workout_indeces.append((i, i + 1))
+                workout_indeces.sort()
+                i += 1
+            else:
+                i = workout_indeces[workout_num][1]
+            workout_num += 1
+
         return (week_indeces, workout_indeces)
 
     def parse_week_begin(self, to_parse):
         """
         Parses week description.
-        Returns week start date, end date, comment for the week.
         """
 
         days, rest = to_parse.strip().split('.', 1)
@@ -71,7 +81,29 @@ class GoogleSheetsAdapter:
         start_week_date = date(start_year, start_month, start_day)
         end_week_date = date(end_year, end_month, end_day)
 
-        return (start_week_date, end_week_date, week_comment)
+        return WeekRoutine(start_week_date, end_week_date, 0, [],
+                           week_comment.strip())
+
+    def parse_workout_set(self, to_parse):
+        """
+        Parses description of workout set.
+        """
+
+        workout_set = Set("", 0, [])
+        number, rest = to_parse.split('\\', 1)
+        workout_set.number = int(number)
+        # read rounds if present
+        if rest[0].isdigit():
+            if '\\' in rest:
+                rounds, rest = rest.split('\\', 1)
+                workout_set.rounds = rounds
+            else:
+                workout_set.rounds = rest
+                rest = ""
+        else:
+            workout_set.rounds = 0
+        workout_set.description = rest
+        return workout_set
 
     def parse_workout(self, to_parse):
         """
@@ -98,26 +130,12 @@ class GoogleSheetsAdapter:
         Retruns list_of_week_workouts
         """
 
-        start_week_date = date.today()
-        end_week_date = date.today()
-        week_comment = ""
-        week_workouts = []
+        week_routine = WeekRoutine(date.today(), date.today(), 0, [], "")
         workout = Workout("", [], 0)
         workout_set = Set("", 0, [])
         workout_actual_number = 0  # actual workout number including homework
 
-        week_indeces, workout_indeces = self.parse_merges(merges)
-
-        workout_num = 0
-        i = 0
-        while i < len(values):
-            if i < workout_indeces[workout_num][0]:
-                workout_indeces.append((i, i + 1))
-                workout_indeces.sort()
-                i += 1
-            else:
-                i = workout_indeces[workout_num][1]
-            workout_num += 1
+        week_indeces, workout_indeces = self.parse_merges(merges, values)
 
         all_weeks = []
         current_week = 0
@@ -128,20 +146,7 @@ class GoogleSheetsAdapter:
                 # it is a set description if starts with set number
                 # if set_number != 0:
                 workout.sets.append(workout_set)
-                workout_set = Set("", 0, [])
-                number, rest = row[2].split('\\', 1)
-                workout_set.number = int(number)
-                # read rounds if present
-                if rest[0].isdigit():
-                    if '\\' in rest:
-                        rounds, rest = rest.split('\\', 1)
-                        workout_set.rounds = rounds
-                    else:
-                        workout_set.rounds = rest
-                        rest = ""
-                else:
-                    workout_set.rounds = 0
-                workout_set.description = rest
+                workout_set = self.parse_workout_set(row[2])
             else:
                 # it is an exercise
                 if len(row) >= 4:
@@ -163,25 +168,22 @@ class GoogleSheetsAdapter:
 
             # week begin
             if i == week_indeces[current_week][0]:
-                week_workouts = []
-                start_week_date, end_week_date, week_comment = \
-                    self.parse_week_begin(row[0])
+                week_routine = self.parse_week_begin(row[0])
 
             # Workout end
             if i in (workout_indeces[current_workout][1] - 1, len(values) - 1):
                 workout.sets.append(workout_set)
                 workout_set = Set("", 0, [])
                 workout.actual_number = workout_actual_number
-                week_workouts.append(workout)
+                week_routine.workouts.append(workout)
                 workout = Workout("", [], 0)
                 current_workout += 1
 
             # week end
             if i in (week_indeces[current_week][1] - 1, len(values) - 1):
-                all_weeks.append(WeekRoutine(start_week_date, end_week_date,
-                                             current_week + 1, week_workouts,
-                                             week_comment.strip()))
-                workout_actual_number = 0
                 current_week += 1
+                week_routine.number = current_week
+                all_weeks.append(week_routine)
+                workout_actual_number = 0
 
         return all_weeks
