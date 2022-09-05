@@ -15,7 +15,7 @@ def excercise_to_text_message(data_model, excercise):
         text += f", {excercise.reps_window}"
     text += "\n"
     text = escape_text(text)
-    for name, link in data_model.excercise_links.get_excercise_links().items():
+    for name, link in data_model.excercise_links.get_excercise_links():
         if name in text:
             text = text.replace(name, f"[{name}]({link})")
             break

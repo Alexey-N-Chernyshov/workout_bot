@@ -10,7 +10,6 @@ import schedule
 import yaml
 
 from data_model.data_model import DataModel
-from google_sheets_feeder import google_sheets_adapter
 from telegram_bot.telegram_bot import TelegramBot
 from telegram.ext import ApplicationBuilder
 
@@ -39,8 +38,7 @@ def init_data_model():
         excercise_links_pagename = config["excercise_links_pagename"]
         workout_table_ids_storage = config["workout_table_ids_storage"]
 
-        data_model = DataModel(google_sheets_adapter,
-                               users_storage,
+        data_model = DataModel(users_storage,
                                excercise_links_table_id,
                                excercise_links_pagename,
                                workout_table_ids_storage)

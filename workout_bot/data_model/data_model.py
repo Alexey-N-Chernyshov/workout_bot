@@ -2,6 +2,9 @@
 Provides business data model objects.
 """
 
+from google_sheets_feeder.google_sheets_adapter import GoogleSheetsAdapter
+from google_sheets_feeder.google_sheets_feeder import GoogleSheetsFeeder
+from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
 from .excercise_links import ExcerciseLinks
 from .statistics import Statistics
 from .users import Users
@@ -14,18 +17,17 @@ class DataModel:
     An interface to all business data model objects.
     """
 
-    # pylint: disable=too-many-arguments
     def __init__(self,
-                 feeder,
                  users_storage_filename,
                  excercise_links_table_id,
                  excercise_links_pagename,
                  table_ids_filename):
-        self.feeder = feeder
+        self.feeder = GoogleSheetsFeeder(GoogleSheetsLoader(),
+                                         GoogleSheetsAdapter())
         self.users = Users(users_storage_filename)
         self.excercise_links = ExcerciseLinks(excercise_links_table_id,
                                               excercise_links_pagename,
-                                              feeder)
+                                              self.feeder)
         self.workout_table_names = WorkoutTableNames(table_ids_filename)
         self.statistics = Statistics()
         # Workouts has been read from tables
@@ -37,8 +39,7 @@ class DataModel:
         """
 
         self.excercise_links.load_excercise_links()
-        self.feeder.load_workouts(self.workout_plans,
-                                  self.workout_table_names)
+        self.workout_plans = self.feeder.get_workouts(self.workout_table_names)
         self.statistics.set_training_plan_update_time()
 
     def next_workout_for_user(self, user_id):
