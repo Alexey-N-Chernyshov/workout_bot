@@ -2,7 +2,6 @@
 Provides user interaction for administation process.
 """
 
-from telegram import Update
 from telegram import KeyboardButton, ReplyKeyboardMarkup
 from data_model.users import UserAction
 
