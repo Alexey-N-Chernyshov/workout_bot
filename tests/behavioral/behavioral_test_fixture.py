@@ -244,7 +244,10 @@ class UserMock:
 
         actual = self.bot.get_message(self.chat_with_bot.id)
         if actual != expected_text:
+            print("Actual:")
             print(actual)
+            print("Expected:")
+            print(expected_text)
 
         assert actual == expected_text
 
@@ -367,7 +370,7 @@ class BehavioralTest:
         Adds user with administrative permissions.
         """
 
-        user = self.add_user(first_name, last_name, user_name)
+        user = self.add_authorized_user(first_name, last_name, user_name)
         self.data_model.users.set_administrative_permission(user.user.id)
         self.data_model.users.set_user_action(user.user.id,
                                               UserAction.CHOOSING_PLAN)

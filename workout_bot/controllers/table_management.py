@@ -10,6 +10,63 @@ from view.tables import get_table_message, get_all_tables_message
 from google_sheets_feeder.utils import get_table_id_from_link
 
 
+async def send_with_table_management_panel(bot, chat_id,
+                                           text="Управление таблицами"):
+    """
+    Shows table management panel.
+    """
+
+    keyboard = [
+        [KeyboardButton("Показать все таблицы")],
+        [
+            KeyboardButton("Удалить таблицу/страницу"),
+            KeyboardButton("Добавить таблицу/страницу")
+        ],
+        [KeyboardButton("Прочитать таблицы")],
+        [KeyboardButton("Администрирование")]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+    await bot.send_message(chat_id, text, reply_markup=reply_markup,
+                           parse_mode="MarkdownV2")
+
+
+def handle_show_tables():
+    """
+    Handles switch to training status.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        Admin wants do display all tables.
+        """
+
+        user_id = update.message.from_user.id
+        user_context = data_model.users.get_user_context(user_id)
+        message_text = update.message.text.strip().lower()
+        return (user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
+                and message_text == "показать все таблицы")
+
+    async def handler(data_model, update, context):
+        """
+        Shows all tables.
+        """
+
+        user_id = update.message.from_user.id
+        user_context = data_model.users.get_user_context(user_id)
+        chat_id = user_context.chat_id
+        print("handler")
+        print(chat_id)
+        text = get_all_tables_message(data_model)
+        await send_with_table_management_panel(context.bot, chat_id, text=text)
+        return True
+
+    return (handler_filter, handler)
+
+table_management_message_handlers = [
+    handle_show_tables()
+]
+
 class TableManagement:
     """
     Provides user interaction for table manamegent.
@@ -123,11 +180,6 @@ class TableManagement:
                 user_context.user_input_data.pages.append(update.message.text)
                 self.data_model.users.set_user_context(user_context)
                 await self.prompt_pages(chat_id, user_context)
-            return True
-
-        if message_text == "показать все таблицы":
-            text = get_all_tables_message(self.data_model)
-            await self.show_table_management_panel(chat_id, text=text)
             return True
 
         if (message_text in ("добавить таблицу/страницу", "добавить таблицу",

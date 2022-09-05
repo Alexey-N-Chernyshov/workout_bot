@@ -454,7 +454,7 @@ def handle_previous_week():
     return (handler_filter, handler)
 
 
-table_management_message_handlers = [
+training_management_message_handlers = [
     handle_go_training(),
     handle_need_change_plan(),
     handle_message_change_plan(),

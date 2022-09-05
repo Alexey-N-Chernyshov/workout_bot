@@ -57,10 +57,13 @@ def test_with_workout_tables():
     table1 = create_workout_table("table_id_1", "table_name_1")
     test.data_model.workout_plans.update_workout_table(table1)
     test.workout_tables.append(table1)
+    test.data_model.workout_table_names.add_table("table_id_1",
+                                                  ["plan", "plan2"])
 
     table2 = WorkoutTable("table_id_2", "table_name_2", {"plan": []})
     test.data_model.workout_plans.update_workout_table(table2)
     test.workout_tables.append(table2)
+    test.data_model.workout_table_names.add_table("table_id_2", ["plan"])
 
     yield test
     test.teardown()
@@ -85,5 +88,18 @@ def test_with_user_with_workouts():
     user.set_page(plan)
     user.set_user_action(UserAction.TRAINING)
 
+    yield test
+    test.teardown()
+
+
+@pytest.fixture
+def test_table_management(test_with_workout_tables):
+    """
+    Sets up tables and admin in ADMIN_TABLE_MANAGEMENT state.
+    """
+
+    test = test_with_workout_tables
+    admin = test.add_admin()
+    admin.set_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
     yield test
     test.teardown()
