@@ -4,6 +4,7 @@ Provides user interaction for administation process.
 
 from telegram import KeyboardButton, ReplyKeyboardMarkup
 from data_model.users import UserAction
+from telegram_bot.utils import get_user_context
 
 
 async def show_admin_panel(bot, chat_id, user_context):
@@ -32,8 +33,7 @@ def handle_go_administration():
         """
         Admin in ADMIN_TABLE_MANAGEMENT state.
         """
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         message_text = update.message.text.strip().lower()
         return (user_context.action in (UserAction.ADMIN_USER_MANAGEMENT,
                                         UserAction.ADMIN_TABLE_MANAGEMENT,

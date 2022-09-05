@@ -93,6 +93,7 @@ def test_with_user_with_workouts():
 
 
 @pytest.fixture
+# pylint: disable=redefined-outer-name
 def test_table_management(test_with_workout_tables):
     """
     Sets up tables and admin in ADMIN_TABLE_MANAGEMENT state.

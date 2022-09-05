@@ -8,6 +8,7 @@ from data_model.users import UserAction
 from data_model.users import AddTableContext, RemoveTableContext
 from view.tables import get_table_message, get_all_tables_message
 from google_sheets_feeder.utils import get_table_id_from_link
+from telegram_bot.utils import get_user_context
 
 
 async def send_with_table_management_panel(bot, chat_id,
@@ -41,8 +42,7 @@ def handle_show_tables():
         Admin wants do display all tables.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         message_text = update.message.text.strip().lower()
         return (user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
                 and message_text == "показать все таблицы")
@@ -52,8 +52,7 @@ def handle_show_tables():
         Shows all tables.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         chat_id = user_context.chat_id
         text = get_all_tables_message(data_model)
         await send_with_table_management_panel(context.bot, chat_id, text=text)
@@ -72,8 +71,7 @@ def handle_update_tables():
         Admin wants do update all tables.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         message_text = update.message.text.strip().lower()
         return (user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
                 and message_text == "прочитать таблицы")
@@ -83,8 +81,7 @@ def handle_update_tables():
         Updates all tables.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         chat_id = user_context.chat_id
         text = "Идёт обновление таблиц, может занять несколько секунд"
         await context.bot.send_message(chat_id, text)
@@ -105,9 +102,8 @@ def handle_other_messages():
         """
         Admin in ADMIN_TABLE_MANAGEMENT state.
         """
-        print("filter other")
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+
+        user_context = get_user_context(data_model, update)
         return user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
 
     async def handler(data_model, update, context):
@@ -115,8 +111,7 @@ def handle_other_messages():
         Handle other messages.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         chat_id = user_context.chat_id
         await send_with_table_management_panel(context.bot, chat_id)
         return True

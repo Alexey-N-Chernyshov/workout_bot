@@ -6,6 +6,7 @@ from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from data_model.users import UserAction
 from view.workouts import get_workout_text_message
 from view.workouts import get_week_routine_text_message
+from telegram_bot.utils import get_user_context
 
 
 async def start_training(data_model, update, context):
@@ -147,8 +148,7 @@ def handle_go_training():
         not valid.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         message_text = update.message.text.strip().lower()
         return (user_context.action in (UserAction.TRAINING,
                                         UserAction.ADMINISTRATION,
@@ -177,8 +177,7 @@ def handle_need_change_plan():
         not valid.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         message_text = update.message.text.strip().lower()
         table_id = user_context.current_table_id
         current_page = user_context.current_page
@@ -214,8 +213,7 @@ def handle_message_change_plan():
         Checks if user in CHOOSING_PLAN state.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return user_context.action == UserAction.CHOOSING_PLAN
 
     async def handler(data_model, update, context):
@@ -224,8 +222,7 @@ def handle_message_change_plan():
         """
 
         new_plan = update.message.text
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         chat_id = user_context.chat_id
         table_id = user_context.current_table_id
 
@@ -258,8 +255,7 @@ def handle_all_actions():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and message_text == "все действия")
 
@@ -288,8 +284,7 @@ def handle_next():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and (message_text in ("далее", "следующая тренировка")))
 
@@ -322,8 +317,7 @@ def handle_first_week():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and message_text in ("первая неделя", "начальная неделя"))
 
@@ -332,9 +326,7 @@ def handle_first_week():
         Shows all possible actions.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-
+        user_context = get_user_context(data_model, update)
         user_context.current_week = 0
         user_context.current_workout = 0
         data_model.users.set_user_context(user_context)
@@ -356,8 +348,7 @@ def handle_last_week():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and message_text in ("последняя неделя", "крайняя неделя",
                                      "текущая неделя"))
@@ -367,9 +358,7 @@ def handle_last_week():
         Shows all possible actions.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-
+        user_context = get_user_context(data_model, update)
         user_context.current_week = data_model.workout_plans \
             .get_week_number(user_context.current_table_id,
                              user_context.current_page) - 1
@@ -393,8 +382,7 @@ def handle_next_week():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and message_text in ("следующая неделя"))
 
@@ -403,9 +391,7 @@ def handle_next_week():
         Shows all possible actions.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-
+        user_context = get_user_context(data_model, update)
         if user_context.current_week < data_model.workout_plans \
                 .get_week_number(user_context.current_table_id,
                                  user_context.current_page) - 1:
@@ -430,8 +416,7 @@ def handle_previous_week():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and message_text in ("прошлая неделя", "предыдущая неделя"))
 
@@ -440,9 +425,7 @@ def handle_previous_week():
         Shows all possible actions.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-
+        user_context = get_user_context(data_model, update)
         if user_context.current_week > 0:
             user_context.current_week -= 1
         user_context.current_workout = 0

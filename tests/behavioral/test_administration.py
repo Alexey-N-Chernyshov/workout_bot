@@ -1,3 +1,7 @@
+"""
+Test bot handlers related to administration.
+"""
+
 from workout_bot.data_model.users import UserAction
 from workout_bot.view.workouts import get_workout_text_message
 
