@@ -33,7 +33,7 @@ async def send_with_table_management_panel(bot, chat_id,
 
 def handle_show_tables():
     """
-    Handles switch to training status.
+    Handles show tables.
     """
 
     def handler_filter(data_model, update):
@@ -55,8 +55,6 @@ def handle_show_tables():
         user_id = update.message.from_user.id
         user_context = data_model.users.get_user_context(user_id)
         chat_id = user_context.chat_id
-        print("handler")
-        print(chat_id)
         text = get_all_tables_message(data_model)
         await send_with_table_management_panel(context.bot, chat_id, text=text)
         return True
@@ -64,8 +62,43 @@ def handle_show_tables():
     return (handler_filter, handler)
 
 
+def handle_update_tables():
+    """
+    Handles update tables request.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        Admin wants do update all tables.
+        """
+
+        user_id = update.message.from_user.id
+        user_context = data_model.users.get_user_context(user_id)
+        message_text = update.message.text.strip().lower()
+        return (user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
+                and message_text == "прочитать таблицы")
+
+    async def handler(data_model, update, context):
+        """
+        Updates all tables.
+        """
+
+        user_id = update.message.from_user.id
+        user_context = data_model.users.get_user_context(user_id)
+        chat_id = user_context.chat_id
+        text = "Идёт обновление таблиц, может занять несколько секунд"
+        await context.bot.send_message(chat_id, text)
+        data_model.update_tables()
+        await context.bot.send_message(chat_id, "Таблицы обновлены")
+        await send_with_table_management_panel(context.bot, chat_id)
+        return True
+
+    return (handler_filter, handler)
+
+
 table_management_message_handlers = [
-    handle_show_tables()
+    handle_show_tables(),
+    handle_update_tables()
 ]
 
 
@@ -198,14 +231,6 @@ class TableManagement:
             user_context.user_input_data = RemoveTableContext()
             self.data_model.users.set_user_context(user_context)
             await self.prompt_table_id(chat_id)
-            return True
-
-        if message_text == "прочитать таблицы":
-            text = "Идёт обновление таблиц, может занять несколько секунд."
-            await self.bot.send_message(chat_id, text)
-            self.data_model.update_tables()
-            await self.bot.send_message(chat_id, "Таблицы обновлены.")
-            await self.show_table_management_panel(chat_id)
             return True
 
         if message_text == "администрирование":

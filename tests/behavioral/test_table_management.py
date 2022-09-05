@@ -22,3 +22,24 @@ async def test_show_all_tables(test_table_management):
     alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
+
+
+async def test_update_tables(test_table_management):
+    """
+    Given: Alice is an admin and in ADMIN_TABLE_MANAGEMENT and wants to update
+    tables and tables are present.
+    When: Alice sends update tables.
+    Then: All tables are updated.
+    """
+
+    alice = test_table_management.users[0]
+
+    await alice.send_message("Прочитать таблицы")
+
+    expected = "Идёт обновление таблиц, может занять несколько секунд"
+    alice.expect_answer(expected)
+    alice.expect_answer("Таблицы обновлены")
+    alice.expect_answer("Управление таблицами")
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
+    assert test_table_management.data_model.updated

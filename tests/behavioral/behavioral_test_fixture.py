@@ -284,6 +284,7 @@ class DataModelMock(DataModel):
     def __init__(self):
         self.delete_file(self.USERS_STORAGE)
         self.delete_file(self.TABLE_IDS_STORAGE)
+        self.updated = False
 
         super().__init__(
             self.USERS_STORAGE,
@@ -291,6 +292,13 @@ class DataModelMock(DataModel):
             "exercise_links_pagename",
             self.TABLE_IDS_STORAGE
         )
+
+    def update_tables(self):
+        """
+        Updates tables mock.
+        """
+
+        self.updated = True
 
     def delete_file(self, filename):
         """
