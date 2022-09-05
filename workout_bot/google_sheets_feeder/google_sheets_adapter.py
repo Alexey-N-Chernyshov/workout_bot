@@ -106,10 +106,8 @@ class GoogleSheetsAdapter:
         end_week_date = date.today()
         week_comment = ""
         week_workouts = []
-        workout_number = 0  # workout number in a week written in sheets
+        workout = Workout("", [], 0)
         workout_actual_number = 0  # actual workout number including homework
-        workout_description = ''
-        workout_sets = []
         set_number = 0
         set_rounds = 0
         set_description = ''
@@ -136,7 +134,7 @@ class GoogleSheetsAdapter:
             if len(row) > 2 and re.match(r"^\d+\\", row[2]):
                 # it is a set description if starts with set number
                 # if set_number != 0:
-                workout_sets.append(Set(set_description, set_number,
+                workout.sets.append(Set(set_description, set_number,
                                         set_excercises, set_rounds))
                 set_excercises = []
                 number, rest = row[2].split('\\', 1)
@@ -165,10 +163,10 @@ class GoogleSheetsAdapter:
 
             # workout begin
             if i == workout_indeces[current_workout][0]:
-                workout_sets = []
+                workout.sets = []
                 workout_actual_number += 1
                 # check workout type
-                workout_number, workout_description = \
+                workout.number, workout.description = \
                     self.parse_workout(row[1])
 
             # week begin
@@ -179,17 +177,15 @@ class GoogleSheetsAdapter:
 
             # Workout end
             if i in (workout_indeces[current_workout][1] - 1, len(values) - 1):
-                workout_sets.append(Set(set_description, set_number,
+                workout.sets.append(Set(set_description, set_number,
                                         set_excercises, set_rounds))
-                week_workouts.append(Workout(workout_description, workout_sets,
-                                             workout_actual_number,
-                                             workout_number))
+                workout.actual_number = workout_actual_number
+                week_workouts.append(workout)
+                workout = Workout("", [], 0)
                 set_excercises = []
-                workout_sets = []
                 set_number = 0
                 set_description = ''
                 set_rounds = 0
-                workout_description = ''
                 current_workout += 1
 
             # week end
