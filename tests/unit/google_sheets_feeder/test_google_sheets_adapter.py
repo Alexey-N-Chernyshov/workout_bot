@@ -15,7 +15,7 @@ EXCERCISES_EXPECTED_FILE = os.path.join(FIXTURE_DIR,
                                         "data/exercises_expected.pkl")
 
 
-def test_parse_workout_links(datafiles):
+def test_parse_workout_links():
     """
     Loads exercises.pkl as it were from google table and transforms to the
     list of exercises. Expected ordered list of exercises stored at
