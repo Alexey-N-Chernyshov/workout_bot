@@ -233,10 +233,6 @@ class TableManagement:
             await self.prompt_table_id(chat_id)
             return True
 
-        if message_text == "администрирование":
-            # return to above menu
-            return False
-
         if user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT:
             await self.show_table_management_panel(chat_id)
             return True

@@ -43,3 +43,19 @@ async def test_update_tables(test_table_management):
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
     assert test_table_management.data_model.updated
+
+
+async def test_go_administration(test_table_management):
+    """
+    Given: Alice is an admin and in ADMIN_TABLE_MANAGEMENT.
+    When: Alice sends go to administration.
+    Then: Alice is in ADMINISTRATION.
+    """
+
+    alice = test_table_management.users[0]
+
+    await alice.send_message("Администрирование")
+
+    alice.expect_answer("Администрирование")
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.ADMINISTRATION)
