@@ -1,6 +1,6 @@
 import datetime
 from workout_bot.data_model.workout_plans import (
-    Excercise,
+    Exercise,
     Set,
     Workout,
     WeekRoutine,
@@ -101,26 +101,26 @@ WeekRoutine(start_date=datetime.date(2022, 6, 27),
                         sets=[
                             Set(description='по готовности',
                                 number=1,
-                                excersises=[
-                                    Excercise(description='подтягивания', reps_window='3-5'),
-                                    Excercise(description="приседания со штангой на спине", reps_window='3')
+                                exercises=[
+                                    Exercise(description='подтягивания', reps_window='3-5'),
+                                    Exercise(description="приседания со штангой на спине", reps_window='3')
                                 ],
                                 rounds='3'
                                 ),
                             Set(description='по готовности',
                                 number=2,
-                                excersises=[
-                                    Excercise(description='жим штанги лежа', reps_window='3-5'),
-                                    Excercise(description='фронтальные приседания', reps_window='3')
+                                exercises=[
+                                    Exercise(description='жим штанги лежа', reps_window='3-5'),
+                                    Exercise(description='фронтальные приседания', reps_window='3')
                                 ],
                                 rounds='3'
                                 ),
                             Set(description='с минимум отдыха',
                                 number=3,
-                                excersises=[
-                                    Excercise(description='тяга горизонтального блока', reps_window='3-5'),
-                                    Excercise(description='обратная экстензия', reps_window='20'),
-                                    Excercise(description="подъем гантелей на бицепс лежа под 45", reps_window='8-10')
+                                exercises=[
+                                    Exercise(description='тяга горизонтального блока', reps_window='3-5'),
+                                    Exercise(description='обратная экстензия', reps_window='20'),
+                                    Exercise(description="подъем гантелей на бицепс лежа под 45", reps_window='8-10')
                                     ],
                                 rounds='2')
                             ],
@@ -130,24 +130,24 @@ WeekRoutine(start_date=datetime.date(2022, 6, 27),
                         sets=[
                             Set(description='по готовности',
                                 number=1,
-                                excersises=[
-                                    Excercise(description='отжимания на брусьях', reps_window='3-5'),
-                                    Excercise(description='становая тяга', reps_window='3-5')
+                                exercises=[
+                                    Exercise(description='отжимания на брусьях', reps_window='3-5'),
+                                    Exercise(description='становая тяга', reps_window='3-5')
                                 ],
                                 rounds='3'),
                             Set(description='по готовности',
                                 number=2,
-                                excersises=[
-                                    Excercise(description="ходьба на руках с опрой на партнера", reps_window='по 10 шагов'),
-                                    Excercise(description='тяга горизонтального блока', reps_window='3-5')
+                                exercises=[
+                                    Exercise(description="ходьба на руках с опрой на партнера", reps_window='по 10 шагов'),
+                                    Exercise(description='тяга горизонтального блока', reps_window='3-5')
                                 ],
                                 rounds='3'),
                             Set(description='с минимум отдыха',
                                 number=3,
-                                excersises=[
-                                    Excercise(description='треп-3 лежа под углом 30', reps_window='15'),
-                                    Excercise(description='обратная экстензия', reps_window='20'),
-                                    Excercise(description='комбо на пресс', reps_window='по 20')
+                                exercises=[
+                                    Exercise(description='треп-3 лежа под углом 30', reps_window='15'),
+                                    Exercise(description='обратная экстензия', reps_window='20'),
+                                    Exercise(description='комбо на пресс', reps_window='по 20')
                                 ],
                                 rounds='2')
                                 ],
@@ -157,24 +157,24 @@ WeekRoutine(start_date=datetime.date(2022, 6, 27),
                         sets=[
                             Set(description='по готовности',
                                 number=1,
-                                excersises=[
-                                    Excercise(description='подтягивания', reps_window='3-5'),
-                                    Excercise(description='приседания со штангой на спине', reps_window='3')
+                                exercises=[
+                                    Exercise(description='подтягивания', reps_window='3-5'),
+                                    Exercise(description='приседания со штангой на спине', reps_window='3')
                                     ],
                                 rounds='3'),
                             Set(description='по готовности',
                                 number=2,
-                                excersises=[
-                                    Excercise(description='жим штанги лежа', reps_window='3-5'),
-                                    Excercise(description='фронтальные приседания', reps_window='3')
+                                exercises=[
+                                    Exercise(description='жим штанги лежа', reps_window='3-5'),
+                                    Exercise(description='фронтальные приседания', reps_window='3')
                                 ],
                                 rounds='3'),
                             Set(description='с минимум отдыха',
                                 number=3,
-                                excersises=[
-                                    Excercise(description='тяга горизонтального блока', reps_window='3-5'),
-                                    Excercise(description='обратная экстензия', reps_window='20'),
-                                    Excercise(description="подъем гантелей на бицепс лежа под 45", reps_window='8-10')
+                                exercises=[
+                                    Exercise(description='тяга горизонтального блока', reps_window='3-5'),
+                                    Exercise(description='обратная экстензия', reps_window='20'),
+                                    Exercise(description="подъем гантелей на бицепс лежа под 45", reps_window='8-10')
                                 ],
                                 rounds='2')
                             ],

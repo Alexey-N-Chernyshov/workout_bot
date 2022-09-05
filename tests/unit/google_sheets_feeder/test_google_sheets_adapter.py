@@ -4,13 +4,34 @@ Tests for GoogleSheetsAdapter
 
 import pickle
 import os
-import pytest
 from workout_bot.google_sheets_feeder.google_sheets_adapter \
     import GoogleSheetsAdapter
 from .data.workouts_data import raw_table_data, expected_workouts
 
 
 FIXTURE_DIR = os.path.dirname(os.path.realpath(__file__))
+EXCERCISES_RAW_FILE = os.path.join(FIXTURE_DIR, "data/exercises_raw.pkl")
+EXCERCISES_EXPECTED_FILE = os.path.join(FIXTURE_DIR,
+                                        "data/exercises_expected.pkl")
+
+
+def test_parse_workout_links():
+    """
+    Loads exercises.pkl as it were from google table and transforms to the
+    list of exercises. Expected ordered list of exercises stored at
+    "data/exercises_expected.pkl"
+    """
+
+    adapter = GoogleSheetsAdapter()
+
+    with open(EXCERCISES_RAW_FILE, "rb") as raw_file:
+        with open(EXCERCISES_EXPECTED_FILE, "rb") as expected_file:
+            values = pickle.load(raw_file)
+            actual = adapter.parse_exercise_links(values)
+            expected = pickle.load(expected_file)
+
+            for acutal_item, expected_item in zip(actual, expected):
+                assert acutal_item == expected_item
 
 
 def assert_workouts_equal(actual, expected):
@@ -34,35 +55,12 @@ def assert_workouts_equal(actual, expected):
                 assert actual_sets.description == expected_sets.description
                 assert actual_sets.number == expected_sets.number
                 assert actual_sets.rounds == expected_sets.rounds
-                for actual_excercise, expected_excercise in zip(
-                        actual_sets.excersises, expected_sets.excersises):
-                    assert actual_excercise.description == expected_excercise \
+                for actual_exercise, expected_exercise in zip(
+                        actual_sets.exercises, expected_sets.exercises):
+                    assert actual_exercise.description == expected_exercise \
                         .description
-                    assert actual_excercise.reps_window == expected_excercise \
+                    assert actual_exercise.reps_window == expected_exercise \
                         .reps_window
-
-
-@pytest.mark.datafiles(
-    os.path.join(FIXTURE_DIR, "data/excercises_raw.pkl"),
-    os.path.join(FIXTURE_DIR, "data/excercises_expected.pkl"),
-    )
-def test_parse_workout_links(datafiles):
-    """
-    Loads excercises.pkl as it were from google table and transforms to the
-    list of excercises. Expected ordered list of excercises stored at
-    "data/excercises_expected.pkl"
-    """
-
-    adapter = GoogleSheetsAdapter()
-
-    with open(datafiles.listdir()[0], "rb") as raw_file:
-        with open(datafiles.listdir()[1], "rb") as expected_file:
-            values = pickle.load(raw_file)
-            actual = adapter.parse_excercise_links(values)
-            expected = pickle.load(expected_file)
-
-            for acutal_item, expected_item in zip(actual, expected):
-                assert acutal_item == expected_item
 
 
 def test_parse_workouts():

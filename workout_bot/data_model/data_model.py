@@ -5,7 +5,7 @@ Provides business data model objects.
 from google_sheets_feeder.google_sheets_adapter import GoogleSheetsAdapter
 from google_sheets_feeder.google_sheets_feeder import GoogleSheetsFeeder
 from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
-from .excercise_links import ExcerciseLinks
+from .exercise_links import ExerciseLinks
 from .statistics import Statistics
 from .users import Users
 from .workout_plans import WorkoutPlans
@@ -19,15 +19,15 @@ class DataModel:
 
     def __init__(self,
                  users_storage_filename,
-                 excercise_links_table_id,
-                 excercise_links_pagename,
+                 exercise_links_table_id,
+                 exercise_links_pagename,
                  table_ids_filename):
         self.feeder = GoogleSheetsFeeder(GoogleSheetsLoader(),
                                          GoogleSheetsAdapter())
         self.users = Users(users_storage_filename)
-        self.excercise_links = ExcerciseLinks(excercise_links_table_id,
-                                              excercise_links_pagename,
-                                              self.feeder)
+        self.exercise_links = ExerciseLinks(exercise_links_table_id,
+                                            exercise_links_pagename,
+                                            self.feeder)
         self.workout_table_names = WorkoutTableNames(table_ids_filename)
         self.statistics = Statistics()
         # Workouts has been read from tables
@@ -38,7 +38,7 @@ class DataModel:
         Loads latest workout plans from google spreadsheets.
         """
 
-        self.excercise_links.load_excercise_links()
+        self.exercise_links.load_exercise_links()
         self.workout_plans = self.feeder.get_workouts(self.workout_table_names)
         self.statistics.set_training_plan_update_time()
 

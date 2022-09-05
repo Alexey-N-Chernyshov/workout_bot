@@ -10,9 +10,9 @@ from typing import Dict
 
 
 @dataclass
-class Excercise:
+class Exercise:
     """
-    Is a single excercise.
+    Is a single exercise.
     """
 
     description: str
@@ -22,19 +22,19 @@ class Excercise:
 @dataclass
 class Set:
     """
-    Is a set of excercises.
+    Is a set of exercises.
     """
 
     description: str
     number: int
-    excersises: List[Excercise]
+    exercises: List[Exercise]
     rounds: str = ""
 
 
 @dataclass
 class Workout:
     """
-    Single workout consists of excercises combined into sets.
+    Single workout consists of exercises combined into sets.
     """
 
     description: str
