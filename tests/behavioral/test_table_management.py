@@ -59,3 +59,19 @@ async def test_go_administration(test_table_management):
     alice.expect_answer("Администрирование")
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.ADMINISTRATION)
+
+
+async def test_unrecognized_text(test_table_management):
+    """
+    Given: Alice is an admin and in ADMIN_TABLE_MANAGEMENT.
+    When: Alice sends message with inrecognized test.
+    Then: Alice is in ADMIN_TABLE_MANAGEMENT.
+    """
+
+    alice = test_table_management.users[0]
+
+    await alice.send_message("unrecognized")
+
+    alice.expect_answer("Управление таблицами")
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)

@@ -7,6 +7,7 @@ from .authorization import authorization_handlers
 from .administration import Administration
 from .table_management import TableManagement
 from .user_management import UserManagement
+from .administration import administration_message_handlers
 from .training_management import training_management_message_handlers
 from .table_management import table_management_message_handlers
 
@@ -22,6 +23,7 @@ class Controllers:
 
     def __init__(self, bot, data_model):
         self.message_handlers.extend(authorization_handlers)
+        self.message_handlers.extend(administration_message_handlers)
         self.message_handlers.extend(training_management_message_handlers)
         self.message_handlers.extend(table_management_message_handlers)
 

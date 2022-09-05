@@ -96,9 +96,38 @@ def handle_update_tables():
     return (handler_filter, handler)
 
 
+def handle_other_messages():
+    """
+    Handles other messages.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        Admin in ADMIN_TABLE_MANAGEMENT state.
+        """
+        print("filter other")
+        user_id = update.message.from_user.id
+        user_context = data_model.users.get_user_context(user_id)
+        return user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
+
+    async def handler(data_model, update, context):
+        """
+        Handle other messages.
+        """
+
+        user_id = update.message.from_user.id
+        user_context = data_model.users.get_user_context(user_id)
+        chat_id = user_context.chat_id
+        await send_with_table_management_panel(context.bot, chat_id)
+        return True
+
+    return (handler_filter, handler)
+
+
 table_management_message_handlers = [
     handle_show_tables(),
-    handle_update_tables()
+    handle_update_tables(),
+    handle_other_messages()
 ]
 
 
@@ -231,10 +260,6 @@ class TableManagement:
             user_context.user_input_data = RemoveTableContext()
             self.data_model.users.set_user_context(user_context)
             await self.prompt_table_id(chat_id)
-            return True
-
-        if user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT:
-            await self.show_table_management_panel(chat_id)
             return True
 
         return False

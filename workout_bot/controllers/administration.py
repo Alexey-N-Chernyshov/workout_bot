@@ -7,6 +7,58 @@ from telegram import KeyboardButton, ReplyKeyboardMarkup
 from data_model.users import UserAction
 
 
+async def show_admin_panel(bot, chat_id, user_context):
+    """
+    Shows administation panel.
+    """
+
+    if user_context.administrative_permission:
+        keyboard = [
+            [KeyboardButton("Управление пользователями")],
+            [KeyboardButton("Управление таблицами")],
+            [KeyboardButton("Перейти к тренировкам")]
+        ]
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        await bot.send_message(chat_id, "Администрирование",
+                               reply_markup=reply_markup,
+                               parse_mode="MarkdownV2")
+
+
+def handle_go_administration():
+    """
+    Handles go to administration.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        Admin in ADMIN_TABLE_MANAGEMENT state.
+        """
+        user_id = update.message.from_user.id
+        user_context = data_model.users.get_user_context(user_id)
+        message_text = update.message.text.strip().lower()
+        return (user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
+                and message_text == "администрирование")
+
+    async def handler(data_model, update, context):
+        """
+        Handle other messages.
+        """
+
+        user_id = update.message.from_user.id
+        user_context = data_model.users.get_user_context(user_id)
+        chat_id = user_context.chat_id
+        data_model.users.set_user_action(user_id, UserAction.ADMINISTRATION)
+        await show_admin_panel(context.bot, chat_id, user_context)
+        return True
+
+    return (handler_filter, handler)
+
+
+administration_message_handlers = [
+    handle_go_administration()
+]
+
+
 class Administration:
     """
     Provides user interaction for administation process.
