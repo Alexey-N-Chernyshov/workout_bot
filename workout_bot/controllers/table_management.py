@@ -63,9 +63,11 @@ def handle_show_tables():
 
     return (handler_filter, handler)
 
+
 table_management_message_handlers = [
     handle_show_tables()
 ]
+
 
 class TableManagement:
     """
