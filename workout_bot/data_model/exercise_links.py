@@ -1,14 +1,14 @@
 """
-Storage of excercises names and links.
+Storage of exercises names and links.
 """
 
 SHELVE_KEY_TABLE_ID = "table_id"
 SHELVE_KEY_PAGENAME = "pagename"
 
 
-class ExcerciseLinks:
+class ExerciseLinks:
     """
-    Provides access to excercise links.
+    Provides access to exercise links.
     """
 
     def __init__(self, table_id, pagename, feeder):
@@ -18,17 +18,17 @@ class ExcerciseLinks:
         self.table_id = table_id
         self.pagename = pagename
         self.feeder = feeder
-        self.excercise_links = {}
+        self.exercise_links = {}
 
-    def load_excercise_links(self):
+    def load_exercise_links(self):
         """
-        Loads excercise links from google table.
+        Loads exercise links from google table.
         """
-        self.excercise_links = self.feeder.get_excercise_links(self.table_id,
+        self.exercise_links = self.feeder.get_exercise_links(self.table_id,
                                                                self.pagename)
 
-    def get_excercise_links(self):
+    def get_exercise_links(self):
         """
-        Returns loaded excercise links.
+        Returns loaded exercise links.
         """
-        return self.excercise_links
+        return self.exercise_links

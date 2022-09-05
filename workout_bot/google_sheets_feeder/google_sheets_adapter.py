@@ -4,7 +4,7 @@ Transforms loaded Google spreadsheets into data model.
 
 import re
 from datetime import date
-from data_model.workout_plans import Excercise
+from data_model.workout_plans import Exercise
 from data_model.workout_plans import Set
 from data_model.workout_plans import Workout
 from data_model.workout_plans import WeekRoutine
@@ -15,11 +15,11 @@ class GoogleSheetsAdapter:
     Parses google sheets raw data and transforms to data model format.
     """
 
-    def parse_excercise_links(self, values):
+    def parse_exercise_links(self, values):
         """
-        Loads excercise links from google table.
+        Loads exercise links from google table.
 
-        Returns excercises sorted by name length in reverse order.
+        Returns exercises sorted by name length in reverse order.
         """
 
         return sorted(filter(lambda item: item, values),
@@ -107,11 +107,8 @@ class GoogleSheetsAdapter:
         week_comment = ""
         week_workouts = []
         workout = Workout("", [], 0)
+        workout_set = Set("", 0, [])
         workout_actual_number = 0  # actual workout number including homework
-        set_number = 0
-        set_rounds = 0
-        set_description = ''
-        set_excercises = []
 
         week_indeces, workout_indeces = self.parse_merges(merges)
 
@@ -134,32 +131,31 @@ class GoogleSheetsAdapter:
             if len(row) > 2 and re.match(r"^\d+\\", row[2]):
                 # it is a set description if starts with set number
                 # if set_number != 0:
-                workout.sets.append(Set(set_description, set_number,
-                                        set_excercises, set_rounds))
-                set_excercises = []
+                workout.sets.append(workout_set)
+                workout_set = Set("", 0, [])
                 number, rest = row[2].split('\\', 1)
-                set_number = int(number)
+                workout_set.number = int(number)
                 # read rounds if present
                 if rest[0].isdigit():
                     if '\\' in rest:
                         rounds, rest = rest.split('\\', 1)
-                        set_rounds = rounds
+                        workout_set.rounds = rounds
                     else:
-                        set_rounds = rest
+                        workout_set.rounds = rest
                         rest = ""
                 else:
-                    set_rounds = 0
-                set_description = rest
+                    workout_set.rounds = 0
+                workout_set.description = rest
             else:
-                # it is an excercise
+                # it is an exercise
                 if len(row) >= 4:
-                    # excercise reps present
-                    set_excercises.append(Excercise(row[2].strip(),
-                                                    row[3].strip()))
+                    # exercise reps present
+                    workout_set.exercises.append(Exercise(row[2].strip(),
+                                                  row[3].strip()))
                 elif len(row) >= 3:
-                    # excercise reps not present
-                    set_excercises.append(Excercise(row[2].strip()))
-                # otherwise empty string - no excercise
+                    # exercise reps not present
+                    workout_set.exercises.append(Exercise(row[2].strip()))
+                # otherwise empty string - no exercise
 
             # workout begin
             if i == workout_indeces[current_workout][0]:
@@ -177,15 +173,11 @@ class GoogleSheetsAdapter:
 
             # Workout end
             if i in (workout_indeces[current_workout][1] - 1, len(values) - 1):
-                workout.sets.append(Set(set_description, set_number,
-                                        set_excercises, set_rounds))
+                workout.sets.append(workout_set)
+                workout_set = Set("", 0, [])
                 workout.actual_number = workout_actual_number
                 week_workouts.append(workout)
                 workout = Workout("", [], 0)
-                set_excercises = []
-                set_number = 0
-                set_description = ''
-                set_rounds = 0
                 current_workout += 1
 
             # week end

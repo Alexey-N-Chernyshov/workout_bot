@@ -284,8 +284,8 @@ class DataModelMock(DataModel):
 
         super().__init__(
             self.USERS_STORAGE,
-            "excercise_links_table_id",
-            "excercise_links_pagename",
+            "exercise_links_table_id",
+            "exercise_links_pagename",
             self.TABLE_IDS_STORAGE
         )
 

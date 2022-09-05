@@ -15,13 +15,13 @@ class GoogleSheetsFeeder:
         self.loader = loader
         self.adapter = adapter
 
-    def get_excercise_links(self, table_id, page_name):
+    def get_exercise_links(self, table_id, page_name):
         """
-        Loads excercise links.
+        Loads exercise links.
         """
 
         values = self.loader.get_values(table_id, page_name)
-        return self.adapter.parse_excercise_links(values)
+        return self.adapter.parse_exercise_links(values)
 
     def get_workout_table(self, table_id, page_names):
         """
