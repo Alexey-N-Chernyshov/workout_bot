@@ -4,7 +4,6 @@ All controllers for telegram bot interaction.
 
 from dataclasses import dataclass
 from .authorization import authorization_handlers
-from .administration import Administration
 from .table_management import TableManagement
 from .user_management import UserManagement
 from .administration import administration_message_handlers
@@ -27,7 +26,6 @@ class Controllers:
         self.message_handlers.extend(training_management_message_handlers)
         self.message_handlers.extend(table_management_message_handlers)
 
-        self.administration = Administration(bot, data_model)
         self.user_management = UserManagement(bot, data_model)
         self.table_management = TableManagement(bot, data_model)
 
