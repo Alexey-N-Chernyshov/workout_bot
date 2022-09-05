@@ -26,6 +26,74 @@ class GoogleSheetsAdapter:
                       key=lambda x: len(x[0]),
                       reverse=True)
 
+
+    def parse_merges(self, merges):
+        """
+        Parses merges in order to determine week indeces (begins and ends).
+        """
+
+        week_indeces = []
+        workout_indeces = []
+
+        for merge in merges:
+            if merge["startColumnIndex"] == 0 and merge["endColumnIndex"] == 1:
+                start_week_index = merge['startRowIndex'] - 1
+                end_week_index = merge['endRowIndex'] - 1
+                week_indeces.append((start_week_index, end_week_index))
+            if merge["startColumnIndex"] == 1 and merge["endColumnIndex"] == 2:
+                start_workout_index = merge["startRowIndex"] - 1
+                end_workout_index = merge["endRowIndex"] - 1
+                workout_indeces.append((start_workout_index,
+                                        end_workout_index))
+        week_indeces.sort()
+        workout_indeces.sort()
+
+        return (week_indeces, workout_indeces)
+
+
+    def parse_week_begin(self, to_parse):
+        """
+        Parses week description.
+        Returns week start date, end date, comment for the week.
+        """
+
+        days, rest = to_parse.strip().split('.', 1)
+        start_day, end_day = [int(x) for x in days.split('-')]
+        month, week_comment = re.split(r"(^\d+)", rest, maxsplit=1)[1:]
+        end_month = int(month)
+        start_year = date.today().year
+        end_year = date.today().year
+        if start_day > end_day:
+            start_month = end_month - 1
+            if start_month == 0:
+                start_month = 12
+                start_year -= 1
+        else:
+            start_month = end_month
+        start_week_date = date(start_year, start_month, start_day)
+        end_week_date = date(end_year, end_month, end_day)
+
+        return (start_week_date, end_week_date, week_comment)
+
+
+    def parse_workout(self, to_parse):
+        """
+        Parses single workout.
+        Returns workout number and description.
+        """
+
+        if to_parse and to_parse[0].isdigit():
+            # it's a workout
+            num, workout_description = \
+                re.split(r"(^\d+)", to_parse, maxsplit=1)[1:]
+            workout_number = int(num)
+        else:
+            # it's a homework
+            workout_number = 0
+            workout_description = to_parse
+        return (workout_number, workout_description)
+
+
     def parse_table_page(self, merges, values):
         """
         Parses google spreadsheet page with a training program.
@@ -47,20 +115,7 @@ class GoogleSheetsAdapter:
         set_description = ''
         set_excercises = []
 
-        week_indeces = []
-        workout_indeces = []
-        for merge in merges:
-            if merge["startColumnIndex"] == 0 and merge["endColumnIndex"] == 1:
-                start_week_index = merge['startRowIndex'] - 1
-                end_week_index = merge['endRowIndex'] - 1
-                week_indeces.append((start_week_index, end_week_index))
-            if merge["startColumnIndex"] == 1 and merge["endColumnIndex"] == 2:
-                start_workout_index = merge["startRowIndex"] - 1
-                end_workout_index = merge["endRowIndex"] - 1
-                workout_indeces.append((start_workout_index,
-                                        end_workout_index))
-        week_indeces.sort()
-        workout_indeces.sort()
+        week_indeces, workout_indeces = self.parse_merges(merges)
 
         workout_num = 0
         i = 0
@@ -76,9 +131,7 @@ class GoogleSheetsAdapter:
         all_weeks = []
         current_week = 0
         current_workout = 0
-        for i in range(len(values)):
-            row = values[i]
-
+        for i, row in enumerate(values):
             # Set
             if len(row) > 2 and re.match(r"^\d+\\", row[2]):
                 # it is a set description if starts with set number
@@ -115,34 +168,14 @@ class GoogleSheetsAdapter:
                 workout_sets = []
                 workout_actual_number += 1
                 # check workout type
-                if row[1] and row[1][0].isdigit():
-                    # it's a workout
-                    num, workout_description = \
-                        re.split(r"(^\d+)", row[1], maxsplit=1)[1:]
-                    workout_number = int(num)
-                else:
-                    # it's a homework
-                    workout_number = 0
-                    workout_description = row[1]
+                workout_number, workout_description = \
+                    self.parse_workout(row[1])
 
             # week begin
             if i == week_indeces[current_week][0]:
                 week_workouts = []
-                days, rest = row[0].strip().split('.', 1)
-                start_day, end_day = [int(x) for x in days.split('-')]
-                month, week_comment = re.split(r"(^\d+)", rest, maxsplit=1)[1:]
-                end_month = int(month)
-                start_year = date.today().year
-                end_year = date.today().year
-                if start_day > end_day:
-                    start_month = end_month - 1
-                    if start_month == 0:
-                        start_month = 12
-                        start_year -= 1
-                else:
-                    start_month = end_month
-                start_week_date = date(start_year, start_month, start_day)
-                end_week_date = date(end_year, end_month, end_day)
+                start_week_date, end_week_date, week_comment = \
+                    self.parse_week_begin(row[0])
 
             # Workout end
             if i in (workout_indeces[current_workout][1] - 1, len(values) - 1):
