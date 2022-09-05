@@ -14,6 +14,7 @@ EXCERCISES_RAW_FILE = os.path.join(FIXTURE_DIR, "data/exercises_raw.pkl")
 EXCERCISES_EXPECTED_FILE = os.path.join(FIXTURE_DIR,
     "data/exercises_expected.pkl")
 
+
 def test_parse_workout_links(datafiles):
     """
     Loads exercises.pkl as it were from google table and transforms to the
@@ -23,15 +24,11 @@ def test_parse_workout_links(datafiles):
 
     adapter = GoogleSheetsAdapter()
 
-    print(datafiles)
     with open(EXCERCISES_RAW_FILE, "rb") as raw_file:
         with open(EXCERCISES_EXPECTED_FILE, "rb") as expected_file:
             values = pickle.load(raw_file)
             actual = adapter.parse_exercise_links(values)
             expected = pickle.load(expected_file)
-
-            for a in values:
-                print(a)
 
             for acutal_item, expected_item in zip(actual, expected):
                 assert acutal_item == expected_item
