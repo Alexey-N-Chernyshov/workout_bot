@@ -26,8 +26,8 @@ class DataModel:
                                          GoogleSheetsAdapter())
         self.users = Users(users_storage_filename)
         self.exercise_links = ExerciseLinks(exercise_links_table_id,
-                                              exercise_links_pagename,
-                                              self.feeder)
+                                            exercise_links_pagename,
+                                            self.feeder)
         self.workout_table_names = WorkoutTableNames(table_ids_filename)
         self.statistics = Statistics()
         # Workouts has been read from tables

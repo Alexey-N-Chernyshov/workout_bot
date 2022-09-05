@@ -26,7 +26,6 @@ class GoogleSheetsAdapter:
                       key=lambda x: len(x[0]),
                       reverse=True)
 
-
     def parse_merges(self, merges):
         """
         Parses merges in order to determine week indeces (begins and ends).
@@ -49,7 +48,6 @@ class GoogleSheetsAdapter:
         workout_indeces.sort()
 
         return (week_indeces, workout_indeces)
-
 
     def parse_week_begin(self, to_parse):
         """
@@ -75,7 +73,6 @@ class GoogleSheetsAdapter:
 
         return (start_week_date, end_week_date, week_comment)
 
-
     def parse_workout(self, to_parse):
         """
         Parses single workout.
@@ -92,7 +89,6 @@ class GoogleSheetsAdapter:
             workout_number = 0
             workout_description = to_parse
         return (workout_number, workout_description)
-
 
     def parse_table_page(self, merges, values):
         """
@@ -151,7 +147,7 @@ class GoogleSheetsAdapter:
                 if len(row) >= 4:
                     # exercise reps present
                     workout_set.exercises.append(Exercise(row[2].strip(),
-                                                  row[3].strip()))
+                                                 row[3].strip()))
                 elif len(row) >= 3:
                     # exercise reps not present
                     workout_set.exercises.append(Exercise(row[2].strip()))

@@ -12,7 +12,7 @@ from .data.workouts_data import raw_table_data, expected_workouts
 FIXTURE_DIR = os.path.dirname(os.path.realpath(__file__))
 EXCERCISES_RAW_FILE = os.path.join(FIXTURE_DIR, "data/exercises_raw.pkl")
 EXCERCISES_EXPECTED_FILE = os.path.join(FIXTURE_DIR,
-    "data/exercises_expected.pkl")
+                                        "data/exercises_expected.pkl")
 
 
 def test_parse_workout_links(datafiles):
