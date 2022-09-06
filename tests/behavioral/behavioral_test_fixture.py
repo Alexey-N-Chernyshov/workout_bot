@@ -8,6 +8,7 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
 from workout_bot.data_model.users import UserAction
 from workout_bot.data_model.data_model import DataModel
+from workout_bot.view.workouts import get_workout_text_message
 
 
 @dataclass
@@ -365,7 +366,7 @@ class BehavioralTest:
         user_context.last_name = user.user.last_name
         user_context.username = user.user.username
         user_context.chat_id = user.user.id
-        user_context.current_page = 0
+        user_context.current_page = None
         user_context.current_week = 0
         user_context.current_workout = 0
         user_context.action = UserAction.CHOOSING_PLAN
@@ -402,3 +403,17 @@ class BehavioralTest:
 
         plans = self.data_model.workout_plans.get_plan_names(table.table_id)
         return plans[number]
+
+    def get_expected_workout_text_message(self, user):
+        """
+        Returns expected text message for current workout
+        """
+
+        user_context = self.data_model.users.get_user_context(user.user.id)
+        return get_workout_text_message(
+            self.data_model,
+            user_context.current_table_id,
+            user_context.current_page,
+            user_context.current_week,
+            user_context.current_workout
+        )

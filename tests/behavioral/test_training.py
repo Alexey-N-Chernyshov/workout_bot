@@ -284,20 +284,13 @@ async def test_go_next_workout(test_with_user_with_workouts):
     """
 
     alice = test_with_user_with_workouts.users[0]
-    table = test_with_user_with_workouts.workout_tables[0]
-    plan = test_with_user_with_workouts.get_table_plan(table, 0)
 
     # sends a message
     await alice.send_message("Далее")
 
     # she gets message with workout
-    expected = get_workout_text_message(
-        test_with_user_with_workouts.data_model,
-        table.table_id,
-        plan,
-        0,
-        1
-    )
+    expected = test_with_user_with_workouts \
+        .get_expected_workout_text_message(alice)
     alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.TRAINING)

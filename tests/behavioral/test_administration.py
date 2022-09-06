@@ -3,7 +3,6 @@ Test bot handlers related to administration.
 """
 
 from workout_bot.data_model.users import UserAction
-from workout_bot.view.workouts import get_workout_text_message
 
 
 async def test_go_to_training(test_with_workout_tables):
@@ -24,13 +23,8 @@ async def test_go_to_training(test_with_workout_tables):
     await alice.send_message("Перейти к тренировкам")
 
     # she gets message with workout
-    expected = get_workout_text_message(
-        test_with_workout_tables.data_model,
-        table.table_id,
-        plan,
-        0,
-        0
-    )
+    expected = test_with_workout_tables \
+        .get_expected_workout_text_message(alice)
     alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.TRAINING)
