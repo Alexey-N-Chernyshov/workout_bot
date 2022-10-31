@@ -22,7 +22,7 @@ class GoogleSheetsAdapter:
         Returns exercises sorted by name length in reverse order.
         """
 
-        return sorted(filter(lambda item: item, values),
+        return sorted(filter(lambda item: (item and len(item) == 2), values),
                       key=lambda x: len(x[0]),
                       reverse=True)
 
