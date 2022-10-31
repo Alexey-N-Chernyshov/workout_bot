@@ -2,11 +2,11 @@
 Tests for GoogleSheetsAdapter
 """
 
-import pickle
 import os
 from workout_bot.google_sheets_feeder.google_sheets_adapter \
     import GoogleSheetsAdapter
 from .data.workouts_data import raw_table_data, expected_workouts
+from .data.exercises_data import raw_exercises_data, expected_exercise_data
 
 
 FIXTURE_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -24,21 +24,17 @@ def test_parse_workout_links():
 
     adapter = GoogleSheetsAdapter()
 
-    with open(EXCERCISES_RAW_FILE, "rb") as raw_file:
-        with open(EXCERCISES_EXPECTED_FILE, "rb") as expected_file:
-            values = pickle.load(raw_file)
-            actual = adapter.parse_exercise_links(values)
-            expected = pickle.load(expected_file)
+    actual = adapter.parse_exercise_links(raw_exercises_data)
 
-            for acutal_item, expected_item in zip(actual, expected):
-                assert acutal_item == expected_item
+    for acutal_item, expected_item in zip(actual, expected_exercise_data):
+        assert acutal_item == expected_item
 
 
 def assert_workouts_equal(actual, expected):
-
     """
     Asserts actual and expected workouts are equal.
     """
+
     for actual_week, expected_week in zip(actual, expected):
         assert actual_week.start_date == expected_week.start_date
         assert actual_week.end_date == expected_week.end_date
