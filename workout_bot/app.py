@@ -65,7 +65,7 @@ def scheduler(data_model):
         time.sleep(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # print version
     version_file = Path(VERSION_FILE_NAME)
     if version_file.is_file():

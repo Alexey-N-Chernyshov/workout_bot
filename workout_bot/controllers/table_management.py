@@ -9,7 +9,8 @@ from data_model.users import AddTableContext, RemoveTableContext
 from view.tables import get_table_message, get_all_tables_message
 from google_sheets_feeder.utils import get_table_id_from_link
 from telegram_bot.utils import get_user_context
-
+from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 async def send_with_table_management_panel(bot, chat_id,
                                            text="Управление таблицами"):
@@ -30,6 +31,39 @@ async def send_with_table_management_panel(bot, chat_id,
 
     await bot.send_message(chat_id, text, reply_markup=reply_markup,
                            parse_mode="MarkdownV2")
+
+
+def handle_go_table_management():
+    """
+    Handles switch to training status.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The user wants go to table management.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action in (UserAction.TRAINING,
+                                        UserAction.ADMINISTRATION,
+                                        UserAction.ADMIN_TABLE_MANAGEMENT)
+                and message_text == "управление таблицами")
+
+    async def handler(data_model, update, context):
+        """
+        Show table management panel and switch state.
+        """
+
+        user_context = get_user_context(data_model, update)
+        data_model.users.set_user_action(user_context.user_id,
+                                         UserAction.ADMIN_TABLE_MANAGEMENT)
+        await send_with_table_management_panel(context.bot,
+                                               update.effective_chat.id)
+        return True
+
+    return (handler_filter, handler)
 
 
 def handle_show_tables():
@@ -56,6 +90,57 @@ def handle_show_tables():
         chat_id = user_context.chat_id
         text = get_all_tables_message(data_model)
         await send_with_table_management_panel(context.bot, chat_id, text=text)
+        return True
+
+    return (handler_filter, handler)
+
+
+def handle_add_table():
+    """
+    Handles add table/page.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        Admin wants do add table or page.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
+                and message_text in (("добавить таблицу/страницу",
+                                      "добавить таблицу",
+                                      "добавить страницу")))
+
+    async def handler(data_model, update, context):
+        """
+        Shows all tables.
+        """
+
+        user_context = get_user_context(data_model, update)
+        chat_id = user_context.chat_id
+
+        data_model.users.set_user_action(user_context.user_id,
+                                         UserAction.ADMIN_ADDING_TABLE)
+        data_model.users.set_user_input_data(user_context.user_id,
+                                             AddTableContext())
+        await context.bot.send_message(chat_id, "Введите ссылку на таблицу")
+
+######
+        # #TODO ask table name, pass loader, handle error
+        # loader = GoogleSheetsLoader()
+        # pages = loader.get_sheet_names("1x2DpoqS9lxUNNWKf5hp4VhHWblWZm-mTTu5I5L3jhtw")
+        #
+        # keyboard = []
+        # for page in pages:
+        #     keyboard.append([InlineKeyboardButton(page, callback_data=page)])
+        # reply_markup = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
+        #
+        # await context.bot.send_message(chat_id, "*table name*",
+        #                                reply_markup=reply_markup,
+        #                                parse_mode="MarkdownV2")
+
+        # await send_with_table_management_panel(context.bot, chat_id, "Added")
         return True
 
     return (handler_filter, handler)
@@ -120,7 +205,9 @@ def handle_other_messages():
 
 
 table_management_message_handlers = [
+    handle_go_table_management(),
     handle_show_tables(),
+    handle_add_table(),
     handle_update_tables(),
     handle_other_messages()
 ]
@@ -134,26 +221,6 @@ class TableManagement:
     def __init__(self, bot, data_model):
         self.bot = bot
         self.data_model = data_model
-
-    async def show_table_management_panel(self, chat_id,
-                                          text="Управление таблицами"):
-        """
-        Shows table management panel.
-        """
-
-        keyboard = [
-            [KeyboardButton("Показать все таблицы")],
-            [
-                KeyboardButton("Удалить таблицу/страницу"),
-                KeyboardButton("Добавить таблицу/страницу")
-            ],
-            [KeyboardButton("Прочитать таблицы")],
-            [KeyboardButton("Администрирование")]
-        ]
-        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-
-        await self.bot.send_message(chat_id, text, reply_markup=reply_markup,
-                                    parse_mode="MarkdownV2")
 
     async def prompt_table_id(self, chat_id):
         """
@@ -217,7 +284,7 @@ class TableManagement:
                 user_context.action = UserAction.ADMIN_TABLE_MANAGEMENT
                 user_context.user_input_data = None
                 self.data_model.users.set_user_context(user_context)
-                await self.show_table_management_panel(chat_id)
+                await send_with_table_management_panel(self.bot, chat_id)
             else:
                 user_context.user_input_data.pages.append(update.message.text)
                 self.data_model.users.set_user_context(user_context)
@@ -234,19 +301,11 @@ class TableManagement:
                 user_context.action = UserAction.ADMIN_TABLE_MANAGEMENT
                 user_context.user_input_data = None
                 self.data_model.users.set_user_context(user_context)
-                await self.show_table_management_panel(chat_id)
+                await send_with_table_management_panel(self.bot, chat_id)
             else:
                 user_context.user_input_data.pages.append(update.message.text)
                 self.data_model.users.set_user_context(user_context)
                 await self.prompt_pages(chat_id, user_context)
-            return True
-
-        if (message_text in ("добавить таблицу/страницу", "добавить таблицу",
-                             "добавить страницу")):
-            user_context.action = UserAction.ADMIN_ADDING_TABLE
-            user_context.user_input_data = AddTableContext()
-            self.data_model.users.set_user_context(user_context)
-            await self.prompt_table_id(chat_id)
             return True
 
         if (message_text in ("удалить таблицу/страницу", "удалить таблицу",

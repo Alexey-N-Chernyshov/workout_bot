@@ -102,3 +102,27 @@ class GoogleSheetsLoader:
 
         except HttpError as err:
             print(err)
+
+
+    def get_sheet_names(self, spreadsheet_id):
+        """
+        Loads google sheet names from spreadsheet.
+        """
+
+        creds = self.get_credentials(GOOGLE_TOKEN_FILENAME)
+
+        try:
+            service = build("sheets", "v4", credentials=creds)
+
+            # Call the Sheets API
+            sheet_metadata = service.spreadsheets() \
+                .get(spreadsheetId=spreadsheet_id).execute()
+            sheets = sheet_metadata.get("sheets", "")
+            result = []
+            for sheet in sheets:
+                result.append(sheet.get("properties", {}).get("title", ""))
+
+            return result
+
+        except HttpError as err:
+            print(err)

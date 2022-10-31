@@ -219,6 +219,15 @@ class Users:
         user_context.user_input_data = None
         self.__users.sync()
 
+    def set_user_input_data(self, user_id, data):
+        """
+        Sets user data stored between messages. Depends on user action.
+        """
+
+        user_context = self.get_or_create_user_context(user_id)
+        user_context.user_input_data = data
+        self.__users.sync()
+
     def block_user(self, user_id):
         """
         Sets blocked action for user_id. If user_id is not present, creates a

@@ -125,17 +125,6 @@ class TelegramBot:
         if (user_context.administrative_permission
                 and user_context.action in (UserAction.TRAINING,
                                             UserAction.ADMINISTRATION)
-                and message_text == "управление таблицами"):
-            self.data_model \
-                .users.set_user_action(user_context.user_id,
-                                       UserAction.ADMIN_TABLE_MANAGEMENT)
-            await self.controllers.table_management \
-                .show_table_management_panel(update.effective_chat.id)
-            return
-
-        if (user_context.administrative_permission
-                and user_context.action in (UserAction.TRAINING,
-                                            UserAction.ADMINISTRATION)
                 and message_text == "управление пользователями"):
             self.data_model \
                 .users.set_user_action(user_context.user_id,
