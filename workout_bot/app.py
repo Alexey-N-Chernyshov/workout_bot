@@ -53,8 +53,6 @@ def init_data_model():
 
         return data_model
 
-    return None
-
 
 def scheduler(data_model):
     "Schedules google table updates daily at 3 a.m."
