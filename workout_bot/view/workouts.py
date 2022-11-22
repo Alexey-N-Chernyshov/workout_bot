@@ -45,9 +45,8 @@ def workout_to_text_message(data_model, workout):
     Returns workout text representation.
     """
 
-    text = ""
     if workout.number == 0:
-        text = "*Промежуточная тренировка*\n"
+        text = "*Дополнительная тренировка*\n"
     else:
         text = f"*Тренировка {workout.number}*\n"
     if workout.description:
@@ -88,12 +87,13 @@ def get_week_routine_text_message(data_model, table_id, page_name,
     if week_routine.comment:
         text += escape_text(week_routine.comment + "\n\n")
     workout_number = 0
-    homework_number = 0
+    additional_workout_number = 0
     for workout in week_routine.workouts:
         if workout.number == 0:
-            homework_number += 1
+            additional_workout_number += 1
         else:
             workout_number += 1
     text += f"Тренировок: {workout_number}\n"
-    text += f"Промежуточных тренировок: {homework_number}\n"
+    if additional_workout_number != 0:
+        text += f"Дополнительных тренировок: {additional_workout_number}\n"
     return text

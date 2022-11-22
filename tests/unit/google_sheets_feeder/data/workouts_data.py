@@ -9,7 +9,6 @@ from workout_bot.data_model.workout_plans import (
 # No Quality Assurance for the test data file.
 # flake8: noqa
 
-
 # Raw data loaded from Google Spreadsheet:
 # - table name
 # - cell merges
@@ -92,7 +91,6 @@ raw_table_data = (
 
 
 expected_workouts = [
-# noqa
 WeekRoutine(start_date=datetime.date(2022, 6, 27),
             end_date=datetime.date(2022, 7, 3),
             number=1,
@@ -122,7 +120,8 @@ WeekRoutine(start_date=datetime.date(2022, 6, 27),
                                     Exercise(description='обратная экстензия', reps_window='20'),
                                     Exercise(description="подъем гантелей на бицепс лежа под 45", reps_window='8-10')
                                     ],
-                                rounds='2')
+                                rounds='2'
+                                )
                             ],
                         actual_number=1,
                         number=1),
