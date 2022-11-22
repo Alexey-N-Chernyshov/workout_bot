@@ -19,7 +19,7 @@ GOOGLE_TOKEN_FILENAME = 'secrets/google_token.json'
 
 class GoogleSheetsLoader:
     """
-    Loads raw data from google sheets.
+    Loads raw data from Google sheets.
     """
 
     def get_credentials(self, google_token_file):

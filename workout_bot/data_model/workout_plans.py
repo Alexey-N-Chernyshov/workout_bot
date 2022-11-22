@@ -30,6 +30,13 @@ class Set:
     exercises: List[Exercise]
     rounds: str = ""
 
+    def empty(self):
+        """
+        Returns false if has non empty description or exercises.
+        """
+
+        return not self.description and not self.exercises
+
 
 @dataclass
 class Workout:
@@ -41,6 +48,16 @@ class Workout:
     sets: List[Set]
     actual_number: int
     number: int = 0
+
+    def empty(self):
+        """
+        Returns false if has non empty description or exercise set.
+        """
+
+        for set in self.sets:
+            if not set.empty():
+                return False
+        return not self.description
 
 
 @dataclass

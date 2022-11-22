@@ -2,11 +2,10 @@
 Tests for GoogleSheetsAdapter
 """
 
-import pickle
 import os
 from workout_bot.google_sheets_feeder.google_sheets_adapter \
     import GoogleSheetsAdapter
-from .data.workouts_data import raw_table_data, expected_workouts
+from .data.exercises_data import raw_exercises_data, expected_exercise_data
 
 
 FIXTURE_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -17,33 +16,31 @@ EXCERCISES_EXPECTED_FILE = os.path.join(FIXTURE_DIR,
 
 def test_parse_workout_links():
     """
-    Loads exercises.pkl as it were from google table and transforms to the
+    Loads exercises.pkl as it were from Google table and transforms to the
     list of exercises. Expected ordered list of exercises stored at
     "data/exercises_expected.pkl"
     """
 
     adapter = GoogleSheetsAdapter()
 
-    with open(EXCERCISES_RAW_FILE, "rb") as raw_file:
-        with open(EXCERCISES_EXPECTED_FILE, "rb") as expected_file:
-            values = pickle.load(raw_file)
-            actual = adapter.parse_exercise_links(values)
-            expected = pickle.load(expected_file)
+    actual = adapter.parse_exercise_links(raw_exercises_data)
 
-            for acutal_item, expected_item in zip(actual, expected):
-                assert acutal_item == expected_item
+    for acutal_item, expected_item in zip(actual, expected_exercise_data):
+        assert acutal_item == expected_item
 
 
 def assert_workouts_equal(actual, expected):
-
     """
     Asserts actual and expected workouts are equal.
     """
+
+    assert len(actual) == len(expected)
     for actual_week, expected_week in zip(actual, expected):
         assert actual_week.start_date == expected_week.start_date
         assert actual_week.end_date == expected_week.end_date
         assert actual_week.number == expected_week.number
         assert actual_week.comment == expected_week.comment
+        assert len(actual_week.workouts) == len(expected_week.workouts)
         for actual_workout, expected_workout in zip(actual_week.workouts,
                                                     expected_week.workouts):
             assert actual_workout.description == expected_workout.description
@@ -67,6 +64,22 @@ def test_parse_workouts():
     """
     Raw table data is parsed into list of WeekRoutine.
     """
+    from .data.workouts_data import raw_table_data, expected_workouts
+
+    adapter = GoogleSheetsAdapter()
+
+    (_, merges, values) = raw_table_data
+
+    parsed = adapter.parse_table_page(merges, values)
+
+    assert_workouts_equal(parsed, expected_workouts)
+
+
+def test_parse_workouts_with_empy_days():
+    """
+    Raw table with empty days is parsed.
+    """
+    from .data.workouts_empty import raw_table_data, expected_workouts
 
     adapter = GoogleSheetsAdapter()
 

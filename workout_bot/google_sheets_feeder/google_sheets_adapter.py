@@ -22,7 +22,7 @@ class GoogleSheetsAdapter:
         Returns exercises sorted by name length in reverse order.
         """
 
-        return sorted(filter(lambda item: item, values),
+        return sorted(filter(lambda item: (item and len(item) == 2), values),
                       key=lambda x: len(x[0]),
                       reverse=True)
 
@@ -161,12 +161,14 @@ class GoogleSheetsAdapter:
             # workout begin
             if i == workout_indeces[current_workout][0]:
                 workout.sets = []
-                workout_actual_number += 1
-                # check workout type
-                workout.number, workout.description = \
-                    self.parse_workout(row[1])
+                # if not an empty workout
+                if len(row) >= 2:
+                    workout_actual_number += 1
+                    # check workout type
+                    workout.number, workout.description = \
+                        self.parse_workout(row[1])
 
-            # week begin
+            # begin of week
             if i == week_indeces[current_week][0]:
                 week_routine = self.parse_week_begin(row[0])
 
@@ -175,11 +177,13 @@ class GoogleSheetsAdapter:
                 workout.sets.append(workout_set)
                 workout_set = Set("", 0, [])
                 workout.actual_number = workout_actual_number
-                week_routine.workouts.append(workout)
+                # if workout not empty
+                if not workout.empty():
+                    week_routine.workouts.append(workout)
                 workout = Workout("", [], 0)
                 current_workout += 1
 
-            # week end
+            # end of week
             if i in (week_indeces[current_week][1] - 1, len(values) - 1):
                 current_week += 1
                 week_routine.number = current_week

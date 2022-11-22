@@ -2,12 +2,15 @@
 Tests for workout representation.
 """
 
+import datetime
 from dataclasses import dataclass
 from workout_bot.data_model.workout_plans import Exercise
 from workout_bot.data_model.workout_plans import Set
 from workout_bot.data_model.workout_plans import Workout
+from workout_bot.data_model.workout_plans import WeekRoutine
 from workout_bot.view.workouts import set_to_text_message
 from workout_bot.view.workouts import workout_to_text_message
+from workout_bot.view.workouts import get_week_routine_text_message
 
 
 @dataclass
@@ -29,7 +32,27 @@ class StubDataModel:
 
             return {}
 
+    class StubWorkoutPlans:
+        """
+        Mock workout_plans
+        """
+
+        week_routine = WeekRoutine(datetime.date(2022, 8, 1),
+                                   datetime.date(2022, 8, 8),
+                                   1,
+                                   [Workout("first workout", [], 1, 1)],
+                                   "comment"
+                                   )
+
+        def get_week_routine(self, table_id, page_name, week_number):
+            """
+            Returns mocked week routine.
+            """
+
+            return self.week_routine
+
     exercise_links = StubExerciseLinks()
+    workout_plans = StubWorkoutPlans()
 
 
 data_model = StubDataModel()
@@ -89,7 +112,7 @@ def test_workout_no_number_to_text_message():
     workout = Workout("first workout", [set1, set2], 1)
 
     expected = (
-        "*Промежуточная тренировка*\n"
+        "*Дополнительная тренировка*\n"
         "\n"
         "first workout\n"
         "\n"
@@ -100,3 +123,61 @@ def test_workout_no_number_to_text_message():
         "\\- treadmill\n"
     )
     assert expected == workout_to_text_message(data_model, workout)
+
+
+def test_week_routine_test():
+    """
+    Tests week routine text representation.
+    """
+
+    table_id = "table_id"
+    page_name = "page name"
+    week_number = 1
+
+    expected = (
+        "*page name\n"
+        "Неделя 2022\\-08\\-01 \\- 2022\\-08\\-08*\n"
+        "comment\n"
+        "\n"
+        "Тренировок: 1\n"
+    )
+    print(get_week_routine_text_message(
+        data_model, table_id, page_name, week_number))
+
+    assert expected == get_week_routine_text_message(
+        data_model, table_id, page_name, week_number)
+
+
+def test_week_routine_additional_workout_test():
+    """
+    Tests week routine with additional workout text representation.
+    """
+
+    data_model.workout_plans.week_routine = \
+        WeekRoutine(datetime.date(2022, 8, 1),
+                    datetime.date(2022, 8, 8),
+                    1,
+                    [
+                        Workout("first workout", [], 1, 1),
+                        Workout("first workout", [], 2)
+                    ],
+                    "comment"
+                    )
+
+    table_id = "table_id"
+    page_name = "page name"
+    week_number = 1
+
+    expected = (
+        "*page name\n"
+        "Неделя 2022\\-08\\-01 \\- 2022\\-08\\-08*\n"
+        "comment\n"
+        "\n"
+        "Тренировок: 1\n"
+        "Дополнительных тренировок: 1\n"
+    )
+    print(get_week_routine_text_message(
+        data_model, table_id, page_name, week_number))
+
+    assert expected == get_week_routine_text_message(
+        data_model, table_id, page_name, week_number)
