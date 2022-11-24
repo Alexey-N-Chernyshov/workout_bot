@@ -2,11 +2,6 @@
 Tests for GoogleSheetsFeeder.
 """
 
-import pytest
-from workout_bot.google_sheets_feeder.google_sheets_feeder import (
-    GoogleSheetsFeeder
-)
-
 
 class GoogleSheetsLoaderMock:
     """

@@ -9,8 +9,7 @@ from data_model.users import AddTableContext, RemoveTableContext
 from view.tables import get_table_message, get_all_tables_message
 from google_sheets_feeder.utils import get_table_id_from_link
 from telegram_bot.utils import get_user_context
-from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
 
 async def send_with_table_management_panel(bot, chat_id,
                                            text="Управление таблицами"):
@@ -68,7 +67,7 @@ def handle_go_table_management():
 
 def handle_show_tables():
     """
-    Handles show tables.
+    Handles show all tables.
     """
 
     def handler_filter(data_model, update):

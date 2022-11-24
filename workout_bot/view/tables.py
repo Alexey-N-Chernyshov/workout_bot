@@ -12,10 +12,13 @@ def get_table_message(data_model, table_id):
 
     text = ""
     if data_model.workout_table_names.is_table_present(table_id):
+        spreadsheet_id = escape_text(table_id)
         table_name = data_model.workout_plans.get_plan_name(table_id)
-        if table_name:
-            text += "*" + table_name + "*\n"
-        text += "id: " + escape_text(table_id) + "\n"
+        if not table_name:
+            table_name = "Без названия"
+        text += "*" + f"[{table_name}]"
+        text += f"(https://docs.google.com/spreadsheets/d/{spreadsheet_id})*\n"
+        text += "id: " + spreadsheet_id + "\n"
         text += "Страницы:\n"
         pages = data_model.workout_table_names.get_tables()[table_id]
         for page in pages:
@@ -31,7 +34,6 @@ def get_all_tables_message(data_model):
     text = ""
     for table_id in data_model.workout_table_names.get_tables():
         text += get_table_message(data_model, table_id)
-        text += "\n"
 
     if not text:
         text = "Нет таблиц"

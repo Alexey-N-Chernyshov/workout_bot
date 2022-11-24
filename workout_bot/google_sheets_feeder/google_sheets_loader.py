@@ -103,7 +103,6 @@ class GoogleSheetsLoader:
         except HttpError as err:
             print(err)
 
-
     def get_sheet_names(self, spreadsheet_id):
         """
         Loads google sheet names from spreadsheet.

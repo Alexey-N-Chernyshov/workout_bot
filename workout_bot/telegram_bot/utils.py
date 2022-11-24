@@ -2,6 +2,7 @@
 Helper functions.
 """
 
+
 def get_user_context(data_model, update):
     """
     Helper function, returns user_context of message sender.
