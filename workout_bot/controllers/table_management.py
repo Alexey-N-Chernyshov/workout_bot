@@ -47,7 +47,10 @@ async def send_with_table_management_panel(bot, chat_id,
 
     keyboard = [
         [KeyboardButton("Показать все таблицы")],
-        [KeyboardButton("Добавить таблицу"), KeyboardButton("Изменить таблицу")],
+        [
+            KeyboardButton("Добавить таблицу"),
+            KeyboardButton("Изменить таблицу")
+        ],
         [KeyboardButton("Прочитать таблицы")],
         [KeyboardButton("Администрирование")]
     ]
@@ -286,8 +289,9 @@ def handle_change_table():
             if table_name is None:
                 table_name = "id: " + table_id
             data = InlineKeyboardData(QUERY_ACTION_CHOOSE_TABLE, table_id)
-            keyboard.append([InlineKeyboardButton(table_name,
-                                                  callback_data=data.encode())])
+            keyboard.append(
+                [InlineKeyboardButton(table_name, callback_data=data.encode())]
+            )
         keyboard = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
         await context.bot.send_message(chat_id,
                                        "Выберите таблицу для редактирования",
@@ -425,6 +429,7 @@ def query_handler_change_table():
         await query.answer()
 
     return (handler_filter, handler)
+
 
 table_management_query_handlers = [
     query_handler_add_page(),
