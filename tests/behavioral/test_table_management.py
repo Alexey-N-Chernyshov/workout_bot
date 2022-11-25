@@ -43,6 +43,43 @@ async def test_show_all_tables(test_table_management):
     alice.assert_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
 
 
+async def test_table_management_admin_adds_table(test_table_management):
+    """
+    Given: Admin is in ADMIN_TABLE_MANAGEMENT state.
+    When: Admin sends add table message.
+    Then: Admin is asked to enter table link and admin state is
+    ADMIN_ADDING_TABLE.
+    """
+
+    alice = test_table_management.users[0]
+    alice.set_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
+
+    await alice.send_message("Добавить таблицу")
+
+    expected = "Введите ссылку на таблицу"
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.ADMIN_ADDING_TABLE)
+
+
+async def test_table_management_admin_cancel_adds_table(test_table_management):
+    """
+    Given: Admin is in ADMIN_ADDING_TABLE state.
+    When: Admin sends cancel message.
+    Then: Admin state is ADMIN_TABLE_MANAGEMENT.
+    """
+
+    alice = test_table_management.users[0]
+    alice.set_user_action(UserAction.ADMIN_ADDING_TABLE)
+
+    await alice.send_message("Отмена")
+
+    expected = "Управление таблицами"
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
+
+
 async def test_update_tables(test_table_management):
     """
     Given: Alice is an admin and in ADMIN_TABLE_MANAGEMENT and wants to update
