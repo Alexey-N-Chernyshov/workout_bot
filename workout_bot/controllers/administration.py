@@ -52,7 +52,7 @@ def handle_go_administration():
         await show_admin_panel(context.bot, chat_id, user_context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 administration_message_handlers = [

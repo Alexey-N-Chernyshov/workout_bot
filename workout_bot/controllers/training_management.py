@@ -163,7 +163,7 @@ def handle_go_training():
         await start_training(data_model, update, context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_need_change_plan():
@@ -202,7 +202,7 @@ def handle_need_change_plan():
         await prompt_change_plan(data_model, update, context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_message_change_plan():
@@ -243,7 +243,7 @@ def handle_message_change_plan():
             await context.bot.send_message(chat_id, "Нет такой программы")
             await prompt_change_plan(data_model, update, context)
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_all_actions():
@@ -272,7 +272,7 @@ def handle_all_actions():
         await send_all_actions(context.bot, chat_id)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_next():
@@ -305,7 +305,7 @@ def handle_next():
         await send_workout(context.bot, data_model, user_context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_first_week():
@@ -336,7 +336,7 @@ def handle_first_week():
         await send_workout(context.bot, data_model, user_context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_last_week():
@@ -370,7 +370,7 @@ def handle_last_week():
         await send_workout(context.bot, data_model, user_context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_next_week():
@@ -404,7 +404,7 @@ def handle_next_week():
         await send_workout(context.bot, data_model, user_context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_previous_week():
@@ -436,7 +436,7 @@ def handle_previous_week():
         await send_workout(context.bot, data_model, user_context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 training_management_message_handlers = [

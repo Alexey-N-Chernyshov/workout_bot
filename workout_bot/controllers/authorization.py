@@ -16,7 +16,7 @@ def handle_blocked():
                                        "Вы заблокированы.")
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_unauthorized():
@@ -33,7 +33,7 @@ def handle_unauthorized():
                                        "Ожидайте подтверждения авторизации")
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 authorization_handlers = [handle_blocked(), handle_unauthorized()]
