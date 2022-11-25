@@ -6,6 +6,25 @@ from workout_bot.data_model.users import UserAction
 from workout_bot.view.tables import get_all_tables_message
 
 
+async def test_go_table_management(test_table_management):
+    """
+    Given: Alice is admin and state is ADMINISTRATION
+    When: Alice sends got to table administration
+    Then: Alice is in ADMIN_TABLE_MANAGEMENT state and table administration
+    panel shown.
+    """
+
+    alice = test_table_management.users[0]
+    alice.set_user_action(UserAction.ADMINISTRATION)
+
+    await alice.send_message("Управление таблицами")
+
+    expected = "Управление таблицами"
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+    alice.assert_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
+
+
 async def test_show_all_tables(test_table_management):
     """
     Given: Alice is an admin and in ADMIN_TABLE_MANAGEMENT and wants to display
