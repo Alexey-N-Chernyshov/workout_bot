@@ -57,6 +57,10 @@ class QueryMock:
     def __init__(self, data, from_user):
         self.data = data
         self.from_user = from_user
+        self.message = MessageMock("", from_user)
+
+    async def edit_message_text(self, text, reply_markup):
+        pass
 
     async def answer(self):
         """
@@ -229,11 +233,14 @@ class UserMock:
         else:
             await self.application.message_handler(update, context)
 
-    async def press_inline_button(self, data):
+    async def press_inline_button(self, text, data):
         """
         The user taps inline button with data.
+        text - replied message text
+        data - attached to reply button data
         """
         query = QueryMock(data, self.user)
+        query.message.text = text
         update = UpdateMock(self.chat_with_bot, query=query)
         context = ContextTypeMock(self.bot)
         await self.application.query_handler(update, context)

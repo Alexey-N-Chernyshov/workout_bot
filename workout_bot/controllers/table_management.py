@@ -68,14 +68,16 @@ def inline_keyboard_table_pages(data_model, table_id):
     pages = GoogleSheetsLoader().get_sheet_names(table_id)
     pages_present = data_model.workout_table_names.get_plan_names(table_id)
     keyboard = []
-    for page in pages:
-        if page in pages_present:
-            page_text = "✅ " + page
-        else:
-            page_text = "⏺ " + page
-        data = InlineKeyboardData(QUERY_ACTION_SWITCH_PAGE, page)
-        keyboard.append([InlineKeyboardButton(page_text,
-                                              callback_data=data.encode())])
+    if pages:
+        for page in pages:
+            if page in pages_present:
+                page_text = "✅ " + page
+            else:
+                page_text = "⏺ " + page
+            data = InlineKeyboardData(QUERY_ACTION_SWITCH_PAGE, page)
+            keyboard.append(
+                [InlineKeyboardButton(page_text, callback_data=data.encode())]
+            )
     return InlineKeyboardMarkup(keyboard, resize_keyboard=True)
 
 
