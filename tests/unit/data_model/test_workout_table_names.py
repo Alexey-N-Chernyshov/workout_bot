@@ -127,3 +127,30 @@ def test_workout_plans_found():
     assert len(plans) == 2
     assert "page1" in plans
     assert "page2" in plans
+
+
+def test_switch_page():
+    """
+    Page not present, inserts.
+    Then, when page is present, removes it.
+    """
+
+    delete_file(STORAGE)
+
+    tables = WorkoutTableNames(STORAGE)
+    tables.add_table("table_id", ["page1", "page2"])
+
+    # add new page
+    tables.switch_pages("table_id", "new page")
+    plans = tables.get_plan_names("table_id")
+    assert len(plans) == 3
+    assert "page1" in plans
+    assert "page2" in plans
+    assert "new page" in plans
+
+    # and remove new page
+    tables.switch_pages("table_id", "new page")
+    plans = tables.get_plan_names("table_id")
+    assert len(plans) == 2
+    assert "page1" in plans
+    assert "page2" in plans
