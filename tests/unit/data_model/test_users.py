@@ -42,8 +42,8 @@ def test_user_context_persistent_storage():
 
     user_id = 42
     user_context = UserContext(user_id)
-    user_context.user_input_data = BlockUserContext(42)
     users.set_user_context(user_context)
+    users.set_user_input_data(user_id, BlockUserContext(42))
     actual = users.get_user_context(user_id)
     assert actual.user_id == user_id
     assert isinstance(actual.user_input_data, BlockUserContext)
