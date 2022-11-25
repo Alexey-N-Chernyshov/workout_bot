@@ -93,9 +93,9 @@ async def test_start_training(test_with_workout_tables):
 
 async def test_change_plan(test_with_workout_tables):
     """
-    Given: Alice is authorized and table is assigned and she is CHOOSING_PLAN.
+    Given: Alice is authorized and table is assigned, and she is CHOOSING_PLAN.
     When: Alice chooses plan.
-    Then: Plan is assigned and she is TRAINING and new schedule is displayed.
+    Then: Plan is assigned, and she is TRAINING and new schedule is displayed.
     """
 
     alice = test_with_workout_tables.add_authorized_user()
@@ -103,6 +103,7 @@ async def test_change_plan(test_with_workout_tables):
     alice.set_table(table.table_id)
     plan = test_with_workout_tables.get_table_plan(table, 0)
     alice.set_page(plan)
+    alice.set_user_action(UserAction.CHOOSING_PLAN)
 
     new_plan = test_with_workout_tables.get_table_plan(table, 1)
 
@@ -131,9 +132,9 @@ async def test_change_plan(test_with_workout_tables):
 
 async def test_change_plan_invalid(test_with_workout_tables):
     """
-    Given: Alice is authorized and table is assigned and she is CHOOSING_PLAN.
+    Given: Alice is authorized and table is assigned, and she is CHOOSING_PLAN.
     When: Alice chooses wrong plan.
-    Then: Alice is shown message that plan is not valid and she is
+    Then: Alice is shown message that plan is not valid, and she is
     CHOOSING_PLAN again.
     """
 
@@ -183,9 +184,9 @@ async def test_user_changes_plan(test_with_workout_tables):
 
 async def test_user_changes_plan_no_page(test_with_workout_tables):
     """
-    Given: Alice is authorized and plan is not chosen and she is TRAINING.
+    Given: Alice is authorized and plan is not chosen, and she is TRAINING.
     When: Alice sends change plan message.
-    Then: Alice is shown message change plan and she is CHOOSING_PLAN.
+    Then: Alice is shown message change plan, and she is CHOOSING_PLAN.
     """
 
     alice = test_with_workout_tables.add_authorized_user()
@@ -228,9 +229,9 @@ async def test_training_all_action(test_with_workout_tables):
 
 async def test_training_invalid_plan(test_with_workout_tables):
     """
-    Given: Alice is authorized and plan is invalid and she is TRAINING.
+    Given: Alice is authorized and plan is invalid, and she is TRAINING.
     When: Alice sends any message
-    Then: Alice is asked to change plan and she is CHOOSING_PLAN.
+    Then: Alice is asked to change plan, and she is CHOOSING_PLAN.
     """
 
     alice = test_with_workout_tables.add_authorized_user()
@@ -242,7 +243,7 @@ async def test_training_invalid_plan(test_with_workout_tables):
     # sends any message
     await alice.send_message("Далее")
 
-    # shown all action
+    # is forced to choose plan
     expected = test_with_workout_tables.get_choose_plan_message(table)
     alice.expect_answer(expected)
     alice.expect_no_more_answers()
@@ -251,12 +252,13 @@ async def test_training_invalid_plan(test_with_workout_tables):
 
 async def test_go_to_training(test_with_user_with_workouts):
     """
-    Given: Alice is authorized and table is assigned and she is TRAINING.
+    Given: Alice is authorized and table is assigned, and she is TRAINING.
     When: Alice sends go to training.
     Then: Workout is sent and she is TRAINING.
     """
 
     alice = test_with_user_with_workouts.users[0]
+    alice.set_user_action(UserAction.TRAINING)
     table = test_with_user_with_workouts.workout_tables[0]
     plan = test_with_user_with_workouts.get_table_plan(table, 0)
 

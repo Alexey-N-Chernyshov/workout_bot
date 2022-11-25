@@ -35,7 +35,7 @@ class DataModel:
 
     def update_tables(self):
         """
-        Loads latest workout plans from google spreadsheets.
+        Loads the latest workout plans from Google spreadsheets.
         """
 
         self.exercise_links.load_exercise_links()

@@ -3,7 +3,7 @@ Tests for user data model.
 """
 
 from workout_bot.data_model.users import Users, UserAction, UserContext
-from workout_bot.data_model.users import AddTableContext
+from workout_bot.data_model.users import BlockUserContext
 from .utils import delete_file
 
 STORAGE = "storage"
@@ -14,6 +14,8 @@ def test_get_users_awaiting_authorization():
     get_users_awaiting_authorization returns only users with status
     AWAITING_AUTHORIZATION
     """
+
+    delete_file(STORAGE)
 
     users = Users(STORAGE)
     alice = UserContext(user_id=1, action=UserAction.AWAITING_AUTHORIZATION)
@@ -40,16 +42,12 @@ def test_user_context_persistent_storage():
 
     user_id = 42
     user_context = UserContext(user_id)
-    user_context.user_input_data = AddTableContext("table_id",
-                                                   ["page1", "page2"])
+    user_context.user_input_data = BlockUserContext(42)
     users.set_user_context(user_context)
     actual = users.get_user_context(user_id)
     assert actual.user_id == user_id
-    assert isinstance(actual.user_input_data, AddTableContext)
-    assert actual.user_input_data.table_id == "table_id"
-    assert len(actual.user_input_data.pages) == 2
-    assert "page1" in actual.user_input_data.pages
-    assert "page2" in actual.user_input_data.pages
+    assert isinstance(actual.user_input_data, BlockUserContext)
+    assert actual.user_input_data.user_id == user_id
 
     del users
     del actual
@@ -59,10 +57,7 @@ def test_user_context_persistent_storage():
     users = Users(STORAGE)
     actual = users.get_user_context(user_id)
     assert actual.user_id == user_id
-    assert isinstance(actual.user_input_data, AddTableContext)
-    assert actual.user_input_data.table_id == "table_id"
-    assert len(actual.user_input_data.pages) == 2
-    assert "page1" in actual.user_input_data.pages
-    assert "page2" in actual.user_input_data.pages
+    assert isinstance(actual.user_input_data, BlockUserContext)
+    assert actual.user_input_data.user_id == user_id
 
     delete_file(STORAGE)

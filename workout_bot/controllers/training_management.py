@@ -56,7 +56,7 @@ async def prompt_change_plan(data_model, update, context):
                                          UserAction.USER_NEEDS_PROGRAM)
         return
 
-    plans = data_model.workout_plans.get_plan_names(table_id)
+    plans = data_model.workout_table_names.get_plan_names(table_id)
     if plans:
         keyboard = []
         text = 'Выберите программу из списка:\n'
@@ -181,13 +181,15 @@ def handle_need_change_plan():
         message_text = update.message.text.strip().lower()
         table_id = user_context.current_table_id
         current_page = user_context.current_page
-        pages = data_model.workout_plans.get_plan_names(table_id)
+        need_change_plan = not (
+            data_model.workout_table_names.is_table_present(table_id) and
+            data_model.workout_table_names.is_plan_present(table_id,
+                                                           current_page)
+        )
         return user_context.action == UserAction.TRAINING \
-            and (user_context.current_page is None
-                 or current_page not in pages
-                 or message_text in ("выбрать программу",
-                                     "сменить программу",
-                                     "поменять программу"))
+            and (need_change_plan or message_text in ("выбрать программу",
+                                                      "сменить программу",
+                                                      "поменять программу"))
 
     async def handler(data_model, update, context):
         """
@@ -226,7 +228,7 @@ def handle_message_change_plan():
         chat_id = user_context.chat_id
         table_id = user_context.current_table_id
 
-        if data_model.workout_plans.is_plan_present(table_id, new_plan):
+        if data_model.workout_table_names.is_plan_present(table_id, new_plan):
             user_context.current_page = new_plan
             user_context.current_week = data_model.workout_plans \
                 .get_week_number(user_context.current_table_id,

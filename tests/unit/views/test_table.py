@@ -58,6 +58,7 @@ def test_named_tables_view():
     expected += "Страницы:\n"
     for page in pages:
         expected += f" \\- {page}\n"
+    expected += "\n"
 
     assert expected == get_all_tables_message(data_model)
 
@@ -77,5 +78,6 @@ def test_unnamed_tables_view():
     expected += "id: id\n"
     expected += "Страницы:\n"
     expected += " \\- page\n"
+    expected += "\n"
 
     assert expected == get_all_tables_message(data_model)

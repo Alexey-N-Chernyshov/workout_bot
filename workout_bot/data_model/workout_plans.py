@@ -54,8 +54,8 @@ class Workout:
         Returns false if has non empty description or exercise set.
         """
 
-        for set in self.sets:
-            if not set.empty():
+        for workout_set in self.sets:
+            if not workout_set.empty():
                 return False
         return not self.description
 
@@ -121,29 +121,9 @@ class WorkoutPlans:
                 result.add(table.table_name)
             return result
 
-    def is_plan_present(self, table_id, plan):
-        """
-        Checks if table with table_id has page named plan.
-        """
-
-        return plan in self.get_plan_names(table_id)
-
-    def get_plan_names(self, table_id):
-        """
-        Returns all plans for a table with table_id.
-        """
-
-        plans = []
-        with self.lock:
-            if table_id in self.__workout_tables:
-                table = self.__workout_tables[table_id]
-                for pagename in table.pages.keys():
-                    plans.append(pagename)
-            return plans
-
     def get_plan_name(self, table_id):
         """
-        Returns talbe name for table with table_id.
+        Returns table name for table_id.
         """
 
         name = None

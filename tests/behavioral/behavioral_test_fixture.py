@@ -331,6 +331,7 @@ class BehavioralTest:
         self.telegram_bot = TelegramBot(self.application, self.data_model)
         self.user_counter = 1
         self.users = []
+        self.workout_tables = []
 
     def teardown(self):
         """
@@ -390,19 +391,30 @@ class BehavioralTest:
         Returns message from choose plan prompt.
         """
 
-        plans = self.data_model.workout_plans.get_plan_names(table.table_id)
+        plans = self.data_model.workout_table_names.get_plan_names(
+            table.table_id
+        )
         text = "Выберите программу из списка:\n"
         for plan in plans:
             text += f"\n - {plan}"
         return text
 
-    def get_table_plan(self, table, number):
+    def add_table(self, table):
         """
-        Returns plan name by it's number.
+        Adds workout table plans for test suite.
         """
 
-        plans = self.data_model.workout_plans.get_plan_names(table.table_id)
-        return plans[number]
+        self.workout_tables.append(table)
+        self.data_model.workout_plans.update_workout_table(table)
+        self.data_model.workout_table_names.add_table(table.table_id,
+                                                      table.pages.keys())
+
+    def get_table_plan(self, table, number):
+        """
+        Returns page name by its number.
+        """
+
+        return list(table.pages)[number]
 
     def get_expected_workout_text_message(self, user):
         """

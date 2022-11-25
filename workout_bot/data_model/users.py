@@ -4,10 +4,9 @@ Provides access to user data.
 
 import enum
 import shelve
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 from typing import Optional
-from typing import List
 
 
 class UserAction(enum.IntEnum):
@@ -33,26 +32,6 @@ class UserAction(enum.IntEnum):
     ADMIN_USER_ASSIGNING_TABLE = 15
     ADMIN_ADDING_ADMIN = 16
     USER_NEEDS_PROGRAM = 17
-
-
-@dataclass
-class RemoveTableContext:
-    """
-    Stores table_id when the user is asked to confirm removing.
-    """
-
-    table_id: str = ""
-    pages: List[str] = field(default_factory=list)
-
-
-@dataclass
-class AddTableContext:
-    """
-    Stores table_id and pages when the user is asked to add tables.
-    """
-
-    table_id: str = ""
-    pages: List[str] = field(default_factory=list)
 
 
 @dataclass

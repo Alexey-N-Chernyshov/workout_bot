@@ -134,9 +134,7 @@ class TelegramBot:
             return
 
         if (await self.controllers
-                .user_management.handle_message(update, context)
-                or await self.controllers
-                .table_management.handle_message(update)):
+                .user_management.handle_message(update, context)):
             return
 
     async def handle_query(self, update: Update,
