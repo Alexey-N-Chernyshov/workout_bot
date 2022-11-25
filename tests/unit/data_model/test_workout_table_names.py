@@ -154,3 +154,19 @@ def test_switch_page():
     assert len(plans) == 2
     assert "page1" in plans
     assert "page2" in plans
+
+
+def test_switch_page_new_table():
+    """
+    Table not exists, inserts.
+    """
+
+    delete_file(STORAGE)
+
+    tables = WorkoutTableNames(STORAGE)
+
+    # add new page
+    tables.switch_pages("table_id", "new page")
+    plans = tables.get_plan_names("table_id")
+    assert len(plans) == 1
+    assert "new page" in plans
