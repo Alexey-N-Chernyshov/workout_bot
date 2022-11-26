@@ -120,7 +120,7 @@ class TableManagementController:
                     [InlineKeyboardButton(
                         page_text, callback_data=data.encode())]
                 )
-        return InlineKeyboardMarkup(keyboard, resize_keyboard=True)
+        return InlineKeyboardMarkup(keyboard)
 
     def handle_go_table_management(self):
         """
@@ -348,7 +348,7 @@ class TableManagementController:
                     [InlineKeyboardButton(
                         table_name, callback_data=data.encode())]
                 )
-            keyboard = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
+            keyboard = InlineKeyboardMarkup(keyboard)
             await context.bot.send_message(
                 chat_id,
                 "Выберите таблицу для редактирования",
