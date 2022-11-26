@@ -2,25 +2,52 @@
 Test table representations.
 """
 
+from dataclasses import dataclass
 from workout_bot.view.tables import get_all_tables_message
 
 
+@dataclass
 class MockDataModel:
+    """
+    Mock DataModel class.
+    """
+
     class MockWorkoutTableNames:
+        """
+        Mock WorkoutTableNames class.
+        """
+
         def __init__(self):
             self.tables = {}
 
         def is_table_present(self, table_id):
+            """
+            Returns True if table is present.
+            """
+
             return table_id in self.tables
 
         def get_tables(self):
+            """
+            Returns tables.
+            """
+
             return self.tables
 
+    @dataclass
     class MockWorkoutPlans:
+        """
+        Mock WorkoutPlans.
+        """
+
         def __init__(self):
             self.table_names = {}
 
         def get_plan_name(self, table_id):
+            """
+            Returns table name.
+            """
+
             return self.table_names.get(table_id, None)
 
     def __init__(self):

@@ -58,6 +58,7 @@ class GoogleSheetsLoader:
             service = build("sheets", "v4", credentials=creds)
 
             # Call the Sheets API
+            # pylint: disable=E1101
             sheet = service.spreadsheets()
 
             # get values
@@ -85,6 +86,7 @@ class GoogleSheetsLoader:
             service = build("sheets", "v4", credentials=creds)
 
             # Call the Sheets API
+            # pylint: disable=E1101
             sheet = service.spreadsheets()
 
             # get cell merges
@@ -114,6 +116,7 @@ class GoogleSheetsLoader:
             service = build("sheets", "v4", credentials=creds)
 
             # Call the Sheets API
+            # pylint: disable=E1101
             sheet_metadata = service.spreadsheets() \
                 .get(spreadsheetId=spreadsheet_id).execute()
             sheets = sheet_metadata.get("sheets", "")
