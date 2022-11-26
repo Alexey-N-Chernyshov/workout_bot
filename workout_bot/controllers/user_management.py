@@ -222,7 +222,7 @@ def handle_show_all_users():
         """
 
         user_context = get_user_context(data_model, update)
-        await show_all_users(context.bor, user_context.chat_id, data_model)
+        await show_all_users(context.bot, user_context.chat_id, data_model)
 
     return handler_filter, handler
 

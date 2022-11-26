@@ -107,11 +107,27 @@ def test_user_management(test_with_workout_tables):
     Users:
      - admin
      - user
+     - blocked
     """
 
     test = test_with_workout_tables
-    admin = test.add_admin()
-    admin.set_user_action(UserAction.ADMIN_USER_MANAGEMENT)
-    test.add_user()
+
+    test.table_id = test.workout_tables[0].table_id
+    test.table_name = test.workout_tables[0].table_name
+
+    test.admin = test.add_admin(user_name="admin")
+    test.admin.set_user_action(UserAction.ADMIN_USER_MANAGEMENT)
+    test.admin.set_table(test.table_id)
+
+    test.waiting = test.add_admin(user_name="waiting")
+    test.waiting.set_user_action(UserAction.AWAITING_AUTHORIZATION)
+
+    test.user = test.add_authorized_user(user_name="user")
+    test.user.set_user_action(UserAction.TRAINING)
+    test.user.set_table(test.table_id)
+
+    test.blocked = test.add_authorized_user(user_name="blocked")
+    test.blocked.set_user_action(UserAction.BLOCKED)
+
     yield test
     test.teardown()
