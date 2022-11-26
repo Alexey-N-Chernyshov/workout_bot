@@ -8,6 +8,7 @@ from .user_management import UserManagement
 from .administration import administration_message_handlers
 from .training_management import training_management_message_handlers
 from .table_management import TableManagementController
+from .user_management import user_management_message_handlers
 
 
 @dataclass
@@ -25,6 +26,8 @@ class Controllers:
         self.message_handlers.extend(administration_message_handlers)
         self.message_handlers.extend(training_management_message_handlers)
         self.message_handlers.extend(table_management.message_handlers())
+        self.message_handlers.extend(user_management_message_handlers)
+
         self.query_handlers.extend(table_management.query_handlers())
 
         self.user_management = UserManagement(bot, data_model)

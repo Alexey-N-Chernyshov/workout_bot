@@ -124,7 +124,7 @@ class TableManagementController:
 
     def handle_go_table_management(self):
         """
-        Handles switch to training status.
+        Handles switch to table management.
         """
 
         def handler_filter(data_model, update):
@@ -142,7 +142,7 @@ class TableManagementController:
 
         async def handler(data_model, update, context):
             """
-            Show table management panel and switch state.
+            Shows table management panel and switch state.
             """
 
             user_context = get_user_context(data_model, update)

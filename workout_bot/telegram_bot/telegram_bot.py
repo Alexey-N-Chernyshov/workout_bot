@@ -115,28 +115,17 @@ class TelegramBot:
 
         self.data_model.statistics.record_request()
 
-        if await self.controllers.handle_message(self.data_model,
-                                                 update, context):
+        if await self.controllers.handle_message(
+                self.data_model,
+                update,
+                context
+        ):
             return
 
-        user_context = self.data_model \
-            .users.get_or_create_user_context(update.message.from_user.id)
-        message_text = update.message.text.strip().lower()
-
-        # change state actions
-        if (user_context.administrative_permission
-                and user_context.action in (UserAction.TRAINING,
-                                            UserAction.ADMINISTRATION)
-                and message_text == "управление пользователями"):
-            self.data_model \
-                .users.set_user_action(user_context.user_id,
-                                       UserAction.ADMIN_USER_MANAGEMENT)
-            await self.controllers.user_management \
-                .show_user_management_panel(update.effective_chat.id)
-            return
-
-        if (await self.controllers
-                .user_management.handle_message(update, context)):
+        if await self.controllers.user_management.handle_message(
+                update,
+                context
+        ):
             return
 
     async def handle_query(self, update: Update,

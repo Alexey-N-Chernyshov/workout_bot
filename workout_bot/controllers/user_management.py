@@ -7,6 +7,261 @@ from data_model.users import UserAction, BlockUserContext
 from data_model.users import AssignTableUserContext
 from view.users import get_user_message
 from view.users import user_to_text_message, user_to_short_text_message
+from telegram_bot.utils import get_user_context
+
+
+async def send_with_user_management_panel(
+        bot,
+        chat_id,
+        text="Управление пользователями"
+):
+    """
+    Shows user management panel.
+    """
+
+    keyboard = [
+        [KeyboardButton("Авторизация пользователей")],
+        [KeyboardButton("Показать всех")],
+        [KeyboardButton("Добавить администратора")],
+        [KeyboardButton("Администрирование")],
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await bot.send_message(chat_id,
+                           text,
+                           reply_markup=reply_markup,
+                           parse_mode="MarkdownV2")
+
+
+async def show_users_authorization(bot, data_model, chat_id, user_context):
+    """
+    Shows user authorization.
+    """
+
+    users_in_line = data_model.users.get_users_awaiting_authorization()
+    if not users_in_line:
+        data_model.users.set_user_action(
+            user_context.user_id,
+            UserAction.ADMIN_USER_MANAGEMENT
+        )
+        await send_with_user_management_panel(
+            bot,
+            chat_id,
+            text="Никто не ждёт авторизации"
+        )
+        return
+    text = "Ожидают авторизации:\n"
+    keyboard = []
+    for user in users_in_line:
+        text += " \\- " + user_to_text_message(user) + "\n"
+        username = user_to_short_text_message(user)
+        keyboard.append([
+            KeyboardButton(text="Блокировать " + username),
+            KeyboardButton(text="Авторизовать " + username)
+        ])
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await bot.send_message(
+        chat_id,
+        text,
+        reply_markup=reply_markup,
+        parse_mode="MarkdownV2"
+    )
+
+
+async def show_all_users(bot, chat_id, data_model):
+    """
+    Shows all the users.
+    """
+
+    text = ""
+
+    waiting_authorization = set()
+    blocked = set()
+    others = set()
+
+    for user in data_model.users.get_all_users():
+        if user.action == UserAction.BLOCKED:
+            blocked.add(user)
+        elif user.action == UserAction.AWAITING_AUTHORIZATION:
+            waiting_authorization.add(user)
+        else:
+            others.add(user)
+
+    if waiting_authorization:
+        text += "Ожидают авторизации:\n"
+        for user in waiting_authorization:
+            text += " \\- " + user_to_text_message(user) + "\n"
+        text += "\n"
+    if others:
+        text += "Тренируются:\n"
+        for user in others:
+            plan_name = data_model \
+                .workout_plans.get_plan_name(user.current_table_id)
+            text += f" \\- {user_to_text_message(user)} \\- {plan_name}"
+            if user.administrative_permission:
+                text += " \\- администратор"
+            text += "\n"
+        text += "\n"
+    if blocked:
+        text += "Заблокрироанные:\n"
+        for user in blocked:
+            text += " \\- " + user_to_text_message(user) + "\n"
+
+    await send_with_user_management_panel(bot, chat_id, text)
+
+
+async def prompt_add_admin(bot, chat_id, data_model):
+    """
+    Asks to assign administrative_permission to the user with user_context.
+    """
+
+    text = "Кому дать права администратора?\n"
+    keyboard = []
+    users = data_model.users.get_potential_admins()
+    for user in users:
+        text += " \\- " + user_to_text_message(user) + "\n"
+        username = user_to_short_text_message(user)
+        key = [KeyboardButton(text=username)]
+        keyboard.append(key)
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await bot.send_message(
+        chat_id,
+        text,
+        reply_markup=reply_markup,
+        parse_mode="MarkdownV2"
+    )
+
+
+def handle_go_user_management():
+    """
+    Handles switch to user management.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin sends go to user management message.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action in (UserAction.TRAINING,
+                                        UserAction.ADMINISTRATION,
+                                        UserAction.ADMIN_USER_MANAGEMENT)
+                and message_text == "управление пользователями")
+
+    async def handler(data_model, update, context):
+        """
+        Shows user management panel and sets user state.
+        """
+
+        user_context = get_user_context(data_model, update)
+        data_model.users.set_user_action(user_context.user_id,
+                                         UserAction.ADMIN_USER_MANAGEMENT)
+        await send_with_user_management_panel(
+            context.bot,
+            update.effective_chat.id
+        )
+        return True
+
+    return handler_filter, handler
+
+
+def handle_authorize_user():
+    """
+    User authorization handler.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin sends authorize user message.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_MANAGEMENT and
+                message_text == "авторизация пользователей")
+
+    async def handler(data_model, update, context):
+        """
+        Asks which user to authorize.
+        """
+
+        user_context = get_user_context(data_model, update)
+        data_model.users.set_user_action(user_context.user_id,
+                                         UserAction.ADMIN_USER_AUTHORIZATION)
+        await show_users_authorization(
+            context.bot,
+            data_model,
+            update.effective_chat.id,
+            user_context
+        )
+
+    return handler_filter, handler
+
+
+def handle_show_all_users():
+    """
+    Show all users message handler.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin sends show all users message.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_MANAGEMENT and
+                message_text == "показать всех")
+
+    async def handler(data_model, update, context):
+        """
+        Shows all users.
+        """
+
+        user_context = get_user_context(data_model, update)
+        await show_all_users(context.bor, user_context.chat_id, data_model)
+
+    return handler_filter, handler
+
+
+def handle_add_admin():
+    """
+    Add admin message handler.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        the admin sends add admin message.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_MANAGEMENT and
+                message_text == "добавить администратора")
+
+    async def handler(data_model, update, context):
+        """
+        Prompts add admin.
+        """
+
+        user_context = get_user_context(data_model, update)
+        data_model.users.set_user_action(user_context.user_id,
+                                         UserAction.ADMIN_ADDING_ADMIN)
+        await prompt_add_admin(context.bot, user_context.chat_id, data_model)
+
+    return handler_filter, handler
+
+
+user_management_message_handlers = [
+    handle_go_user_management(),
+    handle_authorize_user(),
+    handle_show_all_users(),
+    handle_add_admin()
+]
 
 
 class UserManagement:
@@ -51,35 +306,6 @@ class UserManagement:
                                     reply_markup=reply_markup,
                                     parse_mode="MarkdownV2")
 
-    async def show_user_authorization(self, chat_id, user_context):
-        """
-        Shows user authorization.
-        """
-
-        users_in_line = \
-            self.data_model.users.get_users_awaiting_authorization()
-        if not users_in_line:
-            self.data_model.users\
-                .set_user_action(user_context.user_id,
-                                 UserAction.ADMIN_USER_MANAGEMENT)
-            await self. \
-                show_user_management_panel(chat_id,
-                                           text="Никто не ждёт авторизации")
-            return
-        text = "Ожидают авторизации:\n"
-        keyboard = []
-        for user in users_in_line:
-            text += " \\- " + user_to_text_message(user) + "\n"
-            username = user_to_short_text_message(user)
-            keyboard.append([
-                KeyboardButton(text="Блокировать " + username),
-                KeyboardButton(text="Авторизовать " + username)
-            ])
-        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        await self.bot.send_message(chat_id, text,
-                                    reply_markup=reply_markup,
-                                    parse_mode="MarkdownV2")
-
     async def prompt_confirm_block(self, chat_id, user_context):
         """
         Asks to confirm user blocking.
@@ -116,64 +342,6 @@ class UserManagement:
         await self.bot.send_message(chat_id, text,
                                     reply_markup=reply_markup,
                                     parse_mode="MarkdownV2")
-
-    async def prompt_add_admin(self, chat_id):
-        """
-        Asks to assign administrative_permission to the user with user_context.
-        """
-
-        text = "Кому дать права администратора?\n"
-        keyboard = []
-        users = self.data_model.users.get_potential_admins()
-        for user in users:
-            text += " \\- " + user_to_text_message(user) + "\n"
-            username = user_to_short_text_message(user)
-            key = [KeyboardButton(text=username)]
-            keyboard.append(key)
-        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        await self.bot.send_message(chat_id, text, reply_markup=reply_markup,
-                                    parse_mode="MarkdownV2")
-
-    async def show_all_users(self, chat_id):
-        """
-        Shows all the users.
-        """
-
-        text = ""
-
-        waiting_authorization = set()
-        blocked = set()
-        others = set()
-
-        for user in self.data_model.users.get_all_users():
-            if user.action == UserAction.BLOCKED:
-                blocked.add(user)
-            elif user.action == UserAction.AWAITING_AUTHORIZATION:
-                waiting_authorization.add(user)
-            else:
-                others.add(user)
-
-        if waiting_authorization:
-            text += "Ожидают авторизации:\n"
-            for user in waiting_authorization:
-                text += " \\- " + user_to_text_message(user) + "\n"
-            text += "\n"
-        if others:
-            text += "Тренируются:\n"
-            for user in others:
-                plan_name = self.data_model \
-                    .workout_plans.get_plan_name(user.current_table_id)
-                text += f" \\- {user_to_text_message(user)} \\- {plan_name}"
-                if user.administrative_permission:
-                    text += " \\- администратор"
-                text += "\n"
-            text += "\n"
-        if blocked:
-            text += "Заблокрироанные:\n"
-            for user in blocked:
-                text += " \\- " + user_to_text_message(user) + "\n"
-
-        await self.show_user_management_panel(chat_id, text)
 
     async def handle_message(self, update, context):
         """
@@ -297,28 +465,5 @@ class UserManagement:
             self.data_model.users.set_user_context(user_context)
             await self.show_user_management_panel(chat_id)
             return True
-
-        if user_context.action == UserAction.ADMIN_USER_MANAGEMENT:
-            if message_text == "авторизация пользователей":
-                self.data_model.users \
-                    .set_user_action(user_context.user_id,
-                                     UserAction.ADMIN_USER_AUTHORIZATION)
-                await self.show_user_authorization(chat_id, user_context)
-                return True
-
-            if message_text == "показать всех":
-                await self.show_all_users(chat_id)
-                return True
-
-            if message_text == "добавить администратора":
-                self.data_model.users \
-                    .set_user_action(user_context.user_id,
-                                     UserAction.ADMIN_ADDING_ADMIN)
-                await self.prompt_add_admin(chat_id)
-                return True
-
-            if message_text == "администрирование":
-                # return to above menu
-                return False
 
         return False
