@@ -9,431 +9,487 @@ from telegram import (
 from data_model.users import UserAction
 from view.tables import get_all_tables_message, get_table_name_message
 from view.utils import escape_text
-from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
 from google_sheets_feeder.utils import get_table_id_from_link
 from telegram_bot.utils import get_user_context
 
 
-""""Add/Remove table page"""
-QUERY_ACTION_SWITCH_PAGE = 's'
-
-"""Choose table from list"""
-QUERY_ACTION_CHOOSE_TABLE = 't'
-
-
-class InlineKeyboardData:
+class TableManagementController:
     """
-    Compact InlineKeyboard encoding.
-    First character of string is an InlineKeyboardAction.
-    Rest is a data.
+    Table management handlers
     """
 
-    def __init__(self, action, data):
-        self.action = action
-        self.data = data
+    def __init__(self, loader):
+        self.loader = loader
 
-    def encode(self):
-        return str(self.action) + self.data
+    def message_handlers(self):
+        """
+        Returns message handlers.
+        """
 
-    def decode(encoded):
-        return InlineKeyboardData(encoded[0], encoded[1:])
+        return [
+            self.handle_go_table_management(),
+            self.handle_show_tables(),
+            self.handle_add_table(),
+            self.handle_cancel_add_table(),
+            self.handle_add_table_pages(),
+            self.handle_change_table(),
+            self.handle_update_tables(),
+            self.handle_other_messages()
+        ]
 
+    def query_handlers(self):
+        """
+        Returns InlineKeyboard handlers.
+        """
 
-async def send_with_table_management_panel(bot, chat_id,
-                                           text="Управление таблицами"):
-    """
-    Shows table management panel.
-    """
+        return [
+            self.query_handler_add_page(),
+            self.query_handler_change_table()
+        ]
 
-    keyboard = [
-        [KeyboardButton("Показать все таблицы")],
-        [
-            KeyboardButton("Добавить таблицу"),
-            KeyboardButton("Изменить таблицу")
-        ],
-        [KeyboardButton("Прочитать таблицы")],
-        [KeyboardButton("Администрирование")]
-    ]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    QUERY_ACTION_SWITCH_PAGE = 's'
+    QUERY_ACTION_CHOOSE_TABLE = 't'
 
-    await bot.send_message(chat_id, text, reply_markup=reply_markup,
-                           parse_mode="MarkdownV2")
+    class InlineKeyboardData:
+        """
+        Compact InlineKeyboard encoding.
+        First character of string is an InlineKeyboardAction.
+        Rest is a data.
+        """
 
+        def __init__(self, action, data):
+            self.action = action
+            self.data = data
 
-def inline_keyboard_table_pages(data_model, table_id):
-    """
-    Builds InlineKeyboard with all pages in table.
-    """
+        def encode(self):
+            """
+            Encodes self to string.
+            """
+            return str(self.action) + self.data
 
-    pages = GoogleSheetsLoader().get_sheet_names(table_id)
-    pages_present = data_model.workout_table_names.get_plan_names(table_id)
-    keyboard = []
-    if pages:
-        for page in pages:
-            if page in pages_present:
-                page_text = "✅ " + page
-            else:
-                page_text = "⏺ " + page
-            data = InlineKeyboardData(QUERY_ACTION_SWITCH_PAGE, page)
-            keyboard.append(
-                [InlineKeyboardButton(page_text, callback_data=data.encode())]
+        @staticmethod
+        def decode(encoded):
+            """
+            Decodes InlineKeyboardData from string.
+            """
+            return TableManagementController.InlineKeyboardData(
+                encoded[0],
+                encoded[1:]
             )
-    return InlineKeyboardMarkup(keyboard, resize_keyboard=True)
 
-
-def handle_go_table_management():
-    """
-    Handles switch to training status.
-    """
-
-    def handler_filter(data_model, update):
+    @staticmethod
+    async def send_with_table_management_panel(bot, chat_id,
+                                               text="Управление таблицами"):
         """
-        The admin wants go to table management.
+        Shows table management panel.
         """
 
-        user_context = get_user_context(data_model, update)
-        message_text = update.message.text.strip().lower()
-        return (user_context.administrative_permission and
-                user_context.action in (UserAction.TRAINING,
-                                        UserAction.ADMINISTRATION,
-                                        UserAction.ADMIN_TABLE_MANAGEMENT)
-                and message_text == "управление таблицами")
-
-    async def handler(data_model, update, context):
-        """
-        Show table management panel and switch state.
-        """
-
-        user_context = get_user_context(data_model, update)
-        data_model.users.set_user_action(user_context.user_id,
-                                         UserAction.ADMIN_TABLE_MANAGEMENT)
-        await send_with_table_management_panel(context.bot,
-                                               update.effective_chat.id)
-        return True
-
-    return handler_filter, handler
-
-
-def handle_show_tables():
-    """
-    Handles show all tables.
-    """
-
-    def handler_filter(data_model, update):
-        """
-        Admin wants do display all tables.
-        """
-
-        user_context = get_user_context(data_model, update)
-        message_text = update.message.text.strip().lower()
-        return (user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
-                and message_text == "показать все таблицы")
-
-    async def handler(data_model, update, context):
-        """
-        Shows all tables.
-        """
-
-        user_context = get_user_context(data_model, update)
-        chat_id = user_context.chat_id
-        text = get_all_tables_message(data_model)
-        await send_with_table_management_panel(context.bot, chat_id, text=text)
-        return True
-
-    return handler_filter, handler
-
-
-def handle_add_table():
-    """
-    Handles add table/page.
-    """
-
-    def handler_filter(data_model, update):
-        """
-        Admin wants to add table or page.
-        """
-
-        user_context = get_user_context(data_model, update)
-        message_text = update.message.text.strip().lower()
-        return (user_context.administrative_permission and
-                user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
-                and message_text == ("добавить таблицу"))
-
-    async def handler(data_model, update, context):
-        """
-        Shows all tables.
-        """
-
-        user_context = get_user_context(data_model, update)
-        chat_id = user_context.chat_id
-
-        data_model.users.set_user_action(user_context.user_id,
-                                         UserAction.ADMIN_ADDING_TABLE)
-
-        keyboard = [[KeyboardButton("Отмена")]]
+        keyboard = [
+            [KeyboardButton("Показать все таблицы")],
+            [
+                KeyboardButton("Добавить таблицу"),
+                KeyboardButton("Изменить таблицу")
+            ],
+            [KeyboardButton("Прочитать таблицы")],
+            [KeyboardButton("Администрирование")]
+        ]
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        await context.bot.send_message(chat_id, "Введите ссылку на таблицу",
-                                       reply_markup=reply_markup)
 
-    return handler_filter, handler
+        await bot.send_message(chat_id, text, reply_markup=reply_markup,
+                               parse_mode="MarkdownV2")
 
-
-def handle_cancel_add_table():
-    """
-    Handles cancel message when adding table prompt is active.
-    """
-
-    def handler_filter(data_model, update):
+    def inline_keyboard_table_pages(self, data_model, table_id):
         """
-        User is in ADMIN_ADDING_TABLE and sent Cancel message.
+        Builds InlineKeyboard with all pages in table.
         """
 
-        user_context = get_user_context(data_model, update)
-        message_text = update.message.text.strip().lower()
-        return (user_context.action == UserAction.ADMIN_ADDING_TABLE
-                and message_text == ("отмена"))
+        pages = self.loader.get_sheet_names(table_id)
+        pages_present = data_model.workout_table_names.get_plan_names(table_id)
+        keyboard = []
+        if pages:
+            for page in pages:
+                if page in pages_present:
+                    page_text = "✅ " + page
+                else:
+                    page_text = "⏺ " + page
+                data = TableManagementController.InlineKeyboardData(
+                    TableManagementController.QUERY_ACTION_SWITCH_PAGE,
+                    page
+                )
+                keyboard.append(
+                    [InlineKeyboardButton(
+                        page_text, callback_data=data.encode())]
+                )
+        return InlineKeyboardMarkup(keyboard, resize_keyboard=True)
 
-    async def handler(data_model, update, context):
+    def handle_go_table_management(self):
         """
-        Changes user status to ADMIN_TABLE_MANAGEMENT.
-        """
-
-        user_context = get_user_context(data_model, update)
-        chat_id = user_context.chat_id
-
-        data_model.users.set_user_action(user_context.user_id,
-                                         UserAction.ADMIN_TABLE_MANAGEMENT)
-        await send_with_table_management_panel(context.bot, chat_id)
-
-    return handler_filter, handler
-
-
-def handle_add_table_pages():
-    """
-    Handles table link submission by admin.
-    """
-
-    def handler_filter(data_model, update):
-        """
-        Admin is in ADMIN_ADDING_TABLE and has sent table id.
+        Handles switch to training status.
         """
 
-        user_context = get_user_context(data_model, update)
-        return user_context.action == UserAction.ADMIN_ADDING_TABLE
+        def handler_filter(data_model, update):
+            """
+            The admin wants go to table management.
+            """
 
-    async def handler(data_model, update, context):
-        """
-        Tries to load table and shows `Add table pages` message with inline
-        keyboard.
-        """
+            user_context = get_user_context(data_model, update)
+            message_text = update.message.text.strip().lower()
+            return (user_context.administrative_permission and
+                    user_context.action in (UserAction.TRAINING,
+                                            UserAction.ADMINISTRATION,
+                                            UserAction.ADMIN_TABLE_MANAGEMENT)
+                    and message_text == "управление таблицами")
 
-        user_context = get_user_context(data_model, update)
-        chat_id = user_context.chat_id
-        table_id = get_table_id_from_link(update.message.text)
+        async def handler(data_model, update, context):
+            """
+            Show table management panel and switch state.
+            """
 
-        try:
-            table_name = data_model.workout_plans.get_plan_name(table_id)
-            text = "Добавление таблицы\n"
-            text += get_table_name_message(table_name, table_id)
-            text += "id: " + escape_text(table_id) + "\n"
-            text += "\n"
-            text += "Отметьте страницы с тренировками"
-            reply_markup = inline_keyboard_table_pages(data_model, table_id)
-            await context.bot.send_message(chat_id, text,
-                                           reply_markup=reply_markup,
-                                           parse_mode="MarkdownV2")
+            user_context = get_user_context(data_model, update)
             data_model.users.set_user_action(user_context.user_id,
                                              UserAction.ADMIN_TABLE_MANAGEMENT)
-            await send_with_table_management_panel(context.bot,
-                                                   update.effective_chat.id)
-        except (AttributeError, TypeError):
-            text = "Ошибка при загрузке таблицы"
-            await context.bot.send_message(chat_id, text)
-            keyboard = [[KeyboardButton("Отмена")], ]
+            await TableManagementController.send_with_table_management_panel(
+                context.bot,
+                update.effective_chat.id
+            )
+            return True
+
+        return handler_filter, handler
+
+    def handle_show_tables(self):
+        """
+        Handles show all tables.
+        """
+
+        def handler_filter(data_model, update):
+            """
+            Admin wants do display all tables.
+            """
+
+            user_context = get_user_context(data_model, update)
+            message_text = update.message.text.strip().lower()
+            return (user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
+                    and message_text == "показать все таблицы")
+
+        async def handler(data_model, update, context):
+            """
+            Shows all tables.
+            """
+
+            user_context = get_user_context(data_model, update)
+            chat_id = user_context.chat_id
+            text = get_all_tables_message(data_model)
+            await TableManagementController.send_with_table_management_panel(
+                context.bot,
+                chat_id,
+                text=text
+            )
+            return True
+
+        return handler_filter, handler
+
+    def handle_add_table(self):
+        """
+        Handles add table/page.
+        """
+
+        def handler_filter(data_model, update):
+            """
+            Admin wants to add table or page.
+            """
+
+            user_context = get_user_context(data_model, update)
+            message_text = update.message.text.strip().lower()
+            return (user_context.administrative_permission and
+                    user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
+                    and message_text == ("добавить таблицу"))
+
+        async def handler(data_model, update, context):
+            """
+            Shows all tables.
+            """
+
+            user_context = get_user_context(data_model, update)
+            chat_id = user_context.chat_id
+
+            data_model.users.set_user_action(user_context.user_id,
+                                             UserAction.ADMIN_ADDING_TABLE)
+
+            keyboard = [[KeyboardButton("Отмена")]]
             reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
             await context.bot.send_message(chat_id,
                                            "Введите ссылку на таблицу",
                                            reply_markup=reply_markup)
 
-        return True
+        return handler_filter, handler
 
-    return handler_filter, handler
-
-
-def handle_change_table():
-    """
-    Handles change table that already has been added.
-    """
-
-    def handler_filter(data_model, update):
+    def handle_cancel_add_table(self):
         """
-        Admin sent change table message.
+        Handles cancel message when adding table prompt is active.
         """
 
-        user_context = get_user_context(data_model, update)
-        message_text = update.message.text.strip().lower()
-        return (user_context.administrative_permission and
-                user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
-                and message_text == "изменить таблицу")
+        def handler_filter(data_model, update):
+            """
+            User is in ADMIN_ADDING_TABLE and sent Cancel message.
+            """
 
-    async def handler(data_model, update, context):
-        """
-        Asks what table to change.
-        """
+            user_context = get_user_context(data_model, update)
+            message_text = update.message.text.strip().lower()
+            return (user_context.action == UserAction.ADMIN_ADDING_TABLE
+                    and message_text == ("отмена"))
 
-        user_context = get_user_context(data_model, update)
-        chat_id = user_context.chat_id
+        async def handler(data_model, update, context):
+            """
+            Changes user status to ADMIN_TABLE_MANAGEMENT.
+            """
 
-        keyboard = []
-        table_ids = data_model.workout_table_names.get_tables().keys()
-        for table_id in table_ids:
-            table_name = data_model.workout_plans.get_plan_name(table_id)
-            if table_name is None:
-                table_name = "id: " + table_id
-            data = InlineKeyboardData(QUERY_ACTION_CHOOSE_TABLE, table_id)
-            keyboard.append(
-                [InlineKeyboardButton(table_name, callback_data=data.encode())]
+            user_context = get_user_context(data_model, update)
+            chat_id = user_context.chat_id
+
+            data_model.users.set_user_action(user_context.user_id,
+                                             UserAction.ADMIN_TABLE_MANAGEMENT)
+            await TableManagementController.send_with_table_management_panel(
+                context.bot,
+                chat_id
             )
-        keyboard = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
-        await context.bot.send_message(chat_id,
-                                       "Выберите таблицу для редактирования",
-                                       reply_markup=keyboard)
 
-    return handler_filter, handler
+        return handler_filter, handler
 
-
-def handle_update_tables():
-    """
-    Handles update tables request.
-    """
-
-    def handler_filter(data_model, update):
+    def handle_add_table_pages(self):
         """
-        Admin wants to update all tables.
+        Handles table link submission by admin.
         """
 
-        user_context = get_user_context(data_model, update)
-        message_text = update.message.text.strip().lower()
-        return (user_context.administrative_permission and
-                user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
-                and message_text == "прочитать таблицы")
+        def handler_filter(data_model, update):
+            """
+            Admin is in ADMIN_ADDING_TABLE and has sent table id.
+            """
 
-    async def handler(data_model, update, context):
+            user_context = get_user_context(data_model, update)
+            return user_context.action == UserAction.ADMIN_ADDING_TABLE
+
+        async def handler(data_model, update, context):
+            """
+            Tries to load table and shows `Add table pages` message with inline
+            keyboard.
+            """
+
+            user_context = get_user_context(data_model, update)
+            chat_id = user_context.chat_id
+            table_id = get_table_id_from_link(update.message.text)
+
+            try:
+                table_name = data_model.workout_plans.get_plan_name(table_id)
+                text = "Добавление таблицы\n"
+                text += get_table_name_message(table_name, table_id)
+                text += "id: " + escape_text(table_id) + "\n"
+                text += "\n"
+                text += "Отметьте страницы с тренировками"
+                reply_markup = self.inline_keyboard_table_pages(
+                    data_model, table_id)
+                await context.bot.send_message(chat_id, text,
+                                               reply_markup=reply_markup,
+                                               parse_mode="MarkdownV2")
+                data_model \
+                    .users.set_user_action(user_context.user_id,
+                                           UserAction.ADMIN_TABLE_MANAGEMENT)
+                await TableManagementController \
+                    .send_with_table_management_panel(context.bot,
+                                                      update.effective_chat.id)
+            except (AttributeError, TypeError):
+                text = "Ошибка при загрузке таблицы"
+                await context.bot.send_message(chat_id, text)
+                keyboard = [[KeyboardButton("Отмена")], ]
+                reply_markup = ReplyKeyboardMarkup(
+                    keyboard, resize_keyboard=True)
+                await context.bot.send_message(chat_id,
+                                               "Введите ссылку на таблицу",
+                                               reply_markup=reply_markup)
+
+            return True
+
+        return handler_filter, handler
+
+    def handle_change_table(self):
         """
-        Updates all tables.
+        Handles change table that already has been added.
         """
 
-        user_context = get_user_context(data_model, update)
-        chat_id = user_context.chat_id
-        text = "Идёт обновление таблиц, может занять несколько секунд"
-        await context.bot.send_message(chat_id, text)
-        data_model.update_tables()
-        await context.bot.send_message(chat_id, "Таблицы обновлены")
-        await send_with_table_management_panel(context.bot, chat_id)
-        return True
+        def handler_filter(data_model, update):
+            """
+            Admin sent change table message.
+            """
 
-    return (handler_filter, handler)
+            user_context = get_user_context(data_model, update)
+            message_text = update.message.text.strip().lower()
+            return (user_context.administrative_permission and
+                    user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
+                    and message_text == "изменить таблицу")
 
+        async def handler(data_model, update, context):
+            """
+            Asks what table to change.
+            """
 
-def handle_other_messages():
-    """
-    Handles other messages.
-    """
+            user_context = get_user_context(data_model, update)
+            chat_id = user_context.chat_id
 
-    def handler_filter(data_model, update):
+            keyboard = []
+            table_ids = data_model.workout_table_names.get_tables().keys()
+            for table_id in table_ids:
+                table_name = data_model.workout_plans.get_plan_name(table_id)
+                if table_name is None:
+                    table_name = "id: " + table_id
+                data = TableManagementController.InlineKeyboardData(
+                    TableManagementController.QUERY_ACTION_CHOOSE_TABLE,
+                    table_id
+                )
+                keyboard.append(
+                    [InlineKeyboardButton(
+                        table_name, callback_data=data.encode())]
+                )
+            keyboard = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
+            await context.bot.send_message(
+                chat_id,
+                "Выберите таблицу для редактирования",
+                reply_markup=keyboard
+            )
+
+        return handler_filter, handler
+
+    def handle_update_tables(self):
         """
-        Admin in ADMIN_TABLE_MANAGEMENT state.
+        Handles update tables request.
         """
 
-        user_context = get_user_context(data_model, update)
-        return user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
+        def handler_filter(data_model, update):
+            """
+            Admin wants to update all tables.
+            """
 
-    async def handler(data_model, update, context):
+            user_context = get_user_context(data_model, update)
+            message_text = update.message.text.strip().lower()
+            return (user_context.administrative_permission and
+                    user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
+                    and message_text == "прочитать таблицы")
+
+        async def handler(data_model, update, context):
+            """
+            Updates all tables.
+            """
+
+            user_context = get_user_context(data_model, update)
+            chat_id = user_context.chat_id
+            text = "Идёт обновление таблиц, может занять несколько секунд"
+            await context.bot.send_message(chat_id, text)
+            data_model.update_tables()
+            await context.bot.send_message(chat_id, "Таблицы обновлены")
+            await TableManagementController.send_with_table_management_panel(
+                context.bot,
+                chat_id
+            )
+            return True
+
+        return (handler_filter, handler)
+
+    def handle_other_messages(self):
         """
-        Handle other messages.
+        Handles other messages.
         """
 
-        user_context = get_user_context(data_model, update)
-        chat_id = user_context.chat_id
-        await send_with_table_management_panel(context.bot, chat_id)
-        return True
+        def handler_filter(data_model, update):
+            """
+            Admin in ADMIN_TABLE_MANAGEMENT state.
+            """
 
-    return (handler_filter, handler)
+            user_context = get_user_context(data_model, update)
+            return user_context.action == UserAction.ADMIN_TABLE_MANAGEMENT
 
+        async def handler(data_model, update, context):
+            """
+            Handle other messages.
+            """
 
-table_management_message_handlers = [
-    handle_go_table_management(),
-    handle_show_tables(),
-    handle_add_table(),
-    handle_cancel_add_table(),
-    handle_add_table_pages(),
-    handle_change_table(),
-    handle_update_tables(),
-    handle_other_messages()
-]
+            user_context = get_user_context(data_model, update)
+            chat_id = user_context.chat_id
+            await TableManagementController.send_with_table_management_panel(
+                context.bot,
+                chat_id
+            )
+            return True
 
+        return (handler_filter, handler)
 
-def query_handler_add_page():
-    """
-    Handles inline query add/remove page.
-    """
+    def query_handler_add_page(self):
+        """
+        Handles inline query add/remove page.
+        """
 
-    def handler_filter(data_model, update):
-        user_id = update.callback_query.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-        action = InlineKeyboardData.decode(update.callback_query.data).action
-        return (user_context.administrative_permission and
-                action is QUERY_ACTION_SWITCH_PAGE)
+        def handler_filter(data_model, update):
+            user_id = update.callback_query.from_user.id
+            user_context = data_model.users.get_user_context(user_id)
+            action = TableManagementController.InlineKeyboardData.decode(
+                update.callback_query.data
+            ).action
+            return (user_context.administrative_permission and
+                    action is
+                    TableManagementController.QUERY_ACTION_SWITCH_PAGE)
 
-    async def handler(data_model, update, _context):
-        query = update.callback_query
-        table_id = query.message.text.splitlines()[2][4:]
-        page = InlineKeyboardData.decode(query.data).data
-        data_model.workout_table_names.switch_pages(table_id, page)
-        reply_keyboard = inline_keyboard_table_pages(data_model, table_id)
-        await query.edit_message_text(text=query.message.text,
-                                      reply_markup=reply_keyboard)
-        await query.answer()
+        async def handler(data_model, update, _context):
+            query = update.callback_query
+            table_id = query.message.text.splitlines()[2][4:]
+            page = TableManagementController.InlineKeyboardData.decode(
+                query.data
+            ).data
+            data_model.workout_table_names.switch_pages(table_id, page)
+            reply_keyboard = self.inline_keyboard_table_pages(
+                data_model,
+                table_id
+            )
+            await query.edit_message_text(text=query.message.text,
+                                          reply_markup=reply_keyboard)
+            await query.answer()
 
-    return (handler_filter, handler)
+        return (handler_filter, handler)
 
+    def query_handler_change_table(self):
+        """
+        Handles inline query change table.
+        """
 
-def query_handler_change_table():
-    """
-    Handles inline query change table.
-    """
+        def handler_filter(data_model, update):
+            user_id = update.callback_query.from_user.id
+            user_context = data_model.users.get_user_context(user_id)
+            action = TableManagementController.InlineKeyboardData.decode(
+                update.callback_query.data
+            ).action
+            return (user_context.administrative_permission and
+                    action is
+                    TableManagementController.QUERY_ACTION_CHOOSE_TABLE)
 
-    def handler_filter(data_model, update):
-        user_id = update.callback_query.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-        action = InlineKeyboardData.decode(update.callback_query.data).action
-        return (user_context.administrative_permission and
-                action is QUERY_ACTION_CHOOSE_TABLE)
+        async def handler(data_model, update, context):
+            query = update.callback_query
+            user_id = update.callback_query.from_user.id
+            user_context = data_model.users.get_user_context(user_id)
+            chat_id = user_context.chat_id
+            table_id = TableManagementController.InlineKeyboardData.decode(
+                update.callback_query.data
+            ).data
+            table_name = data_model.workout_plans.get_plan_name(table_id)
 
-    async def handler(data_model, update, context):
-        query = update.callback_query
-        user_id = update.callback_query.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-        chat_id = user_context.chat_id
-        table_id = InlineKeyboardData.decode(update.callback_query.data).data
-        table_name = data_model.workout_plans.get_plan_name(table_id)
+            text = "Редактирование таблицы\n"
+            text += get_table_name_message(table_name, table_id)
+            text += "id: " + escape_text(table_id) + "\n"
+            text += "\n"
+            text += "Отметьте страницы с тренировками"
 
-        text = "Редактирование таблицы\n"
-        text += get_table_name_message(table_name, table_id)
-        text += "id: " + escape_text(table_id) + "\n"
-        text += "\n"
-        text += "Отметьте страницы с тренировками"
+            reply_markup = self.inline_keyboard_table_pages(
+                data_model,
+                table_id
+            )
+            await context.bot.send_message(chat_id, text,
+                                           reply_markup=reply_markup,
+                                           parse_mode="MarkdownV2")
+            await query.answer()
 
-        reply_markup = inline_keyboard_table_pages(data_model, table_id)
-        await context.bot.send_message(chat_id, text,
-                                       reply_markup=reply_markup,
-                                       parse_mode="MarkdownV2")
-        await query.answer()
-
-    return (handler_filter, handler)
-
-
-table_management_query_handlers = [
-    query_handler_add_page(),
-    query_handler_change_table()
-]
+        return (handler_filter, handler)

@@ -12,6 +12,7 @@ import yaml
 from data_model.data_model import DataModel
 from telegram_bot.telegram_bot import TelegramBot
 from telegram.ext import ApplicationBuilder
+from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
 
 VERSION_FILE_NAME = 'git_commit_version.txt'
 TELEGRAM_TOKEN_FILE = "secrets/telegram_token.txt"
@@ -78,7 +79,9 @@ if __name__ == "__main__":
 
     app_data_model = init_data_model()
 
-    bot = TelegramBot(telegram_application, app_data_model)
+    bot = TelegramBot(telegram_application,
+                      GoogleSheetsLoader(),
+                      app_data_model)
 
     scheduleThread = threading.Thread(target=scheduler, args=(app_data_model,))
     scheduleThread.daemon = True

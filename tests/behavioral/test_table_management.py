@@ -7,9 +7,7 @@ from workout_bot.view.tables import (
     get_all_tables_message, get_table_name_message
 )
 from workout_bot.view.utils import escape_text
-from workout_bot.controllers.table_management import (
-    QUERY_ACTION_SWITCH_PAGE, QUERY_ACTION_CHOOSE_TABLE, InlineKeyboardData
-)
+from workout_bot.controllers.table_management import TableManagementController
 
 
 async def test_go_table_management(test_table_management):
@@ -215,7 +213,10 @@ async def test_admin_adds_page(test_table_management):
     page0 = pages[0]
     page1 = pages[1]
 
-    data = InlineKeyboardData(QUERY_ACTION_SWITCH_PAGE, "new page").encode()
+    data = TableManagementController.InlineKeyboardData(
+        TableManagementController.QUERY_ACTION_SWITCH_PAGE,
+        "new page"
+    ).encode()
     message_text = "Добавление таблицы\n"
     message_text += "New table\n"
     message_text += f"id: {table_id}\n"
@@ -247,8 +248,10 @@ async def test_admin_removes_page(test_table_management):
     page_to_delete = pages[0]
     page1 = pages[1]
 
-    data = InlineKeyboardData(QUERY_ACTION_SWITCH_PAGE, page_to_delete) \
-        .encode()
+    data = TableManagementController.InlineKeyboardData(
+        TableManagementController.QUERY_ACTION_SWITCH_PAGE,
+        page_to_delete
+    ).encode()
     message_text = "Добавление таблицы\n"
     message_text += "New table\n"
     message_text += f"id: {table_id}\n"
@@ -273,8 +276,10 @@ async def test_admin_chooses_table_to_change(test_table_management):
     table_id = test_table_management.workout_tables[1].table_id
     table_name = test_table_management.workout_tables[1].table_name
 
-    data = InlineKeyboardData(QUERY_ACTION_CHOOSE_TABLE, table_id) \
-        .encode()
+    data = TableManagementController.InlineKeyboardData(
+        TableManagementController.QUERY_ACTION_CHOOSE_TABLE,
+        table_id
+    ).encode()
     message_text = "Выберите таблицу для редактирования"
     await alice.press_inline_button(message_text, data)
 

@@ -160,6 +160,15 @@ class ApplicationMock:
         """
 
 
+class LoaderMock:
+    """
+    Mock for Google spreadsheets loader.
+    """
+
+    def get_sheet_names(self, _spreadsheet_id):
+        return []
+
+
 class UserMock:
     """
     Represents the user interaction with the bot.
@@ -335,7 +344,10 @@ class BehavioralTest:
     def __init__(self):
         self.application = ApplicationMock()
         self.data_model = DataModelMock()
-        self.telegram_bot = TelegramBot(self.application, self.data_model)
+        self.loader = LoaderMock()
+        self.telegram_bot = TelegramBot(self.application,
+                                        self.loader,
+                                        self.data_model)
         self.user_counter = 1
         self.users = []
         self.workout_tables = []

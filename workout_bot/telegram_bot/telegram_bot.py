@@ -16,13 +16,15 @@ class TelegramBot:
     Telegram bot class.
     """
 
-    def __init__(self, application, data_model):
+    def __init__(self, application, loader, data_model):
         self.telegram_application = application
         self.bot = application.bot
         self.data_model = data_model
 
         # init controllers
-        self.controllers = Controllers(self.bot, self.data_model)
+        self.controllers = Controllers(self.bot,
+                                       loader,
+                                       self.data_model)
 
         self.telegram_application.add_handler(
             CommandHandler('start', self.handle_start)
