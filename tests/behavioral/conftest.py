@@ -97,3 +97,21 @@ def test_table_management(test_with_workout_tables):
     admin.set_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
     yield test
     test.teardown()
+
+
+@pytest.fixture
+# pylint: disable=redefined-outer-name
+def test_user_management(test_with_workout_tables):
+    """
+    Sets up test data for user management tests.
+    Users:
+     - admin
+     - user
+    """
+
+    test = test_with_workout_tables
+    admin = test.add_admin()
+    admin.set_user_action(UserAction.ADMIN_USER_MANAGEMENT)
+    test.add_user()
+    yield test
+    test.teardown()
