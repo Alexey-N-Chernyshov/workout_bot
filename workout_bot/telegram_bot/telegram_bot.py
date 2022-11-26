@@ -16,13 +16,15 @@ class TelegramBot:
     Telegram bot class.
     """
 
-    def __init__(self, application, data_model):
+    def __init__(self, application, loader, data_model):
         self.telegram_application = application
         self.bot = application.bot
         self.data_model = data_model
 
         # init controllers
-        self.controllers = Controllers(self.bot, self.data_model)
+        self.controllers = Controllers(self.bot,
+                                       loader,
+                                       self.data_model)
 
         self.telegram_application.add_handler(
             CommandHandler('start', self.handle_start)
@@ -125,17 +127,6 @@ class TelegramBot:
         if (user_context.administrative_permission
                 and user_context.action in (UserAction.TRAINING,
                                             UserAction.ADMINISTRATION)
-                and message_text == "управление таблицами"):
-            self.data_model \
-                .users.set_user_action(user_context.user_id,
-                                       UserAction.ADMIN_TABLE_MANAGEMENT)
-            await self.controllers.table_management \
-                .show_table_management_panel(update.effective_chat.id)
-            return
-
-        if (user_context.administrative_permission
-                and user_context.action in (UserAction.TRAINING,
-                                            UserAction.ADMINISTRATION)
                 and message_text == "управление пользователями"):
             self.data_model \
                 .users.set_user_action(user_context.user_id,
@@ -144,23 +135,8 @@ class TelegramBot:
                 .show_user_management_panel(update.effective_chat.id)
             return
 
-        if (user_context.administrative_permission
-                and user_context.action in (UserAction.ADMIN_USER_MANAGEMENT,
-                                            UserAction.ADMIN_TABLE_MANAGEMENT,
-                                            UserAction.TRAINING)
-                and message_text == "администрирование"):
-            self.data_model.users.set_user_action(user_context.user_id,
-                                                  UserAction.ADMINISTRATION)
-            await self.controllers.administration \
-                .show_admin_panel(update.effective_chat.id, user_context)
-            return
-
         if (await self.controllers
-            .administration.handle_message(update)
-                or await self.controllers
-                .user_management.handle_message(update, context)
-                or await self.controllers
-                .table_management.handle_message(update)):
+                .user_management.handle_message(update, context)):
             return
 
     async def handle_query(self, update: Update,

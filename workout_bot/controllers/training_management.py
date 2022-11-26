@@ -6,6 +6,7 @@ from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from data_model.users import UserAction
 from view.workouts import get_workout_text_message
 from view.workouts import get_week_routine_text_message
+from telegram_bot.utils import get_user_context
 
 
 async def start_training(data_model, update, context):
@@ -55,7 +56,7 @@ async def prompt_change_plan(data_model, update, context):
                                          UserAction.USER_NEEDS_PROGRAM)
         return
 
-    plans = data_model.workout_plans.get_plan_names(table_id)
+    plans = data_model.workout_table_names.get_plan_names(table_id)
     if plans:
         keyboard = []
         text = 'Выберите программу из списка:\n'
@@ -147,8 +148,7 @@ def handle_go_training():
         not valid.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         message_text = update.message.text.strip().lower()
         return (user_context.action in (UserAction.TRAINING,
                                         UserAction.ADMINISTRATION,
@@ -163,7 +163,7 @@ def handle_go_training():
         await start_training(data_model, update, context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_need_change_plan():
@@ -177,18 +177,19 @@ def handle_need_change_plan():
         not valid.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         message_text = update.message.text.strip().lower()
         table_id = user_context.current_table_id
         current_page = user_context.current_page
-        pages = data_model.workout_plans.get_plan_names(table_id)
+        need_change_plan = not (
+            data_model.workout_table_names.is_table_present(table_id) and
+            data_model.workout_table_names.is_plan_present(table_id,
+                                                           current_page)
+        )
         return user_context.action == UserAction.TRAINING \
-            and (user_context.current_page is None
-                 or current_page not in pages
-                 or message_text in ("выбрать программу",
-                                     "сменить программу",
-                                     "поменять программу"))
+            and (need_change_plan or message_text in ("выбрать программу",
+                                                      "сменить программу",
+                                                      "поменять программу"))
 
     async def handler(data_model, update, context):
         """
@@ -201,7 +202,7 @@ def handle_need_change_plan():
         await prompt_change_plan(data_model, update, context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_message_change_plan():
@@ -214,8 +215,7 @@ def handle_message_change_plan():
         Checks if user in CHOOSING_PLAN state.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return user_context.action == UserAction.CHOOSING_PLAN
 
     async def handler(data_model, update, context):
@@ -224,12 +224,11 @@ def handle_message_change_plan():
         """
 
         new_plan = update.message.text
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         chat_id = user_context.chat_id
         table_id = user_context.current_table_id
 
-        if data_model.workout_plans.is_plan_present(table_id, new_plan):
+        if data_model.workout_table_names.is_plan_present(table_id, new_plan):
             user_context.current_page = new_plan
             user_context.current_week = data_model.workout_plans \
                 .get_week_number(user_context.current_table_id,
@@ -244,7 +243,7 @@ def handle_message_change_plan():
             await context.bot.send_message(chat_id, "Нет такой программы")
             await prompt_change_plan(data_model, update, context)
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_all_actions():
@@ -258,8 +257,7 @@ def handle_all_actions():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and message_text == "все действия")
 
@@ -274,7 +272,7 @@ def handle_all_actions():
         await send_all_actions(context.bot, chat_id)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_next():
@@ -288,8 +286,7 @@ def handle_next():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and (message_text in ("далее", "следующая тренировка")))
 
@@ -308,7 +305,7 @@ def handle_next():
         await send_workout(context.bot, data_model, user_context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_first_week():
@@ -322,8 +319,7 @@ def handle_first_week():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and message_text in ("первая неделя", "начальная неделя"))
 
@@ -332,9 +328,7 @@ def handle_first_week():
         Shows all possible actions.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-
+        user_context = get_user_context(data_model, update)
         user_context.current_week = 0
         user_context.current_workout = 0
         data_model.users.set_user_context(user_context)
@@ -342,7 +336,7 @@ def handle_first_week():
         await send_workout(context.bot, data_model, user_context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_last_week():
@@ -356,8 +350,7 @@ def handle_last_week():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and message_text in ("последняя неделя", "крайняя неделя",
                                      "текущая неделя"))
@@ -367,9 +360,7 @@ def handle_last_week():
         Shows all possible actions.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-
+        user_context = get_user_context(data_model, update)
         user_context.current_week = data_model.workout_plans \
             .get_week_number(user_context.current_table_id,
                              user_context.current_page) - 1
@@ -379,7 +370,7 @@ def handle_last_week():
         await send_workout(context.bot, data_model, user_context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_next_week():
@@ -393,8 +384,7 @@ def handle_next_week():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and message_text in ("следующая неделя"))
 
@@ -403,9 +393,7 @@ def handle_next_week():
         Shows all possible actions.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-
+        user_context = get_user_context(data_model, update)
         if user_context.current_week < data_model.workout_plans \
                 .get_week_number(user_context.current_table_id,
                                  user_context.current_page) - 1:
@@ -416,7 +404,7 @@ def handle_next_week():
         await send_workout(context.bot, data_model, user_context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
 def handle_previous_week():
@@ -430,8 +418,7 @@ def handle_previous_week():
         """
 
         message_text = update.message.text.strip().lower()
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
+        user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
                 and message_text in ("прошлая неделя", "предыдущая неделя"))
 
@@ -440,9 +427,7 @@ def handle_previous_week():
         Shows all possible actions.
         """
 
-        user_id = update.message.from_user.id
-        user_context = data_model.users.get_user_context(user_id)
-
+        user_context = get_user_context(data_model, update)
         if user_context.current_week > 0:
             user_context.current_week -= 1
         user_context.current_workout = 0
@@ -451,10 +436,10 @@ def handle_previous_week():
         await send_workout(context.bot, data_model, user_context)
         return True
 
-    return (handler_filter, handler)
+    return handler_filter, handler
 
 
-table_management_message_handlers = [
+training_management_message_handlers = [
     handle_go_training(),
     handle_need_change_plan(),
     handle_message_change_plan(),

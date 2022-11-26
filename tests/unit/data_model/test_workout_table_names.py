@@ -99,3 +99,74 @@ def test_table_deleted_when_all_pages_deleted():
     assert "tablename" not in stored_tables
 
     delete_file(STORAGE)
+
+
+def test_workout_plans_not_found():
+    """
+    Returns empty list when there is no table with table id.
+    """
+
+    workout_plans = WorkoutTableNames(STORAGE)
+
+    plans = workout_plans.get_plan_names("not_present")
+
+    assert not plans
+
+
+def test_workout_plans_found():
+    """
+    Returns plans for table with table id if present.
+    """
+    delete_file(STORAGE)
+
+    tables = WorkoutTableNames(STORAGE)
+    tables.add_table("table_id", ["page1", "page2"])
+
+    plans = tables.get_plan_names("table_id")
+
+    assert len(plans) == 2
+    assert "page1" in plans
+    assert "page2" in plans
+
+
+def test_switch_page():
+    """
+    Page not present, inserts.
+    Then, when page is present, removes it.
+    """
+
+    delete_file(STORAGE)
+
+    tables = WorkoutTableNames(STORAGE)
+    tables.add_table("table_id", ["page1", "page2"])
+
+    # add new page
+    tables.switch_pages("table_id", "new page")
+    plans = tables.get_plan_names("table_id")
+    assert len(plans) == 3
+    assert "page1" in plans
+    assert "page2" in plans
+    assert "new page" in plans
+
+    # and remove new page
+    tables.switch_pages("table_id", "new page")
+    plans = tables.get_plan_names("table_id")
+    assert len(plans) == 2
+    assert "page1" in plans
+    assert "page2" in plans
+
+
+def test_switch_page_new_table():
+    """
+    Table not exists, inserts.
+    """
+
+    delete_file(STORAGE)
+
+    tables = WorkoutTableNames(STORAGE)
+
+    # add new page
+    tables.switch_pages("table_id", "new page")
+    plans = tables.get_plan_names("table_id")
+    assert len(plans) == 1
+    assert "new page" in plans

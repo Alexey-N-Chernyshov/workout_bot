@@ -8,6 +8,7 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
 from workout_bot.data_model.users import UserAction
 from workout_bot.data_model.data_model import DataModel
+from workout_bot.view.workouts import get_workout_text_message
 
 
 @dataclass
@@ -56,6 +57,10 @@ class QueryMock:
     def __init__(self, data, from_user):
         self.data = data
         self.from_user = from_user
+        self.message = MessageMock("", from_user)
+
+    async def edit_message_text(self, text, reply_markup):
+        pass
 
     async def answer(self):
         """
@@ -155,6 +160,15 @@ class ApplicationMock:
         """
 
 
+class LoaderMock:
+    """
+    Mock for Google spreadsheets loader.
+    """
+
+    def get_sheet_names(self, _spreadsheet_id):
+        return []
+
+
 class UserMock:
     """
     Represents the user interaction with the bot.
@@ -228,11 +242,14 @@ class UserMock:
         else:
             await self.application.message_handler(update, context)
 
-    async def press_inline_button(self, data):
+    async def press_inline_button(self, text, data):
         """
         The user taps inline button with data.
+        text - replied message text
+        data - attached to reply button data
         """
         query = QueryMock(data, self.user)
+        query.message.text = text
         update = UpdateMock(self.chat_with_bot, query=query)
         context = ContextTypeMock(self.bot)
         await self.application.query_handler(update, context)
@@ -244,7 +261,10 @@ class UserMock:
 
         actual = self.bot.get_message(self.chat_with_bot.id)
         if actual != expected_text:
+            print("Actual:")
             print(actual)
+            print("Expected:")
+            print(expected_text)
 
         assert actual == expected_text
 
@@ -281,6 +301,7 @@ class DataModelMock(DataModel):
     def __init__(self):
         self.delete_file(self.USERS_STORAGE)
         self.delete_file(self.TABLE_IDS_STORAGE)
+        self.updated = False
 
         super().__init__(
             self.USERS_STORAGE,
@@ -288,6 +309,13 @@ class DataModelMock(DataModel):
             "exercise_links_pagename",
             self.TABLE_IDS_STORAGE
         )
+
+    def update_tables(self):
+        """
+        Updates tables mock.
+        """
+
+        self.updated = True
 
     def delete_file(self, filename):
         """
@@ -316,9 +344,13 @@ class BehavioralTest:
     def __init__(self):
         self.application = ApplicationMock()
         self.data_model = DataModelMock()
-        self.telegram_bot = TelegramBot(self.application, self.data_model)
+        self.loader = LoaderMock()
+        self.telegram_bot = TelegramBot(self.application,
+                                        self.loader,
+                                        self.data_model)
         self.user_counter = 1
         self.users = []
+        self.workout_tables = []
 
     def teardown(self):
         """
@@ -354,7 +386,7 @@ class BehavioralTest:
         user_context.last_name = user.user.last_name
         user_context.username = user.user.username
         user_context.chat_id = user.user.id
-        user_context.current_page = 0
+        user_context.current_page = None
         user_context.current_week = 0
         user_context.current_workout = 0
         user_context.action = UserAction.CHOOSING_PLAN
@@ -367,7 +399,7 @@ class BehavioralTest:
         Adds user with administrative permissions.
         """
 
-        user = self.add_user(first_name, last_name, user_name)
+        user = self.add_authorized_user(first_name, last_name, user_name)
         self.data_model.users.set_administrative_permission(user.user.id)
         self.data_model.users.set_user_action(user.user.id,
                                               UserAction.CHOOSING_PLAN)
@@ -378,16 +410,41 @@ class BehavioralTest:
         Returns message from choose plan prompt.
         """
 
-        plans = self.data_model.workout_plans.get_plan_names(table.table_id)
+        plans = self.data_model.workout_table_names.get_plan_names(
+            table.table_id
+        )
         text = "Выберите программу из списка:\n"
         for plan in plans:
             text += f"\n - {plan}"
         return text
 
-    def get_table_plan(self, table, number):
+    def add_table(self, table):
         """
-        Returns plan name by it's number.
+        Adds workout table plans for test suite.
         """
 
-        plans = self.data_model.workout_plans.get_plan_names(table.table_id)
-        return plans[number]
+        self.workout_tables.append(table)
+        self.data_model.workout_plans.update_workout_table(table)
+        self.data_model.workout_table_names.add_table(table.table_id,
+                                                      table.pages.keys())
+
+    def get_table_plan(self, table, number):
+        """
+        Returns page name by its number.
+        """
+
+        return list(table.pages)[number]
+
+    def get_expected_workout_text_message(self, user):
+        """
+        Returns expected text message for current workout
+        """
+
+        user_context = self.data_model.users.get_user_context(user.user.id)
+        return get_workout_text_message(
+            self.data_model,
+            user_context.current_table_id,
+            user_context.current_page,
+            user_context.current_week,
+            user_context.current_workout
+        )

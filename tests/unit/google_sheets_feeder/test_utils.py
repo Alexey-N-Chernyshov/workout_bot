@@ -6,7 +6,9 @@ from workout_bot.google_sheets_feeder.utils import get_table_id_from_link
 
 
 def test_get_table_id_from_link_example():
-    "Tests that table id is correctly extracted from example link"
+    """
+    Tests that table id is correctly extracted from example link
+    """
 
     link = "https://docs.google.com/spreadsheets/d/spreadsheetId/edit#gid=0"
     table_id = get_table_id_from_link(link)
@@ -16,7 +18,9 @@ def test_get_table_id_from_link_example():
 
 
 def test_get_table_id_from_link_actual():
-    "Tests that table id is correctly extracted from actual link"
+    """
+    Tests that table id is correctly extracted from actual link
+    """
 
     link = (
         "https://docs.google.com/spreadsheets/d/"
@@ -29,7 +33,9 @@ def test_get_table_id_from_link_actual():
 
 
 def test_get_table_id_from_link_prefix_malformed():
-    "Tests that table id is not extracted from malformed link"
+    """
+    Tests that table id is not extracted from malformed link
+    """
 
     link = "this/is/wrong_prefix/spreadsheets/d/spreadsheetId/edit#gid=0"
     table_id = get_table_id_from_link(link)
@@ -37,10 +43,13 @@ def test_get_table_id_from_link_prefix_malformed():
     assert table_id is None
 
 
-def test_get_table_id_from_link_suffix_malformed():
-    "Tests that table id is not extracted from malformed link"
+def test_get_table_id_from_chopped_string():
+    """
+    Test that table id is extracted from string without ending
+    """
 
-    link = "https://docs.google.com/spreadsheets/d/spreadsheetId"
+    link = "https://docs.google.com/spreadsheets/d/" \
+           "1x2DpoqS9lxUNNWKf5hp4VhHWblWZm-mTTu5I5L3jhtw"
     table_id = get_table_id_from_link(link)
 
-    assert table_id is None
+    assert table_id == "1x2DpoqS9lxUNNWKf5hp4VhHWblWZm-mTTu5I5L3jhtw"

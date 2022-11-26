@@ -4,10 +4,9 @@ Provides access to user data.
 
 import enum
 import shelve
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 from typing import Optional
-from typing import List
 
 
 class UserAction(enum.IntEnum):
@@ -20,39 +19,19 @@ class UserAction(enum.IntEnum):
     CHOOSING_PLAN = 2
     TRAINING = 3
     ADMINISTRATION = 4
-    ADMIN_REMOVING_EXCERCISE_PROVE = 5
-    ADMIN_ADDING_EXCERCISE_PROVE = 6
+    # ADMIN_REMOVING_EXCERCISE_PROVE = 5
+    # ADMIN_ADDING_EXCERCISE_PROVE = 6
     ADMIN_TABLE_MANAGEMENT = 7
-    ADMIN_REMOVING_TABLE = 8
+    # ADMIN_REMOVING_TABLE = 8
     ADMIN_ADDING_TABLE = 9
-    ADMIN_REMOVING_PAGES = 10
-    ADMIN_ADDING_PAGES = 11
+    # ADMIN_REMOVING_PAGES = 10
+    # ADMIN_ADDING_PAGES = 11
     ADMIN_USER_MANAGEMENT = 12
     ADMIN_USER_AUTHORIZATION = 13
     ADMIN_USER_BLOCKING = 14
     ADMIN_USER_ASSIGNING_TABLE = 15
     ADMIN_ADDING_ADMIN = 16
     USER_NEEDS_PROGRAM = 17
-
-
-@dataclass
-class RemoveTableContext:
-    """
-    Stores table_id when the user is asked to confirm removing.
-    """
-
-    table_id: str = ""
-    pages: List[str] = field(default_factory=list)
-
-
-@dataclass
-class AddTableContext:
-    """
-    Stores table_id and pages when the user is asked to add tables.
-    """
-
-    table_id: str = ""
-    pages: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -217,6 +196,15 @@ class Users:
         user_context.administrative_permission = True
         user_context.action = UserAction.ADMINISTRATION
         user_context.user_input_data = None
+        self.__users.sync()
+
+    def set_user_input_data(self, user_id, data):
+        """
+        Sets user data stored between messages. Depends on user action.
+        """
+
+        user_context = self.get_or_create_user_context(user_id)
+        user_context.user_input_data = data
         self.__users.sync()
 
     def block_user(self, user_id):
