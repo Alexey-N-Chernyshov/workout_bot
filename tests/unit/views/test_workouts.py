@@ -32,6 +32,7 @@ class StubDataModel:
 
             return {}
 
+    @dataclass
     class StubWorkoutPlans:
         """
         Mock workout_plans
@@ -44,7 +45,7 @@ class StubDataModel:
                                    "comment"
                                    )
 
-        def get_week_routine(self, table_id, page_name, week_number):
+        def get_week_routine(self, _table_id, _page_name, _week_number):
             """
             Returns mocked week routine.
             """

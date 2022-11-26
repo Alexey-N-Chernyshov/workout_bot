@@ -6,7 +6,7 @@ import os
 from workout_bot.google_sheets_feeder.google_sheets_adapter \
     import GoogleSheetsAdapter
 from .data.exercises_data import raw_exercises_data, expected_exercise_data
-
+from .data.workouts_empty import raw_table_data, expected_workouts
 
 FIXTURE_DIR = os.path.dirname(os.path.realpath(__file__))
 EXCERCISES_RAW_FILE = os.path.join(FIXTURE_DIR, "data/exercises_raw.pkl")
@@ -64,7 +64,6 @@ def test_parse_workouts():
     """
     Raw table data is parsed into list of WeekRoutine.
     """
-    from .data.workouts_data import raw_table_data, expected_workouts
 
     adapter = GoogleSheetsAdapter()
 
@@ -79,7 +78,6 @@ def test_parse_workouts_with_empy_days():
     """
     Raw table with empty days is parsed.
     """
-    from .data.workouts_empty import raw_table_data, expected_workouts
 
     adapter = GoogleSheetsAdapter()
 

@@ -60,7 +60,9 @@ class QueryMock:
         self.message = MessageMock("", from_user)
 
     async def edit_message_text(self, text, reply_markup):
-        pass
+        """
+        Mock for Query.edit_message_text.
+        """
 
     async def answer(self):
         """
@@ -160,12 +162,17 @@ class ApplicationMock:
         """
 
 
+@dataclass
 class LoaderMock:
     """
     Mock for Google spreadsheets loader.
     """
 
     def get_sheet_names(self, _spreadsheet_id):
+        """
+        Loads page names.
+        """
+
         return []
 
 
