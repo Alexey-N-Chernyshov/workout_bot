@@ -189,6 +189,27 @@ async def test_cancel_user_block(test_user_management):
     user.assert_user_action(UserAction.TRAINING)
 
 
+async def test_unrecognized_user_block(test_user_management):
+    """
+    Given: Admin is in ADMIN_USER_BLOCKING state.
+    When: admin sends unrecognized message.
+    Then: user is not blocked, admin is in ADMIN_USER_BLOCKING state.
+    """
+
+    admin = test_user_management.admin
+    admin.set_user_action(UserAction.ADMIN_USER_BLOCKING)
+    user = test_user_management.user
+    admin.set_user_data(BlockUserContext(user.user.id))
+
+    await admin.send_message("nor yes nor no")
+
+    expected = "Заблокировать пользователя @user?"
+    admin.expect_answer(expected)
+    admin.expect_no_more_answers()
+    admin.assert_user_action(UserAction.ADMIN_USER_BLOCKING)
+    user.assert_user_action(UserAction.TRAINING)
+
+
 async def test_go_add_admin(test_user_management):
     """
     Given: Admin is in ADMIN_USER_MANAGEMENT state.
