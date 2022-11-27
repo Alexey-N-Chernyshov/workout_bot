@@ -188,6 +188,7 @@ async def test_cancel_user_block(test_user_management):
     admin.assert_user_action(UserAction.ADMIN_USER_MANAGEMENT)
     user.assert_user_action(UserAction.TRAINING)
 
+
 async def test_go_add_admin(test_user_management):
     """
     Given: Admin is in ADMIN_USER_MANAGEMENT state.
