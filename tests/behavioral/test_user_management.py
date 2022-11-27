@@ -2,8 +2,9 @@
 Behavioral tests for user management.
 """
 
-from workout_bot.data_model.users import UserAction
-from workout_bot.data_model.users import AssignTableUserContext
+from workout_bot.data_model.users import (
+    AssignTableUserContext, BlockUserContext, UserAction
+)
 
 
 async def test_go_user_management(test_user_management):
@@ -153,7 +154,19 @@ async def test_confirm_user_block(test_user_management):
     Then: user is blocked, admin is in ADMIN_USER_MANAGEMENT state.
     """
 
-    # TODO
+    admin = test_user_management.admin
+    admin.set_user_action(UserAction.ADMIN_USER_BLOCKING)
+    user = test_user_management.user
+    admin.set_user_data(BlockUserContext(user.user.id))
+
+    await admin.send_message("Да")
+
+    expected = f"@{user.user.username} заблокирован."
+    admin.expect_answer(expected)
+    admin.expect_answer("Управление пользователями")
+    admin.expect_no_more_answers()
+    admin.assert_user_action(UserAction.ADMIN_USER_MANAGEMENT)
+    user.assert_user_action(UserAction.BLOCKED)
 
 
 async def test_cancel_user_block(test_user_management):
@@ -163,7 +176,17 @@ async def test_cancel_user_block(test_user_management):
     Then: user is not blocked, admin is in ADMIN_USER_MANAGEMENT state.
     """
 
-    # TODO
+    admin = test_user_management.admin
+    admin.set_user_action(UserAction.ADMIN_USER_BLOCKING)
+    user = test_user_management.user
+    admin.set_user_data(BlockUserContext(user.user.id))
+
+    await admin.send_message("Нет")
+
+    admin.expect_answer("Управление пользователями")
+    admin.expect_no_more_answers()
+    admin.assert_user_action(UserAction.ADMIN_USER_MANAGEMENT)
+    user.assert_user_action(UserAction.TRAINING)
 
 async def test_go_add_admin(test_user_management):
     """
@@ -172,7 +195,16 @@ async def test_go_add_admin(test_user_management):
     Then: Admin is in ADMIN_ADDING_ADMIN state.
     """
 
-    # TODO
+    admin = test_user_management.admin
+    admin.set_user_action(UserAction.ADMIN_USER_MANAGEMENT)
+
+    await admin.send_message("Добавить администратора")
+
+    expected = "Кому дать права администратора?\n"
+    expected += " \\- @user\n"
+    admin.expect_answer(expected)
+    admin.expect_no_more_answers()
+    admin.assert_user_action(UserAction.ADMIN_ADDING_ADMIN)
 
 
 async def test_add_admin(test_user_management):
@@ -184,4 +216,12 @@ async def test_add_admin(test_user_management):
     administrative permission.
     """
 
-    # TODO
+    admin = test_user_management.admin
+    admin.set_user_action(UserAction.ADMIN_ADDING_ADMIN)
+    user = test_user_management.user
+
+    await admin.send_message("@user")
+
+    admin.expect_answer("Управление пользователями")
+    admin.expect_no_more_answers()
+    assert user.get_user_context().administrative_permission

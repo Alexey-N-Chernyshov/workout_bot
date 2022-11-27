@@ -402,7 +402,7 @@ class UserManagement:
                 self.data_model.users.set_user_context(user_context)
                 await self.bot \
                     .send_message(chat_id,
-                                  f"{target_username} заблокрирован.")
+                                  f"{target_username} заблокирован.")
                 await self.show_user_management_panel(chat_id)
             elif message_text == "нет":
                 user_context.action = UserAction.ADMIN_USER_MANAGEMENT
