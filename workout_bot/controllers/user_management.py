@@ -324,6 +324,111 @@ def handle_block_user():
     return handler_filter, handler
 
 
+def handle_confirm_block_yes():
+    """
+    Handler for user blocking confirmation.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin is in ADMIN_USER_BLOCKING state and presses Yes.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_BLOCKING and
+                message_text == "да")
+
+    async def handler(data_model, update, context):
+        """
+        Admin blocks user.
+        """
+
+        user_context = get_user_context(data_model, update)
+        chat_id = user_context.chat_id
+        target_username = get_user_message(
+            data_model,
+            user_context.user_input_data.user_id
+        )
+        data_model.users.block_user(user_context.user_input_data.user_id)
+        user_context.action = UserAction.ADMIN_USER_MANAGEMENT
+        user_context.user_input_data = None
+        data_model.users.set_user_context(user_context)
+        await context.bot.send_message(
+            chat_id,
+            f"{target_username} заблокирован."
+        )
+        await send_with_user_management_panel(context.bot, chat_id)
+
+    return handler_filter, handler
+
+
+def handle_confirm_block_no():
+    """
+    Handler for user blocking denial.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin is in ADMIN_USER_BLOCKING state and presses No.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_BLOCKING and
+                message_text == "нет")
+
+    async def handler(data_model, update, context):
+        """
+        Admin does not block user.
+        """
+
+        user_context = get_user_context(data_model, update)
+        chat_id = user_context.chat_id
+        user_context.action = UserAction.ADMIN_USER_MANAGEMENT
+        user_context.user_input_data = None
+        data_model.users.set_user_context(user_context)
+        await send_with_user_management_panel(context.bot, chat_id)
+
+    return handler_filter, handler
+
+
+def handle_confirm_block_unrecognized():
+    """
+    Handler for user blocking unrecognized input.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin is in ADMIN_USER_BLOCKING state and inputs unrecognized text.
+        """
+
+        user_context = get_user_context(data_model, update)
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_BLOCKING)
+
+    async def handler(data_model, update, context):
+        """
+        Show block confirmation.
+        """
+
+        user_context = get_user_context(data_model, update)
+        target_username = user_to_text_message(
+            data_model.users.get_user_context(
+                user_context.user_input_data.user_id
+            )
+        )
+        await prompt_confirm_block(
+            context.bot,
+            user_context.chat_id,
+            target_username
+        )
+
+    return handler_filter, handler
+
+
 def handle_show_all_users():
     """
     Show all users message handler.
@@ -385,6 +490,9 @@ user_management_message_handlers = [
     handle_go_user_authorization(),
     handle_block_user(),
     handle_authorize_user(),
+    handle_confirm_block_yes(),
+    handle_confirm_block_no(),
+    handle_confirm_block_unrecognized(),
     handle_show_all_users(),
     handle_add_admin()
 ]
@@ -432,22 +540,6 @@ class UserManagement:
                                     reply_markup=reply_markup,
                                     parse_mode="MarkdownV2")
 
-    async def prompt_confirm_block(self, chat_id, user_context):
-        """
-        Asks to confirm user blocking.
-        """
-
-        username = user_to_text_message(
-            self.data_model
-            .users
-            .get_user_context(user_context.user_input_data.user_id)
-        )
-        text = f"Заблокировать пользователя {username}?"
-        keyboard = [[KeyboardButton("Нет"), KeyboardButton("Да")]]
-        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        await self.bot.send_message(chat_id, text,
-                                    reply_markup=reply_markup)
-
     async def prompt_assign_table(self, chat_id, user_context):
         """
         Asks to assign a table to the user with user_context.
@@ -478,34 +570,9 @@ class UserManagement:
         user_context = \
             self.data_model.users.get_user_context(update.message.from_user.id)
         chat_id = update.effective_chat.id
-        message_text = update.message.text.strip().lower()
 
         if user_context is None or not user_context.administrative_permission:
             return False
-
-        if user_context.action == UserAction.ADMIN_USER_BLOCKING:
-            if message_text == "да":
-                target_username = get_user_message(
-                    self.data_model,
-                    user_context.user_input_data.user_id
-                )
-                self.data_model \
-                    .users.block_user(user_context.user_input_data.user_id)
-                user_context.action = UserAction.ADMIN_USER_MANAGEMENT
-                user_context.user_input_data = None
-                self.data_model.users.set_user_context(user_context)
-                await self.bot \
-                    .send_message(chat_id,
-                                  f"{target_username} заблокирован.")
-                await self.show_user_management_panel(chat_id)
-            elif message_text == "нет":
-                user_context.action = UserAction.ADMIN_USER_MANAGEMENT
-                user_context.user_input_data = None
-                self.data_model.users.set_user_context(user_context)
-                await self.show_user_management_panel(chat_id)
-            else:
-                await self.prompt_confirm_block(chat_id, user_context)
-            return True
 
         if user_context.action == UserAction.ADMIN_USER_ASSIGNING_TABLE:
             table_name = update.message.text
