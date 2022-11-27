@@ -132,6 +132,20 @@ class Users:
                 return user
         return None
 
+    def get_user_context_by_short_username(self, short_username):
+        """
+        Returns user_context from short username.
+        """
+
+        if short_username.startswith('@'):
+            return self.get_user_context_by_username(short_username)
+        if short_username.startswith("id: "):
+            try:
+                return self.get_user_context(int(short_username[4:]))
+            except ValueError:
+                return None
+        return None
+
     def get_or_create_user_context(self, user_id):
         """
         Returns UserContext for telegram user_id. If UserContext not present,

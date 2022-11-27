@@ -109,6 +109,34 @@ async def show_all_users(bot, chat_id, data_model):
     await send_with_user_management_panel(bot, chat_id, text)
 
 
+async def prompt_assign_table(bot, chat_id, data_model, taget_username):
+    """
+    Asks to assign a table to the user with user_context.
+    """
+
+    text = f"Какую таблицу назначим для {taget_username}?\n\n"
+    keyboard = []
+    for table_name in data_model.workout_plans.get_table_names():
+        text += " \\- " + table_name + "\n"
+        key_talbe_name = [KeyboardButton(text=table_name)]
+        keyboard.append(key_talbe_name)
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await bot.send_message(chat_id, text,
+                           reply_markup=reply_markup,
+                           parse_mode="MarkdownV2")
+
+
+async def prompt_confirm_block(bot, chat_id, target_username):
+    """
+    Asks to confirm user blocking.
+    """
+
+    text = f"Заблокировать пользователя {target_username}?"
+    keyboard = [[KeyboardButton("Нет"), KeyboardButton("Да")]]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await bot.send_message(chat_id, text, reply_markup=reply_markup)
+
+
 async def prompt_add_admin(bot, chat_id, data_model):
     """
     Asks to assign administrative_permission to the user with user_context.
@@ -166,7 +194,7 @@ def handle_go_user_management():
     return handler_filter, handler
 
 
-def handle_authorize_user():
+def handle_go_user_authorization():
     """
     User authorization handler.
     """
@@ -196,6 +224,102 @@ def handle_authorize_user():
             update.effective_chat.id,
             user_context
         )
+
+    return handler_filter, handler
+
+
+def handle_authorize_user():
+    """
+    Admin authorizing user.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin chooses user to authorize.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_AUTHORIZATION and
+                message_text.startswith("авторизовать "))
+
+    async def handler(data_model, update, context):
+        """
+        Admin authorizes user and go to table assignment.
+        """
+
+        user_context = get_user_context(data_model, update)
+        chat_id = user_context.chat_id
+        short_username = update.message.text.strip()[13:]
+        target_user_context = \
+            data_model.users.get_user_context_by_short_username(short_username)
+        if target_user_context is None:
+            await context.bot.send_message(chat_id, "Нет такого пользователя.")
+            await send_with_user_management_panel(context.bot, chat_id)
+        else:
+            data_model.users.set_user_action(
+                user_context.user_id, UserAction.ADMIN_USER_ASSIGNING_TABLE)
+            data_model.users.set_user_input_data(
+                user_context.user_id,
+                AssignTableUserContext(target_user_context.user_id)
+            )
+            target_username = user_to_text_message(
+                target_user_context
+            )
+            await prompt_assign_table(context.bot,
+                                      chat_id,
+                                      data_model,
+                                      target_username)
+
+    return handler_filter, handler
+
+
+def handle_block_user():
+    """
+    Admin blocking user.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin chooses user to block.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_AUTHORIZATION and
+                message_text.startswith("блокировать "))
+
+    async def handler(data_model, update, context):
+        """
+        Admin blocks user.
+        """
+
+        user_context = get_user_context(data_model, update)
+        chat_id = user_context.chat_id
+        short_username = update.message.text.strip()[12:]
+        target_user_context = \
+            data_model.users.get_user_context_by_short_username(short_username)
+        if target_user_context is None:
+            await context.bot.send_message(chat_id,
+                                           "Нет такого пользователя.")
+            await send_with_user_management_panel(context.bot, chat_id)
+        else:
+            user_context.action = UserAction.ADMIN_USER_BLOCKING
+            user_context.user_input_data = \
+                BlockUserContext(target_user_context.user_id)
+            data_model.users.set_user_context(user_context)
+            target_username = user_to_text_message(
+                data_model
+                .users
+                .get_user_context(user_context.user_input_data.user_id)
+            )
+            await prompt_confirm_block(
+                context.bot,
+                chat_id,
+                target_username
+            )
 
     return handler_filter, handler
 
@@ -258,6 +382,8 @@ def handle_add_admin():
 
 user_management_message_handlers = [
     handle_go_user_management(),
+    handle_go_user_authorization(),
+    handle_block_user(),
     handle_authorize_user(),
     handle_show_all_users(),
     handle_add_admin()
@@ -312,10 +438,10 @@ class UserManagement:
         """
 
         username = user_to_text_message(
-                self.data_model
-                    .users
-                    .get_user_context(user_context.user_input_data.user_id)
-            )
+            self.data_model
+            .users
+            .get_user_context(user_context.user_input_data.user_id)
+        )
         text = f"Заблокировать пользователя {username}?"
         keyboard = [[KeyboardButton("Нет"), KeyboardButton("Да")]]
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
@@ -328,10 +454,10 @@ class UserManagement:
         """
 
         username = user_to_text_message(
-                self.data_model
-                    .users
-                    .get_user_context(user_context.user_input_data.user_id)
-            )
+            self.data_model
+            .users
+            .get_user_context(user_context.user_input_data.user_id)
+        )
         text = f"Какую таблицу назначим для {username}?\n\n"
         keyboard = []
         for table_name in self.data_model.workout_plans.get_table_names():
@@ -357,44 +483,12 @@ class UserManagement:
         if user_context is None or not user_context.administrative_permission:
             return False
 
-        if user_context.action == UserAction.ADMIN_USER_AUTHORIZATION:
-            if message_text.startswith("блокировать "):
-                short_username = update.message.text.strip()[12:]
-                target_user_context = \
-                    self.get_user_context_from_short_username(short_username)
-                if target_user_context is None:
-                    await self.bot.send_message(chat_id,
-                                                "Нет такого пользователя.")
-                    await self.show_user_management_panel(chat_id)
-                    return True
-                user_context.action = UserAction.ADMIN_USER_BLOCKING
-                user_context.user_input_data = \
-                    BlockUserContext(target_user_context.user_id)
-                self.data_model.users.set_user_context(user_context)
-                await self.prompt_confirm_block(chat_id, user_context)
-                return True
-            if message_text.startswith("авторизовать "):
-                short_username = update.message.text.strip()[13:]
-                target_user_context = \
-                    self.get_user_context_from_short_username(short_username)
-                if target_user_context is None:
-                    await self.bot.send_message(chat_id,
-                                                "Нет такого пользователя.")
-                    await self.show_user_management_panel(chat_id)
-                    return True
-                user_context.action = UserAction.ADMIN_USER_ASSIGNING_TABLE
-                user_context.user_input_data = \
-                    AssignTableUserContext(target_user_context.user_id)
-                self.data_model.users.set_user_context(user_context)
-                await self.prompt_assign_table(chat_id, user_context)
-                return True
-
         if user_context.action == UserAction.ADMIN_USER_BLOCKING:
             if message_text == "да":
                 target_username = get_user_message(
-                        self.data_model,
-                        user_context.user_input_data.user_id
-                    )
+                    self.data_model,
+                    user_context.user_input_data.user_id
+                )
                 self.data_model \
                     .users.block_user(user_context.user_input_data.user_id)
                 user_context.action = UserAction.ADMIN_USER_MANAGEMENT
@@ -451,7 +545,7 @@ class UserManagement:
                 update.message.text.strip()
             )
             if new_admin is None:
-                self.data_model.users\
+                self.data_model.users \
                     .set_user_action(user_context.user_id,
                                      UserAction.ADMIN_USER_MANAGEMENT)
                 await self \
