@@ -227,6 +227,13 @@ class UserMock:
         user_context.current_workout = workout
         self.data_model.users.set_user_context(user_context)
 
+    def set_user_data(self, data):
+        """
+        Sets user context input data.
+        """
+
+        self.data_model.users.set_user_input_data(self.user.id, data)
+
     def get_user_context(self):
         """
         Returns data model user context.

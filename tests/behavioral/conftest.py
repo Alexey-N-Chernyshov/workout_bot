@@ -101,7 +101,7 @@ def test_table_management(test_with_workout_tables):
 
 @pytest.fixture
 # pylint: disable=redefined-outer-name
-def test_user_management(test_with_workout_tables):
+def test_user_management():
     """
     Sets up test data for user management tests.
     Users:
@@ -110,10 +110,11 @@ def test_user_management(test_with_workout_tables):
      - blocked
     """
 
-    test = test_with_workout_tables
-
-    test.table_id = test.workout_tables[0].table_id
-    test.table_name = test.workout_tables[0].table_name
+    test = BehavioralTest()
+    test.workout_table = create_workout_table("table_id_1", "table_name_1")
+    test.add_table(test.workout_table)
+    test.table_id = test.workout_table.table_id
+    test.table_name = test.workout_table.table_name
 
     test.admin = test.add_admin(user_name="admin")
     test.admin.set_user_action(UserAction.ADMIN_USER_MANAGEMENT)

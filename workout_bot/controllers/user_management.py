@@ -316,7 +316,7 @@ class UserManagement:
                     .users
                     .get_user_context(user_context.user_input_data.user_id)
             )
-        text = f"Заблокировать пользователя {username}?\n\n"
+        text = f"Заблокировать пользователя {username}?"
         keyboard = [[KeyboardButton("Нет"), KeyboardButton("Да")]]
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await self.bot.send_message(chat_id, text,
