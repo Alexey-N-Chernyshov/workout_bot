@@ -7,6 +7,7 @@ from data_model.users import UserAction, BlockUserContext
 from data_model.users import AssignTableUserContext
 from view.users import get_user_message
 from view.users import user_to_text_message, user_to_short_text_message
+from view.utils import escape_text
 from telegram_bot.utils import get_user_context
 
 
@@ -94,8 +95,9 @@ async def show_all_users(bot, chat_id, data_model):
     if others:
         text += "Тренируются:\n"
         for user in others:
-            plan_name = data_model \
-                .workout_plans.get_plan_name(user.current_table_id)
+            plan_name = escape_text(
+                data_model.workout_plans.get_plan_name(user.current_table_id)
+            )
             text += f" \\- {user_to_text_message(user)} \\- {plan_name}"
             if user.administrative_permission:
                 text += " \\- администратор"
@@ -567,9 +569,19 @@ def handle_add_admin():
         """
 
         user_context = get_user_context(data_model, update)
-        data_model.users.set_user_action(user_context.user_id,
-                                         UserAction.ADMIN_ADDING_ADMIN)
-        await prompt_add_admin(context.bot, user_context.chat_id, data_model)
+        potential_admins = data_model.users.get_potential_admins()
+        if potential_admins:
+            data_model.users.set_user_action(user_context.user_id,
+                                             UserAction.ADMIN_ADDING_ADMIN)
+            await prompt_add_admin(context.bot, user_context.chat_id, data_model)
+        else:
+            data_model.users.set_user_action(user_context.user_id,
+                                             UserAction.ADMIN_USER_MANAGEMENT)
+            await send_with_user_management_panel(
+                context.bot,
+                update.effective_chat.id,
+                text="Некого назначить администратором"
+            )
 
     return handler_filter, handler
 

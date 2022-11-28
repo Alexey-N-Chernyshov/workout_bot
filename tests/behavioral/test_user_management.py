@@ -5,6 +5,7 @@ Behavioral tests for user management.
 from workout_bot.data_model.users import (
     AssignTableUserContext, BlockUserContext, UserAction
 )
+from workout_bot.view.utils import escape_text
 
 
 async def test_go_user_management(test_user_management):
@@ -37,7 +38,7 @@ async def test_show_all_users(test_user_management):
 
     await admin.send_message("Показать всех")
 
-    table = test_user_management.workout_table.table_name
+    table = escape_text(test_user_management.workout_table.table_name)
     expected = "Ожидают авторизации:\n"
     expected += " \\- @waiting\n"
     expected += "\n"
@@ -313,6 +314,24 @@ async def test_go_add_admin(test_user_management):
     admin.expect_answer(expected)
     admin.expect_no_more_answers()
     admin.assert_user_action(UserAction.ADMIN_ADDING_ADMIN)
+
+
+async def test_go_add_admin_noone(test_with_workout_tables):
+    """
+    Given: Admin is in ADMIN_USER_MANAGEMENT state.
+    When: Admin sends message for admin adding.
+    Then: Admin is in ADMIN_ADDING_ADMIN state.
+    """
+
+    test = test_with_workout_tables
+    admin = test.add_admin(user_name="admin")
+    admin.set_user_action(UserAction.ADMIN_USER_MANAGEMENT)
+
+    await admin.send_message("Добавить администратора")
+
+    admin.expect_answer("Некого назначить администратором")
+    admin.expect_no_more_answers()
+    admin.assert_user_action(UserAction.ADMIN_USER_MANAGEMENT)
 
 
 async def test_add_admin(test_user_management):
