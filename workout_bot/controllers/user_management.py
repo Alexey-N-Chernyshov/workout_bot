@@ -254,7 +254,7 @@ def handle_authorize_user():
         target_user_context = \
             data_model.users.get_user_context_by_short_username(short_username)
         if target_user_context is None:
-            await context.bot.send_message(chat_id, "Нет такого пользователя.")
+            await context.bot.send_message(chat_id, "Нет такого пользователя")
             await send_with_user_management_panel(context.bot, chat_id)
         else:
             data_model.users.set_user_action(
@@ -351,12 +351,12 @@ def handle_assign_wrong_table():
         user_context = get_user_context(data_model, update)
         target_user_context = data_model\
             .users.get_user_context(user_context.user_input_data.user_id)
-        taget_username = user_to_text_message(target_user_context)
+        target_username = user_to_text_message(target_user_context)
         await prompt_assign_table(
             context.bot,
             user_context.chat_id,
             data_model,
-            taget_username
+            target_username
         )
 
     return handler_filter, handler
@@ -389,8 +389,10 @@ def handle_block_user():
         target_user_context = \
             data_model.users.get_user_context_by_short_username(short_username)
         if target_user_context is None:
-            await context.bot.send_message(chat_id,
-                                           "Нет такого пользователя.")
+            await context.bot.send_message(
+                chat_id,
+                "Нет такого пользователя"
+            )
             await send_with_user_management_panel(context.bot, chat_id)
         else:
             user_context.action = UserAction.ADMIN_USER_BLOCKING

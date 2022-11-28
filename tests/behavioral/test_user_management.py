@@ -94,6 +94,26 @@ async def test_authorize_user(test_user_management):
     waiting.assert_user_action(UserAction.AWAITING_AUTHORIZATION)
 
 
+async def test_authorize_wrong_user(test_user_management):
+    """
+    Given: Admin is in ADMIN_USER_AUTHORIZATION state.
+    When: admin sends message with wrong username.
+    Then: admin in ADMIN_USER_AUTHORIZATION state.
+    """
+
+    admin = test_user_management.admin
+    admin.set_user_action(UserAction.ADMIN_USER_AUTHORIZATION)
+    waiting = test_user_management.waiting
+    table = test_user_management.workout_table.table_name
+
+    await admin.send_message("Авторизовать @wrong_username")
+
+    admin.expect_answer("Нет такого пользователя")
+    admin.expect_answer("Управление пользователями")
+    admin.expect_no_more_answers()
+    admin.assert_user_action(UserAction.ADMIN_USER_AUTHORIZATION)
+
+
 async def test_assign_user_table(test_user_management):
     """
     Given: Admin is in ADMIN_USER_ASSIGNING_TABLE state and user in
@@ -125,6 +145,32 @@ async def test_assign_user_table(test_user_management):
     assert waiting.get_user_context().current_table_id == table_id
 
 
+async def test_assign_user_wrong_table(test_user_management):
+    """
+    Given: Admin is in ADMIN_USER_ASSIGNING_TABLE state and user in
+    AWAITING_AUTHORIZATION state.
+    When: admin sends message to assign a table for the user with wrong table
+     name.
+    Then: user in AWAITING_AUTHORIZATION state, admin in
+    ADMIN_USER_ASSIGNING_TABLE state.
+    """
+
+    admin = test_user_management.admin
+    admin.set_user_action(UserAction.ADMIN_USER_ASSIGNING_TABLE)
+    waiting = test_user_management.waiting
+    admin.set_user_data(AssignTableUserContext(waiting.user.id))
+    table_name = test_user_management.workout_table.table_name
+
+    await admin.send_message("wrong table name")
+
+    expected = "Какую таблицу назначим для @waiting?\n\n"
+    expected += f" \\- {table_name}\n"
+    admin.expect_answer(expected)
+    admin.expect_no_more_answers()
+    admin.assert_user_action(UserAction.ADMIN_USER_ASSIGNING_TABLE)
+    waiting.assert_user_action(UserAction.AWAITING_AUTHORIZATION)
+
+
 async def test_block_user(test_user_management):
     """
     Given: Admin is in ADMIN_USER_AUTHORIZATION state and user in
@@ -144,6 +190,28 @@ async def test_block_user(test_user_management):
     admin.expect_answer(expected)
     admin.expect_no_more_answers()
     admin.assert_user_action(UserAction.ADMIN_USER_BLOCKING)
+    waiting.assert_user_action(UserAction.AWAITING_AUTHORIZATION)
+
+
+async def test_block_wrong_user(test_user_management):
+    """
+    Given: Admin is in ADMIN_USER_AUTHORIZATION state and user in
+    AWAITING_AUTHORIZATION state.
+    When: admin sends message to block user with wrong username.
+    Then: user in AWAITING_AUTHORIZATION state, admin in ADMIN_USER_BLOCKING
+    state and block confirmation is shown.
+    """
+
+    admin = test_user_management.admin
+    admin.set_user_action(UserAction.ADMIN_USER_AUTHORIZATION)
+    waiting = test_user_management.waiting
+
+    await admin.send_message("Блокировать @wrong_username")
+
+    admin.expect_answer("Нет такого пользователя")
+    admin.expect_answer("Управление пользователями")
+    admin.expect_no_more_answers()
+    admin.assert_user_action(UserAction.ADMIN_USER_AUTHORIZATION)
     waiting.assert_user_action(UserAction.AWAITING_AUTHORIZATION)
 
 
@@ -247,3 +315,25 @@ async def test_add_admin(test_user_management):
     admin.expect_answer("Управление пользователями")
     admin.expect_no_more_answers()
     assert user.get_user_context().administrative_permission
+
+
+async def test_add_admin_wrong_name(test_user_management):
+    """
+    Given: Admin is in ADMIN_ADDING_ADMIN state and user has no administrative
+    permission.
+    When: admin sends message to promote the user to admin with wrong username.
+    Then: admin in ADMIN_USER_MANAGEMENT state and user has administrative
+    permission.
+    """
+
+    admin = test_user_management.admin
+    admin.set_user_action(UserAction.ADMIN_ADDING_ADMIN)
+    user = test_user_management.user
+
+    await admin.send_message("@wrong_username")
+
+    admin.expect_answer("Нет такого пользователя")
+    admin.expect_no_more_answers()
+    admin.assert_user_action(UserAction.ADMIN_USER_MANAGEMENT)
+
+    assert not user.get_user_context().administrative_permission
