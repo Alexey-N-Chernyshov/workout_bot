@@ -573,7 +573,11 @@ def handle_add_admin():
         if potential_admins:
             data_model.users.set_user_action(user_context.user_id,
                                              UserAction.ADMIN_ADDING_ADMIN)
-            await prompt_add_admin(context.bot, user_context.chat_id, data_model)
+            await prompt_add_admin(
+                context.bot,
+                user_context.chat_id,
+                data_model
+            )
         else:
             data_model.users.set_user_action(user_context.user_id,
                                              UserAction.ADMIN_USER_MANAGEMENT)
