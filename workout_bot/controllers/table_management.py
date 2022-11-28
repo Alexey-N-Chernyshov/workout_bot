@@ -152,7 +152,6 @@ class TableManagementController:
                 context.bot,
                 update.effective_chat.id
             )
-            return True
 
         return handler_filter, handler
 
@@ -184,7 +183,6 @@ class TableManagementController:
                 chat_id,
                 text=text
             )
-            return True
 
         return handler_filter, handler
 
@@ -306,8 +304,6 @@ class TableManagementController:
                                                "Введите ссылку на таблицу",
                                                reply_markup=reply_markup)
 
-            return True
-
         return handler_filter, handler
 
     def handle_change_table(self):
@@ -388,7 +384,6 @@ class TableManagementController:
                 context.bot,
                 chat_id
             )
-            return True
 
         return (handler_filter, handler)
 
@@ -416,7 +411,6 @@ class TableManagementController:
                 context.bot,
                 chat_id
             )
-            return True
 
         return (handler_filter, handler)
 

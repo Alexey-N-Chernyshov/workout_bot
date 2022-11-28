@@ -189,7 +189,6 @@ def handle_go_user_management():
             context.bot,
             update.effective_chat.id
         )
-        return True
 
     return handler_filter, handler
 
@@ -271,6 +270,94 @@ def handle_authorize_user():
                                       chat_id,
                                       data_model,
                                       target_username)
+
+    return handler_filter, handler
+
+
+def handle_assign_table():
+    """
+    Handles table assigning to the user.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin chooses table to assign to the user.
+        """
+
+        user_context = get_user_context(data_model, update)
+        table_name = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_ASSIGNING_TABLE
+                and table_name in data_model.workout_plans.get_table_names())
+
+    async def handler(data_model, update, context):
+        """
+        Admin assigns table, the user is notified.
+        """
+
+        user_context = get_user_context(data_model, update)
+        table_name = update.message.text.strip().lower()
+        target_user_id = user_context.user_input_data.user_id
+        table_id = data_model.workout_plans.get_table_id_by_name(table_name)
+        data_model.users.set_table_for_user(target_user_id, table_id)
+        data_model.users.set_user_action(
+            target_user_id,
+            UserAction.CHOOSING_PLAN
+        )
+        # notify target user
+        target_user_context = data_model.users.get_user_context(target_user_id)
+        text = f"Назначена программа тренировок *{table_name}*\n"
+        text += "\n"
+        text += "Для продолжения нажмите \"Перейти к тренировкам\""
+        keyboard = [["Перейти к тренировкам"]]
+        reply_markup = ReplyKeyboardMarkup(keyboard,
+                                           resize_keyboard=True)
+        await context.bot.send_message(target_user_context.chat_id,
+                                       text,
+                                       disable_notification=True,
+                                       reply_markup=reply_markup,
+                                       parse_mode="MarkdownV2")
+
+        user_context.action = UserAction.ADMIN_USER_MANAGEMENT
+        user_context.user_input_data = None
+        data_model.users.set_user_context(user_context)
+        await send_with_user_management_panel(
+            context.bot,
+            update.effective_chat.id
+        )
+
+    return handler_filter, handler
+
+
+def handle_assign_wrong_table():
+    """
+    Handles wrong table name assigning to the user.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin chooses table to assign to the user.
+        """
+
+        user_context = get_user_context(data_model, update)
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_ASSIGNING_TABLE)
+
+    async def handler(data_model, update, context):
+        """
+        Admin assigns table, the user is notified.
+        """
+
+        user_context = get_user_context(data_model, update)
+        target_user_context = data_model\
+            .users.get_user_context(user_context.user_input_data.user_id)
+        taget_username = user_to_text_message(target_user_context)
+        await prompt_assign_table(
+            context.bot,
+            user_context.chat_id,
+            data_model,
+            taget_username
+        )
 
     return handler_filter, handler
 
@@ -463,7 +550,7 @@ def handle_add_admin():
 
     def handler_filter(data_model, update):
         """
-        the admin sends add admin message.
+        The admin sends add admin message.
         """
 
         user_context = get_user_context(data_model, update)
@@ -485,146 +572,97 @@ def handle_add_admin():
     return handler_filter, handler
 
 
+def handle_add_admin_input():
+    """
+    Admin adds admin.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin sends username to grant administrative permissions.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        new_admin = data_model.users.get_user_context_by_short_username(
+            message_text
+        )
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_ADDING_ADMIN and
+                new_admin is not None)
+
+    async def handler(data_model, update, context):
+        """
+        Adds admin.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        new_admin = data_model.users.get_user_context_by_short_username(
+            message_text
+        )
+        data_model.users.set_administrative_permission(new_admin.user_id)
+        user_context.action = UserAction.ADMIN_USER_MANAGEMENT
+        user_context.user_input_data = None
+        data_model.users.set_user_context(user_context)
+        await send_with_user_management_panel(
+            context.bot,
+            update.effective_chat.id
+        )
+
+    return handler_filter, handler
+
+
+def handle_add_admin_wrong_input():
+    """
+    Admin adds admin.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin sends wrong username.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        new_admin = data_model.users.get_user_context_by_short_username(
+            message_text
+        )
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_ADDING_ADMIN and
+                new_admin is None)
+
+    async def handler(data_model, update, context):
+        """
+        Ask again.
+        """
+
+        user_context = get_user_context(data_model, update)
+        data_model.users.set_user_action(
+            user_context.user_id,
+            UserAction.ADMIN_USER_MANAGEMENT
+        )
+        await send_with_user_management_panel(
+            context.bot,
+            update.effective_chat.id,
+            text="Нет такого пользователя"
+        )
+
+    return handler_filter, handler
+
+
 user_management_message_handlers = [
     handle_go_user_management(),
     handle_go_user_authorization(),
+    handle_assign_table(),
+    handle_assign_wrong_table(),
     handle_block_user(),
     handle_authorize_user(),
     handle_confirm_block_yes(),
     handle_confirm_block_no(),
     handle_confirm_block_unrecognized(),
     handle_show_all_users(),
-    handle_add_admin()
+    handle_add_admin(),
+    handle_add_admin_input(),
+    handle_add_admin_wrong_input()
 ]
-
-
-class UserManagement:
-    """
-    Provides user interaction for user manamegent.
-    """
-
-    def __init__(self, bot, data_model):
-        self.bot = bot
-        self.data_model = data_model
-
-    def get_user_context_from_short_username(self, short_username):
-        """
-        Returns user_context from short username.
-        """
-
-        if short_username.startswith('@'):
-            return self.data_model.users \
-                .get_user_context_by_username(short_username)
-        if short_username.startswith("id: "):
-            try:
-                return self.data_model.users \
-                    .get_user_context(int(short_username[4:]))
-            except Exception:
-                return None
-        return None
-
-    async def show_user_management_panel(self, chat_id,
-                                         text="Управление пользователями"):
-        """
-        Shows user management panel.
-        """
-
-        keyboard = [
-            [KeyboardButton("Авторизация пользователей")],
-            [KeyboardButton("Показать всех")],
-            [KeyboardButton("Добавить администратора")],
-            [KeyboardButton("Администрирование")],
-        ]
-        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        await self.bot.send_message(chat_id, text,
-                                    reply_markup=reply_markup,
-                                    parse_mode="MarkdownV2")
-
-    async def prompt_assign_table(self, chat_id, user_context):
-        """
-        Asks to assign a table to the user with user_context.
-        """
-
-        username = user_to_text_message(
-            self.data_model
-            .users
-            .get_user_context(user_context.user_input_data.user_id)
-        )
-        text = f"Какую таблицу назначим для {username}?\n\n"
-        keyboard = []
-        for table_name in self.data_model.workout_plans.get_table_names():
-            text += " \\- " + table_name + "\n"
-            key_talbe_name = [KeyboardButton(text=table_name)]
-            keyboard.append(key_talbe_name)
-        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        await self.bot.send_message(chat_id, text,
-                                    reply_markup=reply_markup,
-                                    parse_mode="MarkdownV2")
-
-    async def handle_message(self, update, context):
-        """
-        Handles messages related to user management.
-        Returns True if messsage was processed, False otherwise.
-        """
-
-        user_context = \
-            self.data_model.users.get_user_context(update.message.from_user.id)
-        chat_id = update.effective_chat.id
-
-        if user_context is None or not user_context.administrative_permission:
-            return False
-
-        if user_context.action == UserAction.ADMIN_USER_ASSIGNING_TABLE:
-            table_name = update.message.text
-            if table_name in self.data_model.workout_plans.get_table_names():
-                target_user_id = user_context.user_input_data.user_id
-                table_id = self.data_model \
-                    .workout_plans.get_table_id_by_name(table_name)
-                self.data_model.users.set_table_for_user(target_user_id,
-                                                         table_id)
-                self.data_model.users.set_user_action(target_user_id,
-                                                      UserAction.CHOOSING_PLAN)
-                # notify target user
-                target_user_context = self.data_model \
-                    .users.get_user_context(target_user_id)
-                text = f"Назначена программа тренировок *{table_name}*\n"
-                text += "\n"
-                text += "Для продолжения нажмите \"Перейти к тренировкам\""
-                keyboard = [["Перейти к тренировкам"]]
-                reply_markup = ReplyKeyboardMarkup(keyboard,
-                                                   resize_keyboard=True)
-                await context.bot.send_message(target_user_context.chat_id,
-                                               text,
-                                               disable_notification=True,
-                                               reply_markup=reply_markup,
-                                               parse_mode="MarkdownV2")
-
-                user_context.action = UserAction.ADMIN_USER_MANAGEMENT
-                user_context.user_input_data = None
-                self.data_model.users.set_user_context(user_context)
-                await self.show_user_management_panel(chat_id)
-            else:
-                await self.prompt_assign_table(chat_id, user_context)
-            return True
-
-        if user_context.action == UserAction.ADMIN_ADDING_ADMIN:
-            new_admin = self.get_user_context_from_short_username(
-                update.message.text.strip()
-            )
-            if new_admin is None:
-                self.data_model.users \
-                    .set_user_action(user_context.user_id,
-                                     UserAction.ADMIN_USER_MANAGEMENT)
-                await self \
-                    .show_user_management_panel(chat_id,
-                                                text="Нет такого пользователя")
-                return True
-            self.data_model \
-                .users.set_administrative_permission(new_admin.user_id)
-            user_context.action = UserAction.ADMIN_USER_MANAGEMENT
-            user_context.user_input_data = None
-            self.data_model.users.set_user_context(user_context)
-            await self.show_user_management_panel(chat_id)
-            return True
-
-        return False

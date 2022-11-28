@@ -22,9 +22,7 @@ class TelegramBot:
         self.data_model = data_model
 
         # init controllers
-        self.controllers = Controllers(self.bot,
-                                       loader,
-                                       self.data_model)
+        self.controllers = Controllers(loader)
 
         self.telegram_application.add_handler(
             CommandHandler('start', self.handle_start)
@@ -114,19 +112,11 @@ class TelegramBot:
         """
 
         self.data_model.statistics.record_request()
-
-        if await self.controllers.user_management.handle_message(
-                update,
-                context
-        ):
-            return
-
-        if await self.controllers.handle_message(
-                self.data_model,
-                update,
-                context
-        ):
-            return
+        await self.controllers.handle_message(
+            self.data_model,
+            update,
+            context
+        )
 
     async def handle_query(self, update: Update,
                            context: ContextTypes.DEFAULT_TYPE):
