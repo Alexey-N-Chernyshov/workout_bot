@@ -103,8 +103,6 @@ async def test_authorize_wrong_user(test_user_management):
 
     admin = test_user_management.admin
     admin.set_user_action(UserAction.ADMIN_USER_AUTHORIZATION)
-    waiting = test_user_management.waiting
-    table = test_user_management.workout_table.table_name
 
     await admin.send_message("Авторизовать @wrong_username")
 
