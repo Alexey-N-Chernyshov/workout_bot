@@ -112,7 +112,7 @@ class Users:
 
     def get_user_context(self, user_id):
         """
-        Returns UserContext for user_id or None if user_id is unknow.
+        Returns UserContext for user_id or None if user_id is unknown.
         """
 
         if str(user_id) not in self.__users:
@@ -121,7 +121,7 @@ class Users:
 
     def get_user_context_by_username(self, username):
         """
-        Returns user contexts by user_id if user_id is present. Otherwise
+        Returns user contexts by user_id if user_id is present. Otherwise,
         returns None.
         """
 
@@ -135,6 +135,8 @@ class Users:
     def get_user_context_by_short_username(self, short_username):
         """
         Returns user_context from short username.
+        Short username either telegram username starting with `@`,
+        either telegram user id starting with `id:`.
         """
 
         if short_username.startswith('@'):

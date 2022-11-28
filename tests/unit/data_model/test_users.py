@@ -61,3 +61,16 @@ def test_user_context_persistent_storage():
     assert actual.user_input_data.user_id == user_id
 
     delete_file(STORAGE)
+
+
+def test_get_user_context_by_short_wrong_username():
+    """
+    Short username malformed must return None.
+    """
+
+    delete_file(STORAGE)
+
+    users = Users(STORAGE)
+
+    assert users.get_user_context_by_short_username("wrong_prefix") is None
+    assert users.get_user_context_by_short_username("id: not_a_num") is None
