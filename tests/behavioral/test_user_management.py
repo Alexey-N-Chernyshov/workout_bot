@@ -70,6 +70,26 @@ async def test_go_authorize_user(test_user_management):
     admin.assert_user_action(UserAction.ADMIN_USER_AUTHORIZATION)
 
 
+async def test_go_authorize_user_no_users(test_user_management):
+    """
+    Given: Admin is in ADMIN_USER_MANAGEMENT state and there is no users
+    awaiting authorization.
+    When: Admin sends message for user authorization.
+    Then: Admin is in ADMIN_USER_MANAGEMENT state.
+    """
+
+    admin = test_user_management.admin
+    admin.set_user_action(UserAction.ADMIN_USER_MANAGEMENT)
+    no_more_waiting = test_user_management.waiting
+    no_more_waiting.set_user_action(UserAction.TRAINING)
+
+    await admin.send_message("Авторизация пользователей")
+
+    admin.expect_answer("Никто не ждёт авторизации")
+    admin.expect_no_more_answers()
+    admin.assert_user_action(UserAction.ADMIN_USER_MANAGEMENT)
+
+
 async def test_authorize_user(test_user_management):
     """
     Given: Admin is in ADMIN_USER_AUTHORIZATION state and user in
