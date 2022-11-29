@@ -19,19 +19,14 @@ class UserAction(enum.IntEnum):
     CHOOSING_PLAN = 2
     TRAINING = 3
     ADMINISTRATION = 4
-    # ADMIN_REMOVING_EXCERCISE_PROVE = 5
-    # ADMIN_ADDING_EXCERCISE_PROVE = 6
-    ADMIN_TABLE_MANAGEMENT = 7
-    # ADMIN_REMOVING_TABLE = 8
-    ADMIN_ADDING_TABLE = 9
-    # ADMIN_REMOVING_PAGES = 10
-    # ADMIN_ADDING_PAGES = 11
-    ADMIN_USER_MANAGEMENT = 12
-    ADMIN_USER_AUTHORIZATION = 13
-    ADMIN_USER_BLOCKING = 14
-    ADMIN_USER_ASSIGNING_TABLE = 15
-    ADMIN_ADDING_ADMIN = 16
-    USER_NEEDS_PROGRAM = 17
+    ADMIN_TABLE_MANAGEMENT = 5
+    ADMIN_ADDING_TABLE = 6
+    ADMIN_USER_MANAGEMENT = 7
+    ADMIN_USER_AUTHORIZATION = 8
+    ADMIN_USER_BLOCKING = 9
+    ADMIN_USER_ASSIGNING_TABLE = 10
+    ADMIN_ADDING_ADMIN = 11
+    USER_NEEDS_PROGRAM = 12
 
 
 @dataclass
@@ -112,7 +107,7 @@ class Users:
 
     def get_user_context(self, user_id):
         """
-        Returns UserContext for user_id or None if user_id is unknow.
+        Returns UserContext for user_id or None if user_id is unknown.
         """
 
         if str(user_id) not in self.__users:
@@ -121,7 +116,7 @@ class Users:
 
     def get_user_context_by_username(self, username):
         """
-        Returns user contexts by user_id if user_id is present. Otherwise
+        Returns user contexts by user_id if user_id is present. Otherwise,
         returns None.
         """
 
@@ -130,6 +125,22 @@ class Users:
         for user in self.__users.values():
             if username == user.username:
                 return user
+        return None
+
+    def get_user_context_by_short_username(self, short_username):
+        """
+        Returns user_context from short username.
+        Short username either telegram username starting with `@`,
+        either telegram user id starting with `id:`.
+        """
+
+        if short_username.startswith('@'):
+            return self.get_user_context_by_username(short_username)
+        if short_username.startswith("id: "):
+            try:
+                return self.get_user_context(int(short_username[4:]))
+            except ValueError:
+                return None
         return None
 
     def get_or_create_user_context(self, user_id):
