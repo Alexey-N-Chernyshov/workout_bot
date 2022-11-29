@@ -14,8 +14,8 @@ async def test_go_to_training(test_with_workout_tables):
 
     alice = test_with_workout_tables.add_admin()
     alice.set_user_action(UserAction.ADMINISTRATION)
-    table = test_with_workout_tables.workout_tables[0]
-    plan = test_with_workout_tables.get_table_plan(table, 0)
+    table = test_with_workout_tables.table1
+    plan = list(test_with_workout_tables.table1.pages)[0]
     alice.set_table(table.table_id)
     alice.set_page(plan)
 

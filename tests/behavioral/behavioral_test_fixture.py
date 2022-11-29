@@ -350,6 +350,7 @@ class DataModelMock(DataModel):
         self.delete_file(self.TABLE_IDS_STORAGE)
 
 
+# pylint: disable=too-many-instance-attributes
 class BehavioralTest:
     """
     All infrastructure for test in one place.
@@ -441,13 +442,6 @@ class BehavioralTest:
         self.data_model.workout_plans.update_workout_table(table)
         self.data_model.workout_table_names.add_table(table.table_id,
                                                       table.pages.keys())
-
-    def get_table_plan(self, table, number):
-        """
-        Returns page name by its number.
-        """
-
-        return list(table.pages)[number]
 
     def get_expected_workout_text_message(self, user):
         """
