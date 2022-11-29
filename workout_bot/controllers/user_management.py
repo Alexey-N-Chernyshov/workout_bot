@@ -119,7 +119,7 @@ async def prompt_assign_table(bot, chat_id, data_model, taget_username):
     text = f"Какую таблицу назначим для {taget_username}?\n\n"
     keyboard = []
     for table_name in data_model.workout_plans.get_table_names():
-        text += " \\- " + table_name + "\n"
+        text += " \\- " + escape_text(table_name) + "\n"
         key_talbe_name = [KeyboardButton(text=table_name)]
         keyboard.append(key_talbe_name)
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
@@ -133,7 +133,7 @@ async def prompt_confirm_block(bot, chat_id, target_username):
     Asks to confirm user blocking.
     """
 
-    text = f"Заблокировать пользователя {target_username}?"
+    text = f"Заблокировать пользователя {escape_text(target_username)}?"
     keyboard = [[KeyboardButton("Нет"), KeyboardButton("Да")]]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await bot.send_message(chat_id, text, reply_markup=reply_markup)
@@ -308,7 +308,7 @@ def handle_assign_table():
         )
         # notify target user
         target_user_context = data_model.users.get_user_context(target_user_id)
-        text = f"Назначена программа тренировок *{table_name}*\n"
+        text = f"Назначена программа тренировок *{escape_text(table_name)}*\n"
         text += "\n"
         text += "Для продолжения нажмите \"Перейти к тренировкам\""
         keyboard = [["Перейти к тренировкам"]]

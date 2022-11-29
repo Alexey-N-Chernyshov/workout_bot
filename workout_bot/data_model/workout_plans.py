@@ -126,7 +126,7 @@ class WorkoutPlans:
         Returns table name for table_id.
         """
 
-        name = None
+        name = table_id
         with self.lock:
             if table_id in self.__workout_tables:
                 name = self.__workout_tables[table_id].table_name
