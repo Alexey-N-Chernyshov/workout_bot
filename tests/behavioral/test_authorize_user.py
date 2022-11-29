@@ -3,6 +3,7 @@ Tests related to user authorization.
 """
 
 from workout_bot.data_model.users import UserAction
+from workout_bot.view.utils import escape_text
 
 
 async def test_unauthorized(behavioral_test_fixture):
@@ -92,6 +93,7 @@ async def test_admin_authorizes_usesr(test_with_workout_tables):
     await bob.send_message(table_name)
 
     # Alice is notified
+    table_name = escape_text(table_name)
     expected = f"Назначена программа тренировок *{table_name}*\n\n"
     expected += "Для продолжения нажмите \"Перейти к тренировкам\""
     alice.expect_answer(expected)

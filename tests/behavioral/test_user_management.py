@@ -108,7 +108,7 @@ async def test_authorize_user(test_user_management):
     await admin.send_message("Авторизовать @waiting")
 
     expected = "Какую таблицу назначим для @waiting?\n\n"
-    expected += f" \\- {table}\n"
+    expected += f" \\- {escape_text(table)}\n"
     admin.expect_answer(expected)
     admin.expect_no_more_answers()
     admin.assert_user_action(UserAction.ADMIN_USER_ASSIGNING_TABLE)
@@ -155,7 +155,7 @@ async def test_assign_user_table(test_user_management):
     admin.expect_no_more_answers()
     admin.assert_user_action(UserAction.ADMIN_USER_MANAGEMENT)
     # user is notified
-    expected = f"Назначена программа тренировок *{table_name}*\n"
+    expected = f"Назначена программа тренировок *{escape_text(table_name)}*\n"
     expected += "\n"
     expected += "Для продолжения нажмите \"Перейти к тренировкам\""
     waiting.expect_answer(expected)
@@ -183,7 +183,7 @@ async def test_assign_user_wrong_table(test_user_management):
     await admin.send_message("wrong table name")
 
     expected = "Какую таблицу назначим для @waiting?\n\n"
-    expected += f" \\- {table_name}\n"
+    expected += f" \\- {escape_text(table_name)}\n"
     admin.expect_answer(expected)
     admin.expect_no_more_answers()
     admin.assert_user_action(UserAction.ADMIN_USER_ASSIGNING_TABLE)

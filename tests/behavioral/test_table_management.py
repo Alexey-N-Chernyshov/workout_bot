@@ -99,7 +99,7 @@ async def test_admin_adds_table_link(test_table_management):
                              table_id)
 
     expected = "Добавление таблицы\n"
-    expected += get_table_name_message(None, table_id)
+    expected += get_table_name_message(table_id, table_id)
     expected += "id: " + escape_text(table_id) + "\n"
     expected += "\n"
     expected += "Отметьте страницы с тренировками"
