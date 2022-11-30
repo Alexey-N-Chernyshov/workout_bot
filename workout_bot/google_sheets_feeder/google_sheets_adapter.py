@@ -17,7 +17,7 @@ class GoogleSheetsAdapter:
 
     def parse_exercise_links(self, values):
         """
-        Loads exercise links from google table.
+        Loads exercise links from Google table.
 
         Returns exercises sorted by name length in reverse order.
         """
@@ -28,7 +28,7 @@ class GoogleSheetsAdapter:
 
     def parse_merges(self, merges, values):
         """
-        Parses merges in order to determine week indeces (begins and ends).
+        Parses merges in order to determine week indexes (begins and ends).
         """
 
         week_indeces = []

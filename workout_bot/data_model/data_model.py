@@ -5,6 +5,8 @@ Provides business data model objects.
 from google_sheets_feeder.google_sheets_adapter import GoogleSheetsAdapter
 from google_sheets_feeder.google_sheets_feeder import GoogleSheetsFeeder
 from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
+from workout_bot.error import Error
+from .errors import Errors
 from .exercise_links import ExerciseLinks
 from .statistics import Statistics
 from .users import Users
@@ -17,13 +19,19 @@ class DataModel:
     An interface to all business data model objects.
     """
 
-    def __init__(self,
-                 users_storage_filename,
-                 exercise_links_table_id,
-                 exercise_links_pagename,
-                 table_ids_filename):
-        self.feeder = GoogleSheetsFeeder(GoogleSheetsLoader(),
-                                         GoogleSheetsAdapter())
+    def __init__(
+            self,
+            users_storage_filename,
+            exercise_links_table_id,
+            exercise_links_pagename,
+            table_ids_filename,
+            feeder=GoogleSheetsFeeder(
+                GoogleSheetsLoader(),
+                GoogleSheetsAdapter()
+            )
+    ):
+        self.errors = Errors()
+        self.feeder = feeder
         self.users = Users(users_storage_filename)
         self.exercise_links = ExerciseLinks(exercise_links_table_id,
                                             exercise_links_pagename,
@@ -37,10 +45,20 @@ class DataModel:
         """
         Loads the latest workout plans from Google spreadsheets.
         """
-
-        self.exercise_links.load_exercise_links()
-        self.workout_plans = self.feeder.get_workouts(self.workout_table_names)
-        self.statistics.set_training_plan_update_time()
+        try:
+            self.exercise_links.update_exercise_links()
+        except Error as error:
+            self.errors.add_error(error)
+        try:
+            self.workout_plans = self.feeder.get_workouts(
+                self.workout_table_names
+            )
+        except Error as error:
+            self.errors.add_error(error)
+        try:
+            self.statistics.set_training_plan_update_time()
+        except Error as error:
+            self.errors.add_error(error)
 
     def next_workout_for_user(self, user_id):
         """

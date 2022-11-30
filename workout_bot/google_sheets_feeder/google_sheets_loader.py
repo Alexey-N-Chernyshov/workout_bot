@@ -10,7 +10,8 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+from googleapiclient.errors import Error as GoogleError
+from error import Error
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
@@ -68,9 +69,12 @@ class GoogleSheetsLoader:
 
             return values[1:]
 
-        except HttpError as err:
-            print(err)
-            return None
+        except GoogleError as error:
+            print(error)
+            raise Error(
+                "Loading values from table error",
+                str(error)
+            ) from error
 
     def get_values_and_merges(self, spreadsheet_id, pagename):
         """
@@ -103,9 +107,12 @@ class GoogleSheetsLoader:
             return (result_merges["properties"]["title"],
                     result_merges["sheets"][0]["merges"], values[1:])
 
-        except HttpError as err:
-            print(err)
-            return None
+        except GoogleError as error:
+            print(error)
+            raise Error(
+                "Loading values and merges from table error",
+                str(error)
+            ) from error
 
     def get_sheet_names(self, spreadsheet_id):
         """
@@ -128,6 +135,6 @@ class GoogleSheetsLoader:
 
             return result
 
-        except HttpError as err:
-            print(err)
-            return None
+        except GoogleError as error:
+            print(error)
+            raise Error("Loading page names error", str(error)) from error

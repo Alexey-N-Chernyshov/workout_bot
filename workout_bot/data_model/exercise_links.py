@@ -20,10 +20,11 @@ class ExerciseLinks:
         self.feeder = feeder
         self.exercise_links = {}
 
-    def load_exercise_links(self):
+    def update_exercise_links(self):
         """
-        Loads exercise links from google table.
+        Loads exercise links from Google table.
         """
+
         self.exercise_links = self.feeder.get_exercise_links(self.table_id,
                                                              self.pagename)
 
@@ -31,4 +32,5 @@ class ExerciseLinks:
         """
         Returns loaded exercise links.
         """
+
         return self.exercise_links

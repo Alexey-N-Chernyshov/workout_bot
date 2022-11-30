@@ -7,7 +7,7 @@ from datetime import datetime
 
 class Statistics:
     """
-    Stores application statistics,
+    Stores application statistics.
     """
 
     total_requests = 0
