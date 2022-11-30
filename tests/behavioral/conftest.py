@@ -53,11 +53,11 @@ def test_with_workout_tables():
     test = BehavioralTest()
     test.workout_tables = []
 
-    table1 = create_workout_table("table_id_1", "table_name_1")
-    test.add_table(table1)
+    test.table1 = create_workout_table("table_id_1", "table_name_1")
+    test.add_table(test.table1)
 
-    table2 = create_workout_table("table_id_2", "table_name_2")
-    test.add_table(table2)
+    test.table2 = create_workout_table("table_id_2", "table_name_2")
+    test.add_table(test.table2)
 
     yield test
     test.teardown()
@@ -72,12 +72,12 @@ def test_with_user_with_workouts():
     test = BehavioralTest()
     test.workout_tables = []
 
-    table1 = create_workout_table("table_id_1", "table_name_1")
-    test.add_table(table1)
+    test.table = create_workout_table("table_id_1", "table_name_1")
+    test.add_table(test.table)
 
     user = test.add_authorized_user()
-    user.set_table(table1.table_id)
-    plan = test.get_table_plan(table1, 0)
+    user.set_table(test.table.table_id)
+    plan = list(test.table.pages)[0]
     user.set_page(plan)
     user.set_user_action(UserAction.TRAINING)
 

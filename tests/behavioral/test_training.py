@@ -54,7 +54,7 @@ async def test_choose_plan_on_start(test_with_workout_tables):
 
     # alice is assigned a table
     alice = test_with_workout_tables.add_authorized_user()
-    table = test_with_workout_tables.workout_tables[0]
+    table = test_with_workout_tables.table1
     alice.set_table(table.table_id)
 
     # sends a message
@@ -75,9 +75,9 @@ async def test_start_training(test_with_workout_tables):
     """
 
     alice = test_with_workout_tables.add_authorized_user()
-    table = test_with_workout_tables.workout_tables[0]
+    table = test_with_workout_tables.table1
     alice.set_table(table.table_id)
-    plan = test_with_workout_tables.get_table_plan(table, 0)
+    plan = list(test_with_workout_tables.table1.pages)[0]
     alice.set_page(plan)
     alice.set_user_action(UserAction.TRAINING)
 
@@ -99,13 +99,13 @@ async def test_change_plan(test_with_workout_tables):
     """
 
     alice = test_with_workout_tables.add_authorized_user()
-    table = test_with_workout_tables.workout_tables[0]
+    table = test_with_workout_tables.table1
     alice.set_table(table.table_id)
-    plan = test_with_workout_tables.get_table_plan(table, 0)
+    plan = list(test_with_workout_tables.table1.pages)[0]
     alice.set_page(plan)
     alice.set_user_action(UserAction.CHOOSING_PLAN)
 
-    new_plan = test_with_workout_tables.get_table_plan(table, 1)
+    new_plan = list(test_with_workout_tables.table1.pages)[1]
 
     # sends a message
     await alice.send_message(new_plan)
@@ -139,9 +139,9 @@ async def test_change_plan_invalid(test_with_workout_tables):
     """
 
     alice = test_with_workout_tables.add_authorized_user()
-    table = test_with_workout_tables.workout_tables[0]
+    table = test_with_workout_tables.table1
     alice.set_table(table.table_id)
-    plan = test_with_workout_tables.get_table_plan(table, 0)
+    plan = list(test_with_workout_tables.table1.pages)[0]
     alice.set_page(plan)
 
     new_plan = "wrong plan"
@@ -166,9 +166,9 @@ async def test_user_changes_plan(test_with_workout_tables):
     """
 
     alice = test_with_workout_tables.add_authorized_user()
-    table = test_with_workout_tables.workout_tables[0]
+    table = test_with_workout_tables.table1
     alice.set_table(table.table_id)
-    plan = test_with_workout_tables.get_table_plan(table, 0)
+    plan = list(test_with_workout_tables.table1.pages)[0]
     alice.set_page(plan)
     alice.set_user_action(UserAction.TRAINING)
 
@@ -190,7 +190,7 @@ async def test_user_changes_plan_no_page(test_with_workout_tables):
     """
 
     alice = test_with_workout_tables.add_authorized_user()
-    table = test_with_workout_tables.workout_tables[0]
+    table = test_with_workout_tables.table1
     alice.set_table(table.table_id)
     alice.set_user_action(UserAction.TRAINING)
 
@@ -212,9 +212,9 @@ async def test_training_all_action(test_with_workout_tables):
     """
 
     alice = test_with_workout_tables.add_authorized_user()
-    table = test_with_workout_tables.workout_tables[0]
+    table = test_with_workout_tables.table1
     alice.set_table(table.table_id)
-    plan = test_with_workout_tables.get_table_plan(table, 0)
+    plan = list(test_with_workout_tables.table1.pages)[0]
     alice.set_page(plan)
     alice.set_user_action(UserAction.TRAINING)
 
@@ -235,7 +235,7 @@ async def test_training_invalid_plan(test_with_workout_tables):
     """
 
     alice = test_with_workout_tables.add_authorized_user()
-    table = test_with_workout_tables.workout_tables[0]
+    table = test_with_workout_tables.table1
     alice.set_table(table.table_id)
     alice.set_page("invalid page")
     alice.set_user_action(UserAction.TRAINING)
@@ -259,8 +259,8 @@ async def test_go_to_training(test_with_user_with_workouts):
 
     alice = test_with_user_with_workouts.users[0]
     alice.set_user_action(UserAction.TRAINING)
-    table = test_with_user_with_workouts.workout_tables[0]
-    plan = test_with_user_with_workouts.get_table_plan(table, 0)
+    table = test_with_user_with_workouts.table
+    plan = list(test_with_user_with_workouts.table.pages)[0]
 
     # sends a message
     await alice.send_message("Перейти к тренировкам")
@@ -310,8 +310,8 @@ async def test_go_next_week_workout(test_with_user_with_workouts):
     """
 
     alice = test_with_user_with_workouts.users[0]
-    table = test_with_user_with_workouts.workout_tables[0]
-    plan = test_with_user_with_workouts.get_table_plan(table, 0)
+    table = test_with_user_with_workouts.table
+    plan = list(test_with_user_with_workouts.table.pages)[0]
     alice.set_workout_number(1)
 
     # sends a message
@@ -350,8 +350,8 @@ async def test_go_next_last_week_last_workout(test_with_user_with_workouts):
     """
 
     alice = test_with_user_with_workouts.users[0]
-    table = test_with_user_with_workouts.workout_tables[0]
-    plan = test_with_user_with_workouts.get_table_plan(table, 0)
+    table = test_with_user_with_workouts.table
+    plan = list(test_with_user_with_workouts.table.pages)[0]
     # last workout of the last week
     alice.set_week_number(1)
     alice.set_workout_number(1)
@@ -385,8 +385,8 @@ async def test_go_first_week(test_with_user_with_workouts):
     """
 
     alice = test_with_user_with_workouts.users[0]
-    table = test_with_user_with_workouts.workout_tables[0]
-    plan = test_with_user_with_workouts.get_table_plan(table, 0)
+    table = test_with_user_with_workouts.table
+    plan = list(test_with_user_with_workouts.table.pages)[0]
     # last workout of the last week
     alice.set_week_number(1)
     alice.set_workout_number(1)
@@ -428,8 +428,8 @@ async def test_go_last_week(test_with_user_with_workouts):
     """
 
     alice = test_with_user_with_workouts.users[0]
-    table = test_with_user_with_workouts.workout_tables[0]
-    plan = test_with_user_with_workouts.get_table_plan(table, 0)
+    table = test_with_user_with_workouts.table
+    plan = list(test_with_user_with_workouts.table.pages)[0]
     # last workout of the last week
     alice.set_week_number(0)
     alice.set_workout_number(1)
@@ -471,8 +471,8 @@ async def test_go_next_week(test_with_user_with_workouts):
     """
 
     alice = test_with_user_with_workouts.users[0]
-    table = test_with_user_with_workouts.workout_tables[0]
-    plan = test_with_user_with_workouts.get_table_plan(table, 0)
+    table = test_with_user_with_workouts.table
+    plan = list(test_with_user_with_workouts.table.pages)[0]
     # last workout of the last week
     alice.set_week_number(0)
     alice.set_workout_number(1)
@@ -514,8 +514,8 @@ async def test_go_previous_week(test_with_user_with_workouts):
     """
 
     alice = test_with_user_with_workouts.users[0]
-    table = test_with_user_with_workouts.workout_tables[0]
-    plan = test_with_user_with_workouts.get_table_plan(table, 0)
+    table = test_with_user_with_workouts.table
+    plan = list(test_with_user_with_workouts.table.pages)[0]
     # last workout of the last week
     alice.set_week_number(1)
     alice.set_workout_number(1)

@@ -59,7 +59,7 @@ async def prompt_change_plan(data_model, update, context):
     plans = data_model.workout_table_names.get_plan_names(table_id)
     if plans:
         keyboard = []
-        text = 'Выберите программу из списка:\n'
+        text = "Выберите программу из списка:\n"
         for plan in plans:
             text += '\n - ' + plan
             keyboard.append([KeyboardButton(plan)])

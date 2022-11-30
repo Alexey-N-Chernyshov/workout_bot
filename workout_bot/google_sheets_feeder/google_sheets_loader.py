@@ -70,6 +70,7 @@ class GoogleSheetsLoader:
 
         except HttpError as err:
             print(err)
+            return None
 
     def get_values_and_merges(self, spreadsheet_id, pagename):
         """
@@ -104,6 +105,7 @@ class GoogleSheetsLoader:
 
         except HttpError as err:
             print(err)
+            return None
 
     def get_sheet_names(self, spreadsheet_id):
         """
@@ -128,3 +130,4 @@ class GoogleSheetsLoader:
 
         except HttpError as err:
             print(err)
+            return None
