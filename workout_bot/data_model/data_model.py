@@ -2,6 +2,7 @@
 Provides business data model objects.
 """
 
+from dataclasses import dataclass
 from google_sheets_feeder.google_sheets_adapter import GoogleSheetsAdapter
 from google_sheets_feeder.google_sheets_feeder import GoogleSheetsFeeder
 from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
@@ -14,6 +15,17 @@ from .workout_plans import WorkoutPlans
 from .workout_table_names import WorkoutTableNames
 
 
+@dataclass
+class PageReference:
+    """
+    Reference to page in table.
+    """
+
+    def __init__(self, table_id, page_name):
+        self.table_id = table_id
+        self.page_name = page_name
+
+
 class DataModel:
     """
     An interface to all business data model objects.
@@ -22,8 +34,7 @@ class DataModel:
     def __init__(
             self,
             users_storage_filename,
-            exercise_links_table_id,
-            exercise_links_pagename,
+            exercise_page_reference,
             table_ids_filename,
             feeder=GoogleSheetsFeeder(
                 GoogleSheetsLoader(),
@@ -33,8 +44,7 @@ class DataModel:
         self.errors = Errors()
         self.feeder = feeder
         self.users = Users(users_storage_filename)
-        self.exercise_links = ExerciseLinks(exercise_links_table_id,
-                                            exercise_links_pagename,
+        self.exercise_links = ExerciseLinks(exercise_page_reference,
                                             self.feeder)
         self.workout_table_names = WorkoutTableNames(table_ids_filename)
         self.statistics = Statistics()

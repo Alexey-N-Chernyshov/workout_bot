@@ -12,7 +12,7 @@ from workout_bot.google_sheets_feeder.google_sheets_feeder import (
 from workout_bot.google_sheets_feeder.google_sheets_loader import (
     GoogleSheetsLoader
 )
-from workout_bot.data_model.data_model import DataModel
+from workout_bot.data_model.data_model import DataModel, PageReference
 from workout_bot.error import Error
 
 
@@ -40,8 +40,7 @@ def test_update_exercise_load_error():
     feeder = GoogleSheetsFeeder(loader, adapter)
     data_model = DataModel(
         STORAGE,
-        EXERCISES_TABLE_ID,
-        EXERCISES_PAGE_NAME,
+        PageReference(EXERCISES_TABLE_ID, EXERCISES_PAGE_NAME),
         TABLES_STORAGE,
         feeder=feeder
     )

@@ -9,7 +9,7 @@ from pathlib import Path
 import schedule
 import yaml
 
-from data_model.data_model import DataModel
+from data_model.data_model import DataModel, PageReference
 from telegram_bot.telegram_bot import TelegramBot
 from telegram.ext import ApplicationBuilder
 from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
@@ -35,13 +35,14 @@ def init_data_model():
         pagenames = config["pagenames"]
         admins = config["admins"]
         users_storage = config["users_storage"]
-        exercise_links_table_id = config["exercise_links_table_id"]
-        exercise_links_pagename = config["exercise_links_pagename"]
+        exercise_page_reference = PageReference(
+            config["exercise_links_table_id"],
+            config["exercise_links_pagename"]
+        )
         workout_table_ids_storage = config["workout_table_ids_storage"]
 
         data_model = DataModel(users_storage,
-                               exercise_links_table_id,
-                               exercise_links_pagename,
+                               exercise_page_reference,
                                workout_table_ids_storage)
         data_model.workout_table_names.add_table(table_id, pagenames)
         for admin in admins:

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
 from workout_bot.data_model.users import UserAction
-from workout_bot.data_model.data_model import DataModel
+from workout_bot.data_model.data_model import DataModel, PageReference
 from workout_bot.view.workouts import get_workout_text_message
 
 
@@ -319,8 +319,10 @@ class DataModelMock(DataModel):
 
         super().__init__(
             self.USERS_STORAGE,
-            "exercise_links_table_id",
-            "exercise_links_pagename",
+            PageReference(
+                "exercise_links_table_id",
+                "exercise_links_pagename",
+            ),
             self.TABLE_IDS_STORAGE
         )
 
