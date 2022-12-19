@@ -35,14 +35,13 @@ class DataModel:
             self,
             users_storage_filename,
             exercise_page_reference,
-            table_ids_filename,
-            feeder=GoogleSheetsFeeder(
+            table_ids_filename
+    ):
+        self.errors = Errors()
+        self.feeder = GoogleSheetsFeeder(
                 GoogleSheetsLoader(),
                 GoogleSheetsAdapter()
             )
-    ):
-        self.errors = Errors()
-        self.feeder = feeder
         self.users = Users(users_storage_filename)
         self.exercise_links = ExerciseLinks(exercise_page_reference,
                                             self.feeder)
@@ -65,10 +64,7 @@ class DataModel:
             )
         except Error as error:
             self.errors.add_error(error)
-        try:
-            self.statistics.set_training_plan_update_time()
-        except Error as error:
-            self.errors.add_error(error)
+        self.statistics.set_training_plan_update_time()
 
     def next_workout_for_user(self, user_id):
         """
