@@ -3,20 +3,12 @@ Tests for DataModel.
 """
 
 from mock import Mock
-from workout_bot.google_sheets_feeder.google_sheets_adapter import (
-    GoogleSheetsAdapter
-)
-from workout_bot.google_sheets_feeder.google_sheets_feeder import (
-    GoogleSheetsFeeder
-)
-from workout_bot.google_sheets_feeder.google_sheets_loader import (
-    GoogleSheetsLoader
-)
 from workout_bot.data_model.data_model import DataModel, PageReference
 from workout_bot.error import Error
+from .utils import delete_file
 
 
-STORAGE = "user_storage"
+USER_STORAGE = "user_storage"
 EXERCISES_TABLE_ID = "exercise_table_id"
 EXERCISES_PAGE_NAME = "exercise_page_name"
 TABLES_STORAGE = "table_storage"
@@ -29,10 +21,13 @@ def test_update_exercise_load_error():
     Then: HttpError is saved to data_model.errors.
     """
 
+    delete_file(USER_STORAGE)
+    delete_file(TABLES_STORAGE)
+
     error_title = "error title"
     error_detail = "detailed descr"
     data_model = DataModel(
-        STORAGE,
+        USER_STORAGE,
         PageReference(EXERCISES_TABLE_ID, EXERCISES_PAGE_NAME),
         TABLES_STORAGE,
     )
@@ -48,6 +43,7 @@ def test_update_exercise_load_error():
     assert error.title == error_title
     assert error.description == error_detail
 
+
 def test_update_workouts_load_error():
     """
     Given: No errors and loader throws HttpError when updates workouts.
@@ -55,10 +51,13 @@ def test_update_workouts_load_error():
     Then: HttpError is saved to data_model.errors.
     """
 
+    delete_file(USER_STORAGE)
+    delete_file(TABLES_STORAGE)
+
     error_title = "error title"
     error_detail = "detailed descr"
     data_model = DataModel(
-        STORAGE,
+        USER_STORAGE,
         PageReference(EXERCISES_TABLE_ID, EXERCISES_PAGE_NAME),
         TABLES_STORAGE,
     )
