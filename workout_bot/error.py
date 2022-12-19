@@ -2,23 +2,22 @@
 General error for the application.
 """
 
-import uuid
+from dataclasses import dataclass
+from datetime import datetime
 
 
+@dataclass
 class Error(Exception):
     """
     Error representation
     """
 
-    error_id: uuid
     title: str
     description: str
+    datetime: datetime
 
     def __init__(self, title, description):
-        self.error_id = uuid.uuid4()
         self.title = title
         self.description = description
+        self.datetime = datetime.utcnow()
         super().__init__(title + ": " + description)
-
-    def __eq__(self, other):
-        return self.error_id == other.error_id

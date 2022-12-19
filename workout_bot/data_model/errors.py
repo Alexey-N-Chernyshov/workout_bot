@@ -16,17 +16,16 @@ class Errors:
         Adds error to the storage.
         """
 
-        self.__errors.append(error)
+        if error not in self.__errors:
+            self.__errors.append(error)
 
-    def remove_error(self, error_id):
+    def remove(self, error):
         """
         Removes error from the storage.
         id - error UUID
         """
 
-        return list(filter(
-            lambda err: err.error_id != error_id, self.__errors
-        ))
+        self.__errors.remove(error)
 
     def list(self):
         """
