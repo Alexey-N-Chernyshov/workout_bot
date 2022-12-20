@@ -22,7 +22,6 @@ async def test_not_private_chat(behavioral_test_fixture):
     # she gets an answer about authorization
     alice.expect_answer("Бот доступен только в приватном чате")
     alice.expect_no_more_answers()
-    alice.assert_user_action(UserAction.AWAITING_AUTHORIZATION)
 
 
 async def test_unauthorized(behavioral_test_fixture):
