@@ -1,3 +1,7 @@
+"""
+Test data.
+"""
+
 import datetime
 from workout_bot.data_model.workout_plans import (
     Exercise,

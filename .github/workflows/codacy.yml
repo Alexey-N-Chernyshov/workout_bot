@@ -1,6 +1,10 @@
 name: Codacy Analysis CLI
 
-on: [push]
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   name: Codacy Analysis CLI

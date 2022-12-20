@@ -1,3 +1,5 @@
 [SIMILARITIES]
 # Minimum lines number of a similarity.
 min-similarity-lines=10
+# Disable line-too-long for pylint, will use flake8 for ttis.
+disable=C0301
