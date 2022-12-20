@@ -67,6 +67,7 @@ def scheduler(data_model):
 if __name__ == "__main__":
     # print version
     version_file = Path(VERSION_FILE_NAME)
+    version = "unknown"
     if version_file.is_file():
         with open(VERSION_FILE_NAME, encoding="utf-8") as file:
             version = file.readline().strip()
@@ -79,9 +80,12 @@ if __name__ == "__main__":
 
     app_data_model = init_data_model()
 
-    bot = TelegramBot(telegram_application,
-                      GoogleSheetsLoader(),
-                      app_data_model)
+    bot = TelegramBot(
+        telegram_application,
+        GoogleSheetsLoader(),
+        app_data_model,
+        version
+    )
 
     scheduleThread = threading.Thread(target=scheduler, args=(app_data_model,))
     scheduleThread.daemon = True

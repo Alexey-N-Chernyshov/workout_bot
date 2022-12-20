@@ -19,7 +19,6 @@ async def test_not_private_chat(behavioral_test_fixture):
     # starts bot
     await alice.send_message("/start")
 
-
     # she gets an answer about authorization
     alice.expect_answer("Бот доступен только в приватном чате")
     alice.expect_no_more_answers()
