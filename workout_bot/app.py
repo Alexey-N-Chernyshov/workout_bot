@@ -58,7 +58,9 @@ def init_data_model():
 
 
 def scheduler(data_model):
-    "Schedules google table updates daily at 3 a.m."
+    """
+    Schedules google table updates daily at 3 a.m.
+    """
 
     schedule.every().day.at("03:00").do(data_model.update_tables)
     while True:
@@ -66,7 +68,11 @@ def scheduler(data_model):
         time.sleep(1)
 
 
-if __name__ == "__main__":
+def main():
+    """
+    Main function.
+    """
+
     # print version
     version_file = Path(VERSION_FILE_NAME)
     version = "unknown"
@@ -89,8 +95,15 @@ if __name__ == "__main__":
         version
     )
 
-    scheduleThread = threading.Thread(target=scheduler, args=(app_data_model,))
-    scheduleThread.daemon = True
-    scheduleThread.start()
+    schedule_thread = threading.Thread(
+        target=scheduler,
+        args=(app_data_model,)
+    )
+    schedule_thread.daemon = True
+    schedule_thread.start()
 
     bot.start_bot()
+
+
+if __name__ == "__main__":
+    main()
