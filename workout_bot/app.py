@@ -12,7 +12,9 @@ import yaml
 from telegram.ext import ApplicationBuilder
 from workout_bot.data_model.data_model import DataModel
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
-from workout_bot.google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
+from workout_bot.google_sheets_feeder.google_sheets_loader import (
+    GoogleSheetsLoader
+)
 
 VERSION_FILE_NAME = 'git_commit_version.txt'
 TELEGRAM_TOKEN_FILE = "secrets/telegram_token.txt"
