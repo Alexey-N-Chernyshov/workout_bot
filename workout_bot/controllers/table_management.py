@@ -7,7 +7,9 @@ from telegram import (
     InlineKeyboardMarkup
 )
 from workout_bot.data_model.users import UserAction
-from workout_bot.view.tables import get_all_tables_message, get_table_name_message
+from workout_bot.view.tables import (
+    get_all_tables_message, get_table_name_message
+)
 from workout_bot.view.utils import escape_text
 from workout_bot.google_sheets_feeder.utils import get_table_id_from_link
 from workout_bot.telegram_bot.utils import get_user_context

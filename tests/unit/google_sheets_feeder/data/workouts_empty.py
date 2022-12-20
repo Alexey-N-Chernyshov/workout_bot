@@ -1,3 +1,7 @@
+"""
+Test data.
+"""
+
 import datetime
 from workout_bot.data_model.workout_plans import (
     Exercise,
@@ -13,7 +17,7 @@ from workout_bot.data_model.workout_plans import (
 # - table name
 # - cell merges
 # - data
-raw_table_data = (
+RAW_TABLE_DATA = (
     "Копия спортсмены по вечерам",
     [
         {'sheetId': 900614298, 'startRowIndex': 1, 'endRowIndex': 34, 'startColumnIndex': 0, 'endColumnIndex': 1},
@@ -56,73 +60,85 @@ raw_table_data = (
     ]
 )
 
-expected_workouts = [
-    WeekRoutine(start_date=datetime.date(2022, 8, 1),
-                end_date=datetime.date(2022, 8, 7),
-                number=1,
-                workouts=[
-                    Workout(description='\n60-70%\n сначал гимнастику с палкой',
-                            sets=[
-                                Set(description='',
-                                    number=1,
-                                    exercises=[
-                                        Exercise(description='тяга гантели к бедру', reps_window='15/15'),
-                                        Exercise(description='становая тяга', reps_window='10')
-                                    ],
-                                    rounds='2'),
-                                Set(description='',
-                                    number=2,
-                                    exercises=[
-                                        Exercise(description='жим гантелей лежа под угом вверх', reps_window='15'),
-                                        Exercise(description='присед с гирей', reps_window='10')
-                                    ],
-                                    rounds='2'),
-                                Set(description='выполнить максимум раундов за 10минут (веса средне-легкие)\nпримерно 3-4 круга',
-                                    number=3,
-                                    exercises=[
-                                        Exercise(description='махи гирей', reps_window='5'),
-                                        Exercise(description='диагональная складка', reps_window='10'),
-                                        Exercise(description='броски мяча', reps_window='5'),
-                                        Exercise(description='подтягивания на петлях к поясу', reps_window='10')
-                                    ],
-                                    rounds=0
-                                    )
-                            ],
-                            actual_number=1,
-                            number=2
-                            ),
-                    Workout(description='',
-                            sets=[
-                                Set(description='',
-                                    number=1,
-                                    exercises=[
-                                        Exercise(description='жим сидя в тренажере', reps_window='10'),
-                                        Exercise(description='Болгарские выпады', reps_window='10/10')
-                                    ],
-                                    rounds='3'
-                                    ),
-                                Set(description='',
-                                    number=2,
-                                    exercises=[
-                                        Exercise(description='подтягивания  \\тяга вертикального блока', reps_window='8'),
-                                        Exercise(description='обратная экстензия с весом', reps_window='10-15')
-                                    ],
-                                    rounds='3'
-                                    ),
-                                Set(description='выполнить максимум раундов за 10 минут (веса средне-легкие)\nпримерно 3-4 круга',
-                                    number=2,
-                                    exercises=[
-                                        Exercise(description='выпады шагами', reps_window='10'),
-                                        Exercise(description='диагональная складка', reps_window='10'),
-                                        Exercise(description='гребля', reps_window='10 калорий'),
-                                        Exercise(description='подтягивания на петлях к плечам', reps_window='10')
-                                    ],
-                                    rounds=0
-                                    )
-                            ],
-                            actual_number=2,
-                            number=0)
+EXPECTED_WORKOUTS = [
+    WeekRoutine(
+        start_date=datetime.date(2022, 8, 1),
+        end_date=datetime.date(2022, 8, 7),
+        number=1,
+        workouts=[
+            Workout(
+                description='\n60-70%\n сначал гимнастику с палкой',
+                sets=[
+                    Set(
+                        description='',
+                        number=1,
+                        exercises=[
+                            Exercise(description='тяга гантели к бедру', reps_window='15/15'),
+                            Exercise(description='становая тяга', reps_window='10')
+                        ],
+                        rounds='2'
+                    ),
+                    Set(
+                        description='',
+                        number=2,
+                        exercises=[
+                            Exercise(description='жим гантелей лежа под угом вверх', reps_window='15'),
+                            Exercise(description='присед с гирей', reps_window='10')
+                        ],
+                        rounds='2'
+                    ),
+                    Set(
+                        description='выполнить максимум раундов за 10минут (веса средне-легкие)\nпримерно 3-4 круга',
+                        number=3,
+                        exercises=[
+                            Exercise(description='махи гирей', reps_window='5'),
+                            Exercise(description='диагональная складка', reps_window='10'),
+                            Exercise(description='броски мяча', reps_window='5'),
+                            Exercise(description='подтягивания на петлях к поясу', reps_window='10')
+                        ],
+                        rounds=0
+                    )
                 ],
-                comment=''
-                )
+                actual_number=1,
+                number=2
+            ),
+            Workout(
+                description='',
+                sets=[
+                    Set(
+                        description='',
+                        number=1,
+                        exercises=[
+                            Exercise(description='жим сидя в тренажере', reps_window='10'),
+                            Exercise(description='Болгарские выпады', reps_window='10/10')
+                        ],
+                        rounds='3'
+                    ),
+                    Set(
+                        description='',
+                        number=2,
+                        exercises=[
+                            Exercise(description='подтягивания  \\тяга вертикального блока', reps_window='8'),
+                            Exercise(description='обратная экстензия с весом', reps_window='10-15')
+                        ],
+                        rounds='3'
+                    ),
+                    Set(
+                        description='выполнить максимум раундов за 10 минут (веса средне-легкие)\nпримерно 3-4 круга',
+                        number=2,
+                        exercises=[
+                            Exercise(description='выпады шагами', reps_window='10'),
+                            Exercise(description='диагональная складка', reps_window='10'),
+                            Exercise(description='гребля', reps_window='10 калорий'),
+                            Exercise(description='подтягивания на петлях к плечам', reps_window='10')
+                        ],
+                        rounds=0
+                    )
+                ],
+                actual_number=2,
+                number=0
+            )
+        ],
+        comment=''
+    )
 ]

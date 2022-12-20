@@ -6,7 +6,7 @@ import os
 from workout_bot.google_sheets_feeder.google_sheets_adapter \
     import GoogleSheetsAdapter
 from .data.exercises_data import raw_exercises_data, expected_exercise_data
-from .data.workouts_empty import raw_table_data, expected_workouts
+from .data.workouts_empty import RAW_TABLE_DATA, EXPECTED_WORKOUTS
 
 FIXTURE_DIR = os.path.dirname(os.path.realpath(__file__))
 EXCERCISES_RAW_FILE = os.path.join(FIXTURE_DIR, "data/exercises_raw.pkl")
@@ -67,11 +67,11 @@ def test_parse_workouts():
 
     adapter = GoogleSheetsAdapter()
 
-    (_, merges, values) = raw_table_data
+    (_, merges, values) = RAW_TABLE_DATA
 
     parsed = adapter.parse_table_page(merges, values)
 
-    assert_workouts_equal(parsed, expected_workouts)
+    assert_workouts_equal(parsed, EXPECTED_WORKOUTS)
 
 
 def test_parse_workouts_with_empy_days():
@@ -81,8 +81,8 @@ def test_parse_workouts_with_empy_days():
 
     adapter = GoogleSheetsAdapter()
 
-    (_, merges, values) = raw_table_data
+    (_, merges, values) = RAW_TABLE_DATA
 
     parsed = adapter.parse_table_page(merges, values)
 
-    assert_workouts_equal(parsed, expected_workouts)
+    assert_workouts_equal(parsed, EXPECTED_WORKOUTS)

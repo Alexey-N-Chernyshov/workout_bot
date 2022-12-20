@@ -40,20 +40,27 @@ async def prompt_change_plan(data_model, update, context):
     table_id = user_context.current_table_id
 
     if not table_id:
-        await context.bot.send_message(chat_id,
-                                       "Вам не назначена программа тренировок",
-                                       reply_markup=ReplyKeyboardRemove()
-                                       )
-        data_model.users.set_user_action(user_id,
-                                         UserAction.USER_NEEDS_PROGRAM)
+        await context.bot.send_message(
+            chat_id,
+            "Вам не назначена программа тренировок",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        data_model.users.set_user_action(
+            user_id,
+            UserAction.USER_NEEDS_PROGRAM
+        )
         return
 
     if not data_model.workout_plans.is_table_id_present(table_id):
-        await context.bot.send_message(chat_id,
-                                       "Назначенная программа не существует",
-                                       reply_markup=ReplyKeyboardRemove())
-        data_model.users.set_user_action(user_id,
-                                         UserAction.USER_NEEDS_PROGRAM)
+        await context.bot.send_message(
+            chat_id,
+            "Назначенная программа не существует",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        data_model.users.set_user_action(
+            user_id,
+            UserAction.USER_NEEDS_PROGRAM
+        )
         return
 
     plans = data_model.workout_table_names.get_plan_names(table_id)
@@ -64,9 +71,11 @@ async def prompt_change_plan(data_model, update, context):
             text += '\n - ' + plan
             keyboard.append([KeyboardButton(plan)])
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        await context.bot.send_message(chat_id,
-                                       text,
-                                       reply_markup=reply_markup)
+        await context.bot.send_message(
+            chat_id,
+            text,
+            reply_markup=reply_markup
+        )
 
 
 async def send_all_actions(bot, chat_id):
@@ -386,7 +395,7 @@ def handle_next_week():
         message_text = update.message.text.strip().lower()
         user_context = get_user_context(data_model, update)
         return (user_context.action == UserAction.TRAINING
-                and message_text in ("следующая неделя"))
+                and message_text == "следующая неделя")
 
     async def handler(data_model, update, context):
         """
