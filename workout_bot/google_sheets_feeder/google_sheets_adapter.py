@@ -4,10 +4,10 @@ Transforms loaded Google spreadsheets into data model.
 
 import re
 from datetime import date
-from data_model.workout_plans import Exercise
-from data_model.workout_plans import Set
-from data_model.workout_plans import Workout
-from data_model.workout_plans import WeekRoutine
+from workout_bot.data_model.workout_plans import Exercise
+from workout_bot.data_model.workout_plans import Set
+from workout_bot.data_model.workout_plans import Workout
+from workout_bot.data_model.workout_plans import WeekRoutine
 
 
 class GoogleSheetsAdapter:

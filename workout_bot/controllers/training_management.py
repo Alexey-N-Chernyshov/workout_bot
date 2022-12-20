@@ -3,10 +3,10 @@ Provides user interaction for training.
 """
 
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
-from data_model.users import UserAction
-from view.workouts import get_workout_text_message
-from view.workouts import get_week_routine_text_message
-from telegram_bot.utils import get_user_context
+from workout_bot.data_model.users import UserAction
+from workout_bot.view.workouts import get_workout_text_message
+from workout_bot.view.workouts import get_week_routine_text_message
+from workout_bot.telegram_bot.utils import get_user_context
 
 
 async def start_training(data_model, update, context):
