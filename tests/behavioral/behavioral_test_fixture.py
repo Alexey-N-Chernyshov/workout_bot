@@ -360,9 +360,12 @@ class BehavioralTest:
         self.application = ApplicationMock()
         self.data_model = DataModelMock()
         self.loader = LoaderMock()
-        self.telegram_bot = TelegramBot(self.application,
-                                        self.loader,
-                                        self.data_model)
+        self.telegram_bot = TelegramBot(
+            self.application,
+            self.loader,
+            self.data_model,
+            "behavioral_test"
+        )
         self.user_counter = 1
         self.users = []
         self.workout_tables = []

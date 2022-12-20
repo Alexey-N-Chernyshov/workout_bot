@@ -2,13 +2,13 @@
 Telegram bot related code resides here.
 """
 
-from controllers.controllers import Controllers
-from controllers.training_management import start_training
-from data_model.users import UserAction
 from telegram import Update
 from telegram.ext import (
     filters, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler
 )
+from workout_bot.controllers.controllers import Controllers
+from workout_bot.controllers.training_management import start_training
+from workout_bot.data_model.users import UserAction
 
 
 class TelegramBot:
@@ -16,20 +16,25 @@ class TelegramBot:
     Telegram bot class.
     """
 
-    def __init__(self, application, loader, data_model):
+    def __init__(self, application, loader, data_model, version):
         self.telegram_application = application
         self.bot = application.bot
         self.data_model = data_model
+        self.version = version
 
         # init controllers
         self.controllers = Controllers(loader)
 
         self.telegram_application.add_handler(
-            CommandHandler('start', self.handle_start)
+            CommandHandler("start", self.handle_start)
         )
 
         self.telegram_application.add_handler(
-            CommandHandler('system_stats', self.handle_system_stats)
+            CommandHandler("system_stats", self.handle_system_stats)
+        )
+
+        self.telegram_application.add_handler(
+            CommandHandler("about", self.handle_command_about)
         )
 
         self.telegram_application.add_handler(
@@ -47,16 +52,21 @@ class TelegramBot:
 
         self.telegram_application.run_polling()
 
-    async def handle_start(self, update: Update,
-                           context: ContextTypes.DEFAULT_TYPE):
+    async def handle_start(
+            self,
+            update: Update,
+            context: ContextTypes.DEFAULT_TYPE
+    ):
         """
         Handler for command /start that initializes a new user.
         """
 
         self.data_model.statistics.record_command()
         if update.effective_chat.type != "private":
-            self.bot.send_message(update.effective_chat.id,
-                                  "Бот доступен только в приватном чате.")
+            await self.bot.send_message(
+                update.effective_chat.id,
+                "Бот доступен только в приватном чате"
+            )
             return
         user_context = self.data_model \
             .users.get_or_create_user_context(update.message.from_user.id)
@@ -81,8 +91,11 @@ class TelegramBot:
         self.data_model.users.set_user_context(user_context)
         await self.handle_message(update, context)
 
-    async def handle_system_stats(self, update: Update,
-                                  _context: ContextTypes.DEFAULT_TYPE):
+    async def handle_system_stats(
+            self,
+            update: Update,
+            _context: ContextTypes.DEFAULT_TYPE
+    ):
         """
         Handler for command /system_stats shows statistics.
         """
@@ -91,18 +104,33 @@ class TelegramBot:
         user_context = self.data_model \
             .users.get_user_context(update.message.from_user.id)
 
-        text = 'Системная статистика:\n\n'
+        text = "Системная статистика:\n\n"
         time = self.data_model.statistics.get_training_plan_update_time()
         text += f"Расписание обновлено: {time:%Y-%m-%d %H:%M}\n"
 
         if user_context and user_context.administrative_permission:
-            text += 'Количество запросов: '
+            text += "Количество запросов: "
             text += str(self.data_model.statistics.get_total_requests()) + "\n"
-            text += 'Количество команд: '
+            text += "Количество команд: "
             text += str(self.data_model.statistics.get_total_commands()) + "\n"
-            text += 'Количество пользователей: '
+            text += "Количество пользователей: "
             text += str(self.data_model.users.get_users_number()) + "\n"
 
+        await self.bot.send_message(update.effective_chat.id, text)
+
+    async def handle_command_about(
+            self,
+            update: Update,
+            _context: ContextTypes.DEFAULT_TYPE
+    ):
+        """
+        Handler for command '/about'
+        """
+
+        self.data_model.statistics.record_command()
+        text = "Бот для тренировок\n"
+        text += f"Версия: {self.version}\n"
+        text += "[Github](https://github.com/Alexey-N-Chernyshov/workout_bot)"
         await self.bot.send_message(update.effective_chat.id, text)
 
     async def handle_message(self, update: Update,

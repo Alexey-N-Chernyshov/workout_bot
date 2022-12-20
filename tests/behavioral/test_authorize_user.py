@@ -6,6 +6,24 @@ from workout_bot.data_model.users import UserAction
 from workout_bot.view.utils import escape_text
 
 
+async def test_not_private_chat(behavioral_test_fixture):
+    """
+    Given: Alice not authorized.
+    When: Alice starts bot not in private chat.
+    Then: Message that bot can be started only in private chat is shown.
+    """
+
+    alice = behavioral_test_fixture.add_user()
+    alice.chat_with_bot.type = "public"
+
+    # starts bot
+    await alice.send_message("/start")
+
+    # she gets an answer about authorization
+    alice.expect_answer("Бот доступен только в приватном чате")
+    alice.expect_no_more_answers()
+
+
 async def test_unauthorized(behavioral_test_fixture):
     """
     Given: Alice not authorized.
@@ -13,7 +31,7 @@ async def test_unauthorized(behavioral_test_fixture):
     Then: Alice is asked to wait for authorization.
     """
 
-    # When an unathorized user
+    # When an unauthorized user
     alice = behavioral_test_fixture.add_user()
 
     # starts bot

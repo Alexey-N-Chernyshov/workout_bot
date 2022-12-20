@@ -423,7 +423,7 @@ class TableManagementController:
 
         def handler_filter(data_model, update):
             """
-            Checks if admin pressed switch page.
+            Checks user is admin and action is switch page.
             """
 
             user_id = update.callback_query.from_user.id
@@ -437,7 +437,7 @@ class TableManagementController:
 
         async def handler(data_model, update, _context):
             """
-            Toggle page for table.
+            Toggles page for workout plan document.
             """
 
             query = update.callback_query
@@ -463,7 +463,7 @@ class TableManagementController:
 
         def handler_filter(data_model, update):
             """
-            Checks if admin pressed on table in query.
+            Checks the user is admin and action is choose table.
             """
 
             user_id = update.callback_query.from_user.id

@@ -3,8 +3,8 @@ Prints all users from DataModel.
 """
 
 import sys
-from data_model.users import Users
-from view.users import user_to_text_message
+from workout_bot.data_model.users import Users
+from workout_bot.view.users import user_to_text_message
 
 
 def main():
