@@ -31,6 +31,16 @@ jobs:
         run: |
           pip install coverage
           coverage run --source=workout_bot -m pytest
+          coverage xml -o coverage.xml
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+
+      - name: Upload Coverage to Codacy
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          language: python
+          coverage-reports: coverage.xml
