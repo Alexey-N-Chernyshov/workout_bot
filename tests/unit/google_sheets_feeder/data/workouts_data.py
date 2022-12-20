@@ -17,7 +17,7 @@ from workout_bot.data_model.workout_plans import (
 # - table name
 # - cell merges
 # - data
-raw_table_data = (
+RAW_TABLE_DATA = (
     "table name",
     [
         {'sheetId': 975635379, 'startRowIndex': 1, 'endRowIndex': 31, 'startColumnIndex': 0, 'endColumnIndex': 1},
@@ -94,95 +94,118 @@ raw_table_data = (
 )
 
 
-expected_workouts = [
-WeekRoutine(start_date=datetime.date(2022, 6, 27),
-            end_date=datetime.date(2022, 7, 3),
-            number=1,
-            workouts=[
-                Workout(description=" \nвес примерно 85%+ от ПМ\nпоследние 2 тяжелые, запас в 1-2 повторения",
-                        sets=[
-                            Set(description='по готовности',
-                                number=1,
-                                exercises=[
-                                    Exercise(description='подтягивания', reps_window='3-5'),
-                                    Exercise(description="приседания со штангой на спине", reps_window='3')
-                                ],
-                                rounds='3'
-                                ),
-                            Set(description='по готовности',
-                                number=2,
-                                exercises=[
-                                    Exercise(description='жим штанги лежа', reps_window='3-5'),
-                                    Exercise(description='фронтальные приседания', reps_window='3')
-                                ],
-                                rounds='3'
-                                ),
-                            Set(description='с минимум отдыха',
-                                number=3,
-                                exercises=[
-                                    Exercise(description='тяга горизонтального блока', reps_window='3-5'),
-                                    Exercise(description='обратная экстензия', reps_window='20'),
-                                    Exercise(description="подъем гантелей на бицепс лежа под 45", reps_window='8-10')
-                                    ],
-                                rounds='2'
-                                )
+EXPECTED_WORKOUTS = [
+    WeekRoutine(
+        start_date=datetime.date(2022, 6, 27),
+        end_date=datetime.date(2022, 7, 3),
+        number=1,
+        workouts=[
+            Workout(
+                description=" \nвес примерно 85%+ от ПМ\nпоследние 2 тяжелые, запас в 1-2 повторения",
+                sets=[
+                    Set(
+                        description='по готовности',
+                        number=1,
+                        exercises=[
+                            Exercise(description='подтягивания', reps_window='3-5'),
+                            Exercise(description="приседания со штангой на спине", reps_window='3')
+                        ],
+                        rounds='3'
+                    ),
+                    Set(
+                        description='по готовности',
+                        number=2,
+                        exercises=[
+                            Exercise(description='жим штанги лежа', reps_window='3-5'),
+                            Exercise(description='фронтальные приседания', reps_window='3')
+                        ],
+                        rounds='3'
+                    ),
+                    Set(
+                        description='с минимум отдыха',
+                        number=3,
+                        exercises=[
+                            Exercise(description='тяга горизонтального блока', reps_window='3-5'),
+                            Exercise(description='обратная экстензия', reps_window='20'),
+                            Exercise(description="подъем гантелей на бицепс лежа под 45", reps_window='8-10')
                             ],
-                        actual_number=1,
-                        number=1),
-                Workout(description="\nвес примерно 85%+ от ПМ\nпоследние 2 тяжелые, запас в 1-2 повторения",
-                        sets=[
-                            Set(description='по готовности',
-                                number=1,
-                                exercises=[
-                                    Exercise(description='отжимания на брусьях', reps_window='3-5'),
-                                    Exercise(description='становая тяга', reps_window='3-5')
-                                ],
-                                rounds='3'),
-                            Set(description='по готовности',
-                                number=2,
-                                exercises=[
-                                    Exercise(description="ходьба на руках с опрой на партнера", reps_window='по 10 шагов'),
-                                    Exercise(description='тяга горизонтального блока', reps_window='3-5')
-                                ],
-                                rounds='3'),
-                            Set(description='с минимум отдыха',
-                                number=3,
-                                exercises=[
-                                    Exercise(description='треп-3 лежа под углом 30', reps_window='15'),
-                                    Exercise(description='обратная экстензия', reps_window='20'),
-                                    Exercise(description='комбо на пресс', reps_window='по 20')
-                                ],
-                                rounds='2')
-                                ],
-                        actual_number=2,
-                        number=2),
-                Workout(description=" \nвес примерно 85%+ от ПМ\nпоследние 2 тяжелые, запас в 1-2 повторения",
-                        sets=[
-                            Set(description='по готовности',
-                                number=1,
-                                exercises=[
-                                    Exercise(description='подтягивания', reps_window='3-5'),
-                                    Exercise(description='приседания со штангой на спине', reps_window='3')
-                                    ],
-                                rounds='3'),
-                            Set(description='по готовности',
-                                number=2,
-                                exercises=[
-                                    Exercise(description='жим штанги лежа', reps_window='3-5'),
-                                    Exercise(description='фронтальные приседания', reps_window='3')
-                                ],
-                                rounds='3'),
-                            Set(description='с минимум отдыха',
-                                number=3,
-                                exercises=[
-                                    Exercise(description='тяга горизонтального блока', reps_window='3-5'),
-                                    Exercise(description='обратная экстензия', reps_window='20'),
-                                    Exercise(description="подъем гантелей на бицепс лежа под 45", reps_window='8-10')
-                                ],
-                                rounds='2')
+                        rounds='2'
+                    )
+                ],
+                actual_number=1,
+                number=1
+            ),
+            Workout(
+                description="\nвес примерно 85%+ от ПМ\nпоследние 2 тяжелые, запас в 1-2 повторения",
+                sets=[
+                    Set(
+                        description='по готовности',
+                        number=1,
+                        exercises=[
+                            Exercise(description='отжимания на брусьях', reps_window='3-5'),
+                            Exercise(description='становая тяга', reps_window='3-5')
+                        ],
+                        rounds='3'
+                    ),
+                    Set(
+                        description='по готовности',
+                        number=2,
+                        exercises=[
+                            Exercise(description="ходьба на руках с опрой на партнера", reps_window='по 10 шагов'),
+                            Exercise(description='тяга горизонтального блока', reps_window='3-5')
+                        ],
+                        rounds='3'
+                    ),
+                    Set(
+                        description='с минимум отдыха',
+                        number=3,
+                        exercises=[
+                            Exercise(description='треп-3 лежа под углом 30', reps_window='15'),
+                            Exercise(description='обратная экстензия', reps_window='20'),
+                            Exercise(description='комбо на пресс', reps_window='по 20')
+                        ],
+                        rounds='2'
+                    )
+                ],
+                actual_number=2,
+                number=2
+            ),
+            Workout(
+                description=" \nвес примерно 85%+ от ПМ\nпоследние 2 тяжелые, запас в 1-2 повторения",
+                sets=[
+                    Set(
+                        description='по готовности',
+                        number=1,
+                        exercises=[
+                            Exercise(description='подтягивания', reps_window='3-5'),
+                            Exercise(description='приседания со штангой на спине', reps_window='3')
                             ],
-                        actual_number=3,
-                        number=3)
-    ],
-    comment='')
+                        rounds='3'
+                    ),
+                    Set(
+                        description='по готовности',
+                        number=2,
+                        exercises=[
+                            Exercise(description='жим штанги лежа', reps_window='3-5'),
+                            Exercise(description='фронтальные приседания', reps_window='3')
+                        ],
+                        rounds='3'
+                    ),
+                    Set(
+                        description='с минимум отдыха',
+                        number=3,
+                        exercises=[
+                            Exercise(description='тяга горизонтального блока', reps_window='3-5'),
+                            Exercise(description='обратная экстензия', reps_window='20'),
+                            Exercise(description="подъем гантелей на бицепс лежа под 45", reps_window='8-10')
+                        ],
+                        rounds='2'
+                    )
+                ],
+                actual_number=3,
+                number=3
+            )
+        ],
+        comment=''
+    )
 ]

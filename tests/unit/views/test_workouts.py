@@ -38,12 +38,13 @@ class StubDataModel:
         Mock workout_plans
         """
 
-        week_routine = WeekRoutine(datetime.date(2022, 8, 1),
-                                   datetime.date(2022, 8, 8),
-                                   1,
-                                   [Workout("first workout", [], 1, 1)],
-                                   "comment"
-                                   )
+        week_routine = WeekRoutine(
+            datetime.date(2022, 8, 1),
+            datetime.date(2022, 8, 8),
+            1,
+            [Workout("first workout", [], 1, 1)],
+            "comment"
+        )
 
         def get_week_routine(self, _table_id, _page_name, _week_number):
             """

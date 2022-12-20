@@ -6,11 +6,13 @@ from telegram import (
     KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton,
     InlineKeyboardMarkup
 )
-from data_model.users import UserAction
-from view.tables import get_all_tables_message, get_table_name_message
-from view.utils import escape_text
-from google_sheets_feeder.utils import get_table_id_from_link
-from telegram_bot.utils import get_user_context
+from workout_bot.data_model.users import UserAction
+from workout_bot.view.tables import (
+    get_all_tables_message, get_table_name_message
+)
+from workout_bot.view.utils import escape_text
+from workout_bot.google_sheets_feeder.utils import get_table_id_from_link
+from workout_bot.telegram_bot.utils import get_user_context
 
 
 class TableManagementController:
@@ -420,6 +422,10 @@ class TableManagementController:
         """
 
         def handler_filter(data_model, update):
+            """
+            Checks if admin pressed switch page.
+            """
+
             user_id = update.callback_query.from_user.id
             user_context = data_model.users.get_user_context(user_id)
             action = TableManagementController.InlineKeyboardData.decode(
@@ -430,6 +436,10 @@ class TableManagementController:
                     TableManagementController.QUERY_ACTION_SWITCH_PAGE)
 
         async def handler(data_model, update, _context):
+            """
+            Toggle page for table.
+            """
+
             query = update.callback_query
             table_id = query.message.text.splitlines()[2][4:]
             page = TableManagementController.InlineKeyboardData.decode(
@@ -452,6 +462,10 @@ class TableManagementController:
         """
 
         def handler_filter(data_model, update):
+            """
+            Checks if admin pressed on table in query.
+            """
+
             user_id = update.callback_query.from_user.id
             user_context = data_model.users.get_user_context(user_id)
             action = TableManagementController.InlineKeyboardData.decode(
@@ -462,6 +476,10 @@ class TableManagementController:
                     TableManagementController.QUERY_ACTION_CHOOSE_TABLE)
 
         async def handler(data_model, update, context):
+            """
+            Shows table editing message.
+            """
+
             query = update.callback_query
             user_id = update.callback_query.from_user.id
             user_context = data_model.users.get_user_context(user_id)
