@@ -56,7 +56,7 @@ class TelegramBot:
         self.data_model.statistics.record_command()
         if update.effective_chat.type != "private":
             self.bot.send_message(update.effective_chat.id,
-                                  "Бот доступен только в приватном чате.")
+                                  "Бот доступен только в приватном чате")
             return
         user_context = self.data_model \
             .users.get_or_create_user_context(update.message.from_user.id)
