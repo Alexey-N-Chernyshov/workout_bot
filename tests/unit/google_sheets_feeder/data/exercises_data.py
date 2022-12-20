@@ -1,3 +1,7 @@
+"""
+Test data
+"""
+
 # No Quality Assurance for the test data file.
 # flake8: noqa
 
