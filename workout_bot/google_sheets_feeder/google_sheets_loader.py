@@ -2,7 +2,7 @@
 Loads Google spreadsheets.
 """
 
-from __future__ import print_function
+import logging
 
 from pathlib import Path
 
@@ -69,7 +69,7 @@ class GoogleSheetsLoader:
             return values[1:]
 
         except HttpError as err:
-            print(err)
+            logging.error(err)
             return None
 
     def get_values_and_merges(self, spreadsheet_id, pagename):
@@ -104,7 +104,7 @@ class GoogleSheetsLoader:
                     result_merges["sheets"][0]["merges"], values[1:])
 
         except HttpError as err:
-            print(err)
+            logging.error(err)
             return None
 
     def get_sheet_names(self, spreadsheet_id):
@@ -129,5 +129,5 @@ class GoogleSheetsLoader:
             return result
 
         except HttpError as err:
-            print(err)
+            logging.error(err)
             return None

@@ -422,6 +422,10 @@ class TableManagementController:
         """
 
         def handler_filter(data_model, update):
+            """
+            Checks user is admin and action is switch page.
+            """
+
             user_id = update.callback_query.from_user.id
             user_context = data_model.users.get_user_context(user_id)
             action = TableManagementController.InlineKeyboardData.decode(
@@ -432,6 +436,10 @@ class TableManagementController:
                     TableManagementController.QUERY_ACTION_SWITCH_PAGE)
 
         async def handler(data_model, update, _context):
+            """
+            Toggles page for workout plan document.
+            """
+
             query = update.callback_query
             table_id = query.message.text.splitlines()[2][4:]
             page = TableManagementController.InlineKeyboardData.decode(
@@ -454,6 +462,10 @@ class TableManagementController:
         """
 
         def handler_filter(data_model, update):
+            """
+            Checks the user is admin and action is choose table.
+            """
+
             user_id = update.callback_query.from_user.id
             user_context = data_model.users.get_user_context(user_id)
             action = TableManagementController.InlineKeyboardData.decode(
@@ -464,6 +476,10 @@ class TableManagementController:
                     TableManagementController.QUERY_ACTION_CHOOSE_TABLE)
 
         async def handler(data_model, update, context):
+            """
+            Shows table editing message.
+            """
+
             query = update.callback_query
             user_id = update.callback_query.from_user.id
             user_context = data_model.users.get_user_context(user_id)
