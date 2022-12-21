@@ -2,7 +2,6 @@
 Infrastructure and mocks for behavioral tests.
 """
 
-import os
 from dataclasses import dataclass
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
@@ -168,12 +167,15 @@ class LoaderMock:
     Mock for Google spreadsheets loader.
     """
 
+    def __init__(self):
+        self.page_names = []
+
     def get_sheet_names(self, _spreadsheet_id):
         """
         Loads page names.
         """
 
-        return []
+        return self.page_names
 
 
 class UserMock:

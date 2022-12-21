@@ -25,12 +25,15 @@ class StubDataModel:
         Mock for exercise links.
         """
 
+        def __init__(self):
+            self.exercise_links = {}
+
         def get_exercise_links(self):
             """
             Returns map {exercise_name: link}
             """
 
-            return {}
+            return self.exercise_links
 
     @dataclass
     class StubWorkoutPlans:
@@ -143,8 +146,6 @@ def test_week_routine_test():
         "\n"
         "Тренировок: 1\n"
     )
-    print(get_week_routine_text_message(
-        data_model, table_id, page_name, week_number))
 
     assert expected == get_week_routine_text_message(
         data_model, table_id, page_name, week_number)
@@ -178,8 +179,6 @@ def test_week_routine_additional_workout_test():
         "Тренировок: 1\n"
         "Дополнительных тренировок: 1\n"
     )
-    print(get_week_routine_text_message(
-        data_model, table_id, page_name, week_number))
 
     assert expected == get_week_routine_text_message(
         data_model, table_id, page_name, week_number)
