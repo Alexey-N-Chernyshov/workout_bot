@@ -1,15 +1,15 @@
 """
-Provides user interaction for administation process.
+Administration related messages handlers.
 """
 
 from telegram import KeyboardButton, ReplyKeyboardMarkup
-from data_model.users import UserAction
-from telegram_bot.utils import get_user_context
+from workout_bot.data_model.users import UserAction
+from workout_bot.telegram_bot.utils import get_user_context
 
 
 async def show_admin_panel(bot, chat_id, user_context):
     """
-    Shows administation panel.
+    Shows administration panel.
     """
 
     if user_context.administrative_permission:
@@ -19,9 +19,12 @@ async def show_admin_panel(bot, chat_id, user_context):
             [KeyboardButton("Перейти к тренировкам")]
         ]
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        await bot.send_message(chat_id, "Администрирование",
-                               reply_markup=reply_markup,
-                               parse_mode="MarkdownV2")
+        await bot.send_message(
+            chat_id,
+            "Администрирование",
+            reply_markup=reply_markup,
+            parse_mode="MarkdownV2"
+        )
 
 
 def handle_go_administration():
@@ -50,7 +53,6 @@ def handle_go_administration():
         chat_id = user_context.chat_id
         data_model.users.set_user_action(user_id, UserAction.ADMINISTRATION)
         await show_admin_panel(context.bot, chat_id, user_context)
-        return True
 
     return handler_filter, handler
 

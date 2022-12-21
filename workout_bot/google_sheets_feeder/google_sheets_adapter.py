@@ -4,10 +4,10 @@ Transforms loaded Google spreadsheets into data model.
 
 import re
 from datetime import date
-from data_model.workout_plans import Exercise
-from data_model.workout_plans import Set
-from data_model.workout_plans import Workout
-from data_model.workout_plans import WeekRoutine
+from workout_bot.data_model.workout_plans import Exercise
+from workout_bot.data_model.workout_plans import Set
+from workout_bot.data_model.workout_plans import Workout
+from workout_bot.data_model.workout_plans import WeekRoutine
 
 
 class GoogleSheetsAdapter:
@@ -151,8 +151,9 @@ class GoogleSheetsAdapter:
                 # it is an exercise
                 if len(row) >= 4:
                     # exercise reps present
-                    workout_set.exercises.append(Exercise(row[2].strip(),
-                                                 row[3].strip()))
+                    workout_set.exercises.append(
+                        Exercise(row[2].strip(), row[3].strip())
+                    )
                 elif len(row) >= 3:
                     # exercise reps not present
                     workout_set.exercises.append(Exercise(row[2].strip()))

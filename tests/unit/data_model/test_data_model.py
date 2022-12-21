@@ -5,7 +5,6 @@ Tests for DataModel.
 from mock import Mock
 from workout_bot.data_model.data_model import DataModel, PageReference
 from workout_bot.error import Error
-from .utils import delete_file
 
 
 USER_STORAGE = "user_storage"
@@ -14,22 +13,22 @@ EXERCISES_PAGE_NAME = "exercise_page_name"
 TABLES_STORAGE = "table_storage"
 
 
-def test_update_exercise_load_error():
+def test_update_exercise_load_error(tmp_path):
     """
     Given: No errors and loader throws HttpError when updates exercises.
     When: update_tables() called.
     Then: HttpError is saved to data_model.errors.
     """
 
-    delete_file(USER_STORAGE)
-    delete_file(TABLES_STORAGE)
+    user_storage_path = str(tmp_path / USER_STORAGE)
+    table_storage_path = str(tmp_path / TABLES_STORAGE)
 
     error_title = "error title"
     error_detail = "detailed descr"
     data_model = DataModel(
-        USER_STORAGE,
+        user_storage_path,
         PageReference(EXERCISES_TABLE_ID, EXERCISES_PAGE_NAME),
-        TABLES_STORAGE,
+        table_storage_path,
     )
     data_model.exercise_links.update_exercise_links = Mock(
         name="update_exercise_links",
@@ -44,22 +43,22 @@ def test_update_exercise_load_error():
     assert error.description == error_detail
 
 
-def test_update_workouts_load_error():
+def test_update_workouts_load_error(tmp_path):
     """
     Given: No errors and loader throws HttpError when updates workouts.
     When: get_workouts() called.
     Then: HttpError is saved to data_model.errors.
     """
 
-    delete_file(USER_STORAGE)
-    delete_file(TABLES_STORAGE)
+    user_storage_path = str(tmp_path / USER_STORAGE)
+    table_storage_path = str(tmp_path / TABLES_STORAGE)
 
     error_title = "error title"
     error_detail = "detailed descr"
     data_model = DataModel(
-        USER_STORAGE,
+        user_storage_path,
         PageReference(EXERCISES_TABLE_ID, EXERCISES_PAGE_NAME),
-        TABLES_STORAGE,
+        table_storage_path,
     )
     data_model.exercise_links.update_exercise_links = Mock(
         name="update_exercise_links",

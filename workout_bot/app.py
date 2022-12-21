@@ -9,10 +9,12 @@ from pathlib import Path
 import schedule
 import yaml
 
-from data_model.data_model import DataModel, PageReference
-from telegram_bot.telegram_bot import TelegramBot
 from telegram.ext import ApplicationBuilder
-from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
+from workout_bot.data_model.data_model import DataModel, PageReference
+from workout_bot.telegram_bot.telegram_bot import TelegramBot
+from workout_bot.google_sheets_feeder.google_sheets_loader import (
+    GoogleSheetsLoader
+)
 
 VERSION_FILE_NAME = 'git_commit_version.txt'
 TELEGRAM_TOKEN_FILE = "secrets/telegram_token.txt"
@@ -57,7 +59,9 @@ def init_data_model():
 
 
 def scheduler(data_model):
-    "Schedules google table updates daily at 3 a.m."
+    """
+    Schedules google table updates daily at 3 a.m.
+    """
 
     schedule.every().day.at("03:00").do(data_model.update_tables)
     while True:
@@ -65,9 +69,14 @@ def scheduler(data_model):
         time.sleep(1)
 
 
-if __name__ == "__main__":
+def main():
+    """
+    Main function.
+    """
+
     # print version
     version_file = Path(VERSION_FILE_NAME)
+    version = "unknown"
     if version_file.is_file():
         with open(VERSION_FILE_NAME, encoding="utf-8") as file:
             version = file.readline().strip()
@@ -80,12 +89,22 @@ if __name__ == "__main__":
 
     app_data_model = init_data_model()
 
-    bot = TelegramBot(telegram_application,
-                      GoogleSheetsLoader(),
-                      app_data_model)
+    bot = TelegramBot(
+        telegram_application,
+        GoogleSheetsLoader(),
+        app_data_model,
+        version
+    )
 
-    scheduleThread = threading.Thread(target=scheduler, args=(app_data_model,))
-    scheduleThread.daemon = True
-    scheduleThread.start()
+    schedule_thread = threading.Thread(
+        target=scheduler,
+        args=(app_data_model,)
+    )
+    schedule_thread.daemon = True
+    schedule_thread.start()
 
     bot.start_bot()
+
+
+if __name__ == "__main__":
+    main()

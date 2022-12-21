@@ -1,5 +1,5 @@
 """
-Provides user interaction for authorization process.
+Authorization messages handlers.
 """
 
 
@@ -9,12 +9,21 @@ def handle_blocked():
     """
 
     def handler_filter(data_model, update):
+        """
+        Checks if user is blocked.
+        """
+
         return data_model.users.is_user_blocked(update.message.from_user.id)
 
     async def handler(_data_model, update, context):
-        await context.bot.send_message(update.effective_chat.id,
-                                       "Вы заблокированы.")
-        return True
+        """
+        Shows user is blocked message.
+        """
+
+        await context.bot.send_message(
+            update.effective_chat.id,
+            "Вы заблокированы."
+        )
 
     return handler_filter, handler
 
@@ -25,13 +34,18 @@ def handle_unauthorized():
     """
 
     def handler_filter(data_model, update):
+        """
+        Checks if user unauthorized.
+        """
+
         return data_model.users \
             .is_user_awaiting_authorization(update.message.from_user.id)
 
     async def handler(_data_model, update, context):
-        await context.bot.send_message(update.effective_chat.id,
-                                       "Ожидайте подтверждения авторизации")
-        return True
+        await context.bot.send_message(
+            update.effective_chat.id,
+            "Ожидайте подтверждения авторизации"
+        )
 
     return handler_filter, handler
 

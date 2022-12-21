@@ -2,7 +2,7 @@
 Loads Google spreadsheets.
 """
 
-from __future__ import print_function
+import logging
 
 from pathlib import Path
 
@@ -11,7 +11,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import Error as GoogleError
-from error import Error
+from workout_bot.error import Error
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
@@ -70,7 +70,7 @@ class GoogleSheetsLoader:
             return values[1:]
 
         except GoogleError as error:
-            print(error)
+            logging.error(error)
             raise Error(
                 "Loading values from table error",
                 str(error)
@@ -108,7 +108,7 @@ class GoogleSheetsLoader:
                     result_merges["sheets"][0]["merges"], values[1:])
 
         except GoogleError as error:
-            print(error)
+            logging.error(error)
             raise Error(
                 "Loading values and merges from table error",
                 str(error)
@@ -136,5 +136,5 @@ class GoogleSheetsLoader:
             return result
 
         except GoogleError as error:
-            print(error)
+            logging.error(error)
             raise Error("Loading page names error", str(error)) from error

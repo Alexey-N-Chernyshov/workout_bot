@@ -2,7 +2,6 @@
 Infrastructure and mocks for behavioral tests.
 """
 
-import os
 from dataclasses import dataclass
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 from workout_bot.telegram_bot.telegram_bot import TelegramBot
@@ -168,12 +167,15 @@ class LoaderMock:
     Mock for Google spreadsheets loader.
     """
 
+    def __init__(self):
+        self.page_names = []
+
     def get_sheet_names(self, _spreadsheet_id):
         """
         Loads page names.
         """
 
-        return []
+        return self.page_names
 
 
 class UserMock:
@@ -312,18 +314,16 @@ class DataModelMock(DataModel):
     USERS_STORAGE = "users_storage"
     TABLE_IDS_STORAGE = "table_ids_storage"
 
-    def __init__(self):
-        self.delete_file(self.USERS_STORAGE)
-        self.delete_file(self.TABLE_IDS_STORAGE)
+    def __init__(self, tmp_path):
         self.updated = False
 
         super().__init__(
-            self.USERS_STORAGE,
+            str(tmp_path / self.USERS_STORAGE),
             PageReference(
                 "exercise_links_table_id",
                 "exercise_links_pagename",
             ),
-            self.TABLE_IDS_STORAGE
+            str(tmp_path / self.TABLE_IDS_STORAGE)
         )
 
     def update_tables(self):
@@ -333,24 +333,6 @@ class DataModelMock(DataModel):
 
         self.updated = True
 
-    def delete_file(self, filename):
-        """
-        Helper function to delete a file.
-        """
-
-        try:
-            os.remove(filename)
-        except OSError:
-            pass
-
-    def cleanup(self):
-        """
-        Cleans up when the class is not needed anymore.
-        """
-
-        self.delete_file(self.USERS_STORAGE)
-        self.delete_file(self.TABLE_IDS_STORAGE)
-
 
 # pylint: disable=too-many-instance-attributes
 class BehavioralTest:
@@ -358,23 +340,19 @@ class BehavioralTest:
     All infrastructure for test in one place.
     """
 
-    def __init__(self):
+    def __init__(self, tmp_path):
         self.application = ApplicationMock()
-        self.data_model = DataModelMock()
+        self.data_model = DataModelMock(tmp_path)
         self.loader = LoaderMock()
-        self.telegram_bot = TelegramBot(self.application,
-                                        self.loader,
-                                        self.data_model)
+        self.telegram_bot = TelegramBot(
+            self.application,
+            self.loader,
+            self.data_model,
+            "behavioral_test"
+        )
         self.user_counter = 1
         self.users = []
         self.workout_tables = []
-
-    def teardown(self):
-        """
-        Tear down the fixture.
-        """
-
-        self.data_model.cleanup()
 
     def add_user(self, first_name="", last_name="", user_name=""):
         """

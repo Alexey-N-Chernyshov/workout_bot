@@ -3,7 +3,7 @@ The feeder provides data from Google sheets.
 """
 
 import logging
-from data_model.workout_plans import WorkoutTable, WorkoutPlans
+from workout_bot.data_model.workout_plans import WorkoutTable, WorkoutPlans
 
 
 class GoogleSheetsFeeder:

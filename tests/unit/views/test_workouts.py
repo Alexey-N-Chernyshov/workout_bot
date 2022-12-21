@@ -25,12 +25,15 @@ class StubDataModel:
         Mock for exercise links.
         """
 
+        def __init__(self):
+            self.exercise_links = {}
+
         def get_exercise_links(self):
             """
             Returns map {exercise_name: link}
             """
 
-            return {}
+            return self.exercise_links
 
     @dataclass
     class StubWorkoutPlans:
@@ -38,12 +41,13 @@ class StubDataModel:
         Mock workout_plans
         """
 
-        week_routine = WeekRoutine(datetime.date(2022, 8, 1),
-                                   datetime.date(2022, 8, 8),
-                                   1,
-                                   [Workout("first workout", [], 1, 1)],
-                                   "comment"
-                                   )
+        week_routine = WeekRoutine(
+            datetime.date(2022, 8, 1),
+            datetime.date(2022, 8, 8),
+            1,
+            [Workout("first workout", [], 1, 1)],
+            "comment"
+        )
 
         def get_week_routine(self, _table_id, _page_name, _week_number):
             """
@@ -142,8 +146,6 @@ def test_week_routine_test():
         "\n"
         "Тренировок: 1\n"
     )
-    print(get_week_routine_text_message(
-        data_model, table_id, page_name, week_number))
 
     assert expected == get_week_routine_text_message(
         data_model, table_id, page_name, week_number)
@@ -154,16 +156,16 @@ def test_week_routine_additional_workout_test():
     Tests week routine with additional workout text representation.
     """
 
-    data_model.workout_plans.week_routine = \
-        WeekRoutine(datetime.date(2022, 8, 1),
-                    datetime.date(2022, 8, 8),
-                    1,
-                    [
-                        Workout("first workout", [], 1, 1),
-                        Workout("first workout", [], 2)
-                    ],
-                    "comment"
-                    )
+    data_model.workout_plans.week_routine = WeekRoutine(
+        datetime.date(2022, 8, 1),
+        datetime.date(2022, 8, 8),
+        1,
+        [
+            Workout("first workout", [], 1, 1),
+            Workout("first workout", [], 2)
+        ],
+        "comment"
+    )
 
     table_id = "table_id"
     page_name = "page name"
@@ -177,8 +179,6 @@ def test_week_routine_additional_workout_test():
         "Тренировок: 1\n"
         "Дополнительных тренировок: 1\n"
     )
-    print(get_week_routine_text_message(
-        data_model, table_id, page_name, week_number))
 
     assert expected == get_week_routine_text_message(
         data_model, table_id, page_name, week_number)

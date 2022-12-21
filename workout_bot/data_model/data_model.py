@@ -39,12 +39,14 @@ class DataModel:
     ):
         self.errors = Errors()
         self.feeder = GoogleSheetsFeeder(
-                GoogleSheetsLoader(),
-                GoogleSheetsAdapter()
-            )
+            GoogleSheetsLoader(),
+            GoogleSheetsAdapter()
+        )
         self.users = Users(users_storage_filename)
-        self.exercise_links = ExerciseLinks(exercise_page_reference,
-                                            self.feeder)
+        self.exercise_links = ExerciseLinks(
+            exercise_page_reference,
+            self.feeder
+        )
         self.workout_table_names = WorkoutTableNames(table_ids_filename)
         self.statistics = Statistics()
         # Workouts has been read from tables
