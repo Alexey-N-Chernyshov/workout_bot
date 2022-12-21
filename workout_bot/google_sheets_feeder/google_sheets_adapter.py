@@ -151,8 +151,9 @@ class GoogleSheetsAdapter:
                 # it is an exercise
                 if len(row) >= 4:
                     # exercise reps present
-                    workout_set.exercises.append(Exercise(row[2].strip(),
-                                                 row[3].strip()))
+                    workout_set.exercises.append(
+                        Exercise(row[2].strip(), row[3].strip())
+                    )
                 elif len(row) >= 3:
                     # exercise reps not present
                     workout_set.exercises.append(Exercise(row[2].strip()))

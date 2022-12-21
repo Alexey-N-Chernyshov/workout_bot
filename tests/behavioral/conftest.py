@@ -34,23 +34,22 @@ def create_workout_table(table_id="table_id", table_name="table_name"):
 
 
 @pytest.fixture
-def behavioral_test_fixture():
+def behavioral_test_fixture(tmp_path):
     """
     Basic test fixture.
     """
 
-    test = BehavioralTest()
+    test = BehavioralTest(tmp_path)
     yield test
-    test.teardown()
 
 
 @pytest.fixture
-def test_with_workout_tables():
+def test_with_workout_tables(tmp_path):
     """
     Test with workout tables.
     """
 
-    test = BehavioralTest()
+    test = BehavioralTest(tmp_path)
     test.workout_tables = []
 
     test.table1 = create_workout_table("table_id_1", "table_name_1")
@@ -60,16 +59,15 @@ def test_with_workout_tables():
     test.add_table(test.table2)
 
     yield test
-    test.teardown()
 
 
 @pytest.fixture
-def test_with_user_with_workouts():
+def test_with_user_with_workouts(tmp_path):
     """
     Test suite with authorized user with workouts in TRAINING state.
     """
 
-    test = BehavioralTest()
+    test = BehavioralTest(tmp_path)
     test.workout_tables = []
 
     test.table = create_workout_table("table_id_1", "table_name_1")
@@ -82,7 +80,6 @@ def test_with_user_with_workouts():
     user.set_user_action(UserAction.TRAINING)
 
     yield test
-    test.teardown()
 
 
 @pytest.fixture
@@ -96,12 +93,11 @@ def test_table_management(test_with_workout_tables):
     admin = test.add_admin()
     admin.set_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
     yield test
-    test.teardown()
 
 
 @pytest.fixture
 # pylint: disable=redefined-outer-name
-def test_user_management():
+def test_user_management(tmp_path):
     """
     Sets up test data for user management tests.
     Users:
@@ -110,7 +106,7 @@ def test_user_management():
      - blocked
     """
 
-    test = BehavioralTest()
+    test = BehavioralTest(tmp_path)
     test.workout_table = create_workout_table("table_id_1", "table_name_1")
     test.add_table(test.workout_table)
     test.table_id = test.workout_table.table_id
@@ -131,4 +127,3 @@ def test_user_management():
     test.blocked.set_user_action(UserAction.BLOCKED)
 
     yield test
-    test.teardown()

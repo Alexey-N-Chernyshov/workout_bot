@@ -16,6 +16,10 @@ def handle_blocked():
         return data_model.users.is_user_blocked(update.message.from_user.id)
 
     async def handler(_data_model, update, context):
+        """
+        Shows user is blocked message.
+        """
+
         await context.bot.send_message(
             update.effective_chat.id,
             "Вы заблокированы."
