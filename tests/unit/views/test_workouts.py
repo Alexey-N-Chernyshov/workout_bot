@@ -155,16 +155,16 @@ def test_week_routine_additional_workout_test():
     Tests week routine with additional workout text representation.
     """
 
-    data_model.workout_plans.week_routine = \
-        WeekRoutine(datetime.date(2022, 8, 1),
-                    datetime.date(2022, 8, 8),
-                    1,
-                    [
-                        Workout("first workout", [], 1, 1),
-                        Workout("first workout", [], 2)
-                    ],
-                    "comment"
-                    )
+    data_model.workout_plans.week_routine = WeekRoutine(
+        datetime.date(2022, 8, 1),
+        datetime.date(2022, 8, 8),
+        1,
+        [
+            Workout("first workout", [], 1, 1),
+            Workout("first workout", [], 2)
+        ],
+        "comment"
+    )
 
     table_id = "table_id"
     page_name = "page name"

@@ -316,7 +316,7 @@ async def test_go_add_admin(test_user_management):
     admin.assert_user_action(UserAction.ADMIN_ADDING_ADMIN)
 
 
-async def test_go_add_admin_noone(test_with_workout_tables):
+async def test_go_add_admin_no_one(test_with_workout_tables):
     """
     Given: Admin is in ADMIN_USER_MANAGEMENT state.
     When: Admin sends message for admin adding.
