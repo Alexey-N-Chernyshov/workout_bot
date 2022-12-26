@@ -44,8 +44,8 @@ def init_data_model():
         workout_table_ids_storage = config["workout_table_ids_storage"]
 
         data_model = DataModel(users_storage,
-                               exercise_page_reference,
-                               workout_table_ids_storage)
+                               workout_table_ids_storage,
+                               exercise_page_reference)
         data_model.workout_table_names.add_table(table_id, pagenames)
         for admin in admins:
             user_id = int(admin)

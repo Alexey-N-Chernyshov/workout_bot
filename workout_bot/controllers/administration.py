@@ -14,6 +14,7 @@ async def show_admin_panel(bot, chat_id, user_context):
 
     if user_context.administrative_permission:
         keyboard = [
+            # TODO errors administration
             [KeyboardButton("Управление пользователями")],
             [KeyboardButton("Управление таблицами")],
             [KeyboardButton("Перейти к тренировкам")]

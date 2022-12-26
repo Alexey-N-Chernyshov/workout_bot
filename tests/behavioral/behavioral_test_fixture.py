@@ -319,11 +319,11 @@ class DataModelMock(DataModel):
 
         super().__init__(
             str(tmp_path / self.USERS_STORAGE),
+            str(tmp_path / self.TABLE_IDS_STORAGE),
             PageReference(
                 "exercise_links_table_id",
                 "exercise_links_pagename",
-            ),
-            str(tmp_path / self.TABLE_IDS_STORAGE)
+            )
         )
 
     def update_tables(self):

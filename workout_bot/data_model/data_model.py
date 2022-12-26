@@ -34,8 +34,8 @@ class DataModel:
     def __init__(
             self,
             users_storage_filename,
-            exercise_page_reference,
-            table_ids_filename
+            table_ids_filename,
+            exercise_page_reference
     ):
         self.errors = Errors()
         self.feeder = GoogleSheetsFeeder(
