@@ -180,9 +180,11 @@ async def test_assign_user_wrong_table(test_user_management):
     admin.set_user_data(AssignTableUserContext(waiting.user.id))
     table_name = test_user_management.workout_table.table_name
 
-    await admin.send_message("wrong table name")
+    wrong_table = "wrong table name"
+    await admin.send_message(wrong_table)
 
-    expected = "Какую таблицу назначим для @waiting?\n\n"
+    expected = f"Нет таблицы с именем '{wrong_table}'.\n"
+    expected += "Какую таблицу назначим для @waiting?\n\n"
     expected += f" \\- {escape_text(table_name)}\n"
     admin.expect_answer(expected)
     admin.expect_no_more_answers()
@@ -310,6 +312,7 @@ async def test_go_add_admin(test_user_management):
     await admin.send_message("Добавить администратора")
 
     expected = "Кому дать права администратора?\n"
+    expected += " \\- @waiting\n"
     expected += " \\- @user\n"
     admin.expect_answer(expected)
     admin.expect_no_more_answers()
