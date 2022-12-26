@@ -17,9 +17,9 @@ class GoogleSheetsAdapter:
 
     def parse_exercise_links(self, values):
         """
-        Loads exercise links from google table.
+        Loads exercise links from Google table.
 
-        Returns exercises sorted by name length in reverse order.
+        Returns exercise list sorted by length of name in reverse order.
         """
 
         return sorted(filter(lambda item: (item and len(item) == 2), values),
@@ -28,37 +28,39 @@ class GoogleSheetsAdapter:
 
     def parse_merges(self, merges, values):
         """
-        Parses merges in order to determine week indeces (begins and ends).
+        Parses merges in order to determine week indexes (begins and ends).
         """
 
-        week_indeces = []
-        workout_indeces = []
+        # list of weeks index pairs (begin, end)
+        week_indexes = []
+        # list of workout index pairs (begin, end)
+        workout_indexes = []
 
         for merge in merges:
             if merge["startColumnIndex"] == 0 and merge["endColumnIndex"] == 1:
                 start_week_index = merge['startRowIndex'] - 1
                 end_week_index = merge['endRowIndex'] - 1
-                week_indeces.append((start_week_index, end_week_index))
+                week_indexes.append((start_week_index, end_week_index))
             if merge["startColumnIndex"] == 1 and merge["endColumnIndex"] == 2:
                 start_workout_index = merge["startRowIndex"] - 1
                 end_workout_index = merge["endRowIndex"] - 1
-                workout_indeces.append((start_workout_index,
+                workout_indexes.append((start_workout_index,
                                         end_workout_index))
-        week_indeces.sort()
-        workout_indeces.sort()
+        week_indexes.sort()
+        workout_indexes.sort()
 
         workout_num = 0
         i = 0
         while i < len(values):
-            if i < workout_indeces[workout_num][0]:
-                workout_indeces.append((i, i + 1))
-                workout_indeces.sort()
+            if i < workout_indexes[workout_num][0]:
+                workout_indexes.append((i, i + 1))
+                workout_indexes.sort()
                 i += 1
             else:
-                i = workout_indeces[workout_num][1]
+                i = workout_indexes[workout_num][1]
             workout_num += 1
 
-        return (week_indeces, workout_indeces)
+        return week_indexes, workout_indexes
 
     def parse_week_begin(self, to_parse):
         """
@@ -75,7 +77,7 @@ class GoogleSheetsAdapter:
             start_month = end_month - 1
             if start_month == 0:
                 start_month = 12
-                start_year -= 1
+                end_year += 1
         else:
             start_month = end_month
         start_week_date = date(start_year, start_month, start_day)
@@ -120,7 +122,7 @@ class GoogleSheetsAdapter:
             # it's a homework
             workout_number = 0
             workout_description = to_parse
-        return (workout_number, workout_description)
+        return workout_number, workout_description
 
     def parse_table_page(self, merges, values):
         """
@@ -135,7 +137,7 @@ class GoogleSheetsAdapter:
         workout_set = Set("", 0, [])
         workout_actual_number = 0  # actual workout number including homework
 
-        week_indeces, workout_indeces = self.parse_merges(merges, values)
+        week_indexes, workout_indexes = self.parse_merges(merges, values)
 
         all_weeks = []
         current_week = 0
@@ -160,7 +162,7 @@ class GoogleSheetsAdapter:
                 # otherwise empty string - no exercise
 
             # workout begin
-            if i == workout_indeces[current_workout][0]:
+            if i == workout_indexes[current_workout][0]:
                 workout.sets = []
                 # if not an empty workout
                 if len(row) >= 2:
@@ -170,11 +172,11 @@ class GoogleSheetsAdapter:
                         self.parse_workout(row[1])
 
             # begin of week
-            if i == week_indeces[current_week][0]:
+            if i == week_indexes[current_week][0]:
                 week_routine = self.parse_week_begin(row[0])
 
             # Workout end
-            if i in (workout_indeces[current_workout][1] - 1, len(values) - 1):
+            if i in (workout_indexes[current_workout][1] - 1, len(values) - 1):
                 workout.sets.append(workout_set)
                 workout_set = Set("", 0, [])
                 workout.actual_number = workout_actual_number
@@ -185,7 +187,7 @@ class GoogleSheetsAdapter:
                 current_workout += 1
 
             # end of week
-            if i in (week_indeces[current_week][1] - 1, len(values) - 1):
+            if i in (week_indexes[current_week][1] - 1, len(values) - 1):
                 current_week += 1
                 week_routine.number = current_week
                 all_weeks.append(week_routine)
