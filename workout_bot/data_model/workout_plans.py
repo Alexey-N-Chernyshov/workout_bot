@@ -95,6 +95,15 @@ class WorkoutPlans:
         self.__workout_tables = {}
         self.lock = threading.Lock()
 
+    def update(self, feeder, workout_table_names):
+        """
+        Loads all the tables with workouts.
+        """
+
+        with self.lock:
+            self.__workout_tables = feeder.get_workouts(workout_table_names) \
+                .__workout_tables
+
     def update_workout_table(self, workout_table):
         """
         Loads tables.

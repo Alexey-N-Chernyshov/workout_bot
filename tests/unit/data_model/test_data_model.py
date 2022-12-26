@@ -35,8 +35,8 @@ def test_update_exercise_load_error(tmp_path):
         name="update_exercise_links",
         side_effect=Error(error_title, error_detail)
     )
-    data_model.feeder.get_workouts = Mock(
-        name="feeder.get_workouts"
+    data_model.workout_plans.update = Mock(
+        name="workout_plans.update"
     )
 
     data_model.update_tables()
@@ -45,7 +45,10 @@ def test_update_exercise_load_error(tmp_path):
     error = data_model.errors.get_last()
     assert error.title == error_title
     assert error.description == error_detail
-    data_model.feeder.get_workouts.assert_called_with(data_model.workout_table_names)
+    data_model.workout_plans.update.assert_called_with(
+        data_model.feeder,
+        data_model.workout_table_names
+    )
 
 
 def test_update_workouts_load_error(tmp_path):
@@ -69,7 +72,7 @@ def test_update_workouts_load_error(tmp_path):
     data_model.exercise_links.update_exercise_links = Mock(
         name="update_exercise_links",
     )
-    data_model.feeder.get_workouts = Mock(
+    data_model.workout_plans.update = Mock(
         name="update_exercise_links",
         side_effect=Error(error_title, error_detail)
     )

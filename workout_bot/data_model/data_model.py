@@ -56,12 +56,14 @@ class DataModel:
         """
         Loads the latest workout plans from Google spreadsheets.
         """
+
         try:
             self.exercise_links.update_exercise_links()
         except Error as error:
             self.errors.add_error(error)
         try:
-            self.workout_plans = self.feeder.get_workouts(
+            self.workout_plans.update(
+                self.feeder,
                 self.workout_table_names
             )
         except Error as error:
