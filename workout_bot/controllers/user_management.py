@@ -3,14 +3,14 @@ Provides user interaction for user manamegent.
 """
 
 from telegram import KeyboardButton, ReplyKeyboardMarkup
-from workout_bot.data_model.users import UserAction, BlockUserContext
-from workout_bot.data_model.users import AssignTableUserContext
-from workout_bot.view.users import get_user_message
-from workout_bot.view.users import (
+from data_model.users import UserAction, BlockUserContext
+from data_model.users import AssignTableUserContext
+from view.users import get_user_message
+from view.users import (
     user_to_text_message, user_to_short_text_message
 )
-from workout_bot.view.utils import escape_text
-from workout_bot.telegram_bot.utils import get_user_context
+from view.utils import escape_text
+from telegram_bot.utils import get_user_context
 
 
 async def send_with_user_management_panel(

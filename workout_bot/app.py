@@ -10,9 +10,9 @@ import schedule
 import yaml
 
 from telegram.ext import ApplicationBuilder
-from workout_bot.data_model.data_model import DataModel
-from workout_bot.telegram_bot.telegram_bot import TelegramBot
-from workout_bot.google_sheets_feeder.google_sheets_loader import (
+from data_model.data_model import DataModel
+from telegram_bot.telegram_bot import TelegramBot
+from google_sheets_feeder.google_sheets_loader import (
     GoogleSheetsLoader
 )
 
