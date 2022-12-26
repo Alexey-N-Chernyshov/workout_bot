@@ -1,8 +1,9 @@
 """
 Tests for GoogleSheetsAdapter
 """
-
+import datetime
 import os
+from freezegun import freeze_time
 from workout_bot.google_sheets_feeder.google_sheets_adapter \
     import GoogleSheetsAdapter
 from .data.exercises_data import raw_exercises_data, expected_exercise_data
@@ -86,3 +87,20 @@ def test_parse_workouts_with_empy_days():
     parsed = adapter.parse_table_page(merges, values)
 
     assert_workouts_equal(parsed, EXPECTED_WORKOUTS)
+
+
+@freeze_time("2022-12-25")
+def test_parse_week_begin_new_year():
+    """
+    Checks workout week begin parsing on New Year.
+    """
+
+    string = "26-01.01\n" \
+        "почти легкая неделя;)"
+
+    adapter = GoogleSheetsAdapter()
+
+    workout = adapter.parse_week_begin(string)
+    assert workout.start_date == datetime.date(2022, 12, 26)
+    assert workout.end_date == datetime.date(2023, 1, 1)
+    assert workout.comment == "почти легкая неделя;)"

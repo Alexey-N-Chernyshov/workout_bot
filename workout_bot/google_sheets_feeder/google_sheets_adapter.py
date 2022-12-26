@@ -28,37 +28,37 @@ class GoogleSheetsAdapter:
 
     def parse_merges(self, merges, values):
         """
-        Parses merges in order to determine week indeces (begins and ends).
+        Parses merges in order to determine week indexes (begins and ends).
         """
 
-        week_indeces = []
-        workout_indeces = []
+        week_indexes = []
+        workout_indexes = []
 
         for merge in merges:
             if merge["startColumnIndex"] == 0 and merge["endColumnIndex"] == 1:
                 start_week_index = merge['startRowIndex'] - 1
                 end_week_index = merge['endRowIndex'] - 1
-                week_indeces.append((start_week_index, end_week_index))
+                week_indexes.append((start_week_index, end_week_index))
             if merge["startColumnIndex"] == 1 and merge["endColumnIndex"] == 2:
                 start_workout_index = merge["startRowIndex"] - 1
                 end_workout_index = merge["endRowIndex"] - 1
-                workout_indeces.append((start_workout_index,
+                workout_indexes.append((start_workout_index,
                                         end_workout_index))
-        week_indeces.sort()
-        workout_indeces.sort()
+        week_indexes.sort()
+        workout_indexes.sort()
 
         workout_num = 0
         i = 0
         while i < len(values):
-            if i < workout_indeces[workout_num][0]:
-                workout_indeces.append((i, i + 1))
-                workout_indeces.sort()
+            if i < workout_indexes[workout_num][0]:
+                workout_indexes.append((i, i + 1))
+                workout_indexes.sort()
                 i += 1
             else:
-                i = workout_indeces[workout_num][1]
+                i = workout_indexes[workout_num][1]
             workout_num += 1
 
-        return (week_indeces, workout_indeces)
+        return (week_indexes, workout_indexes)
 
     def parse_week_begin(self, to_parse):
         """
@@ -75,7 +75,7 @@ class GoogleSheetsAdapter:
             start_month = end_month - 1
             if start_month == 0:
                 start_month = 12
-                start_year -= 1
+                end_year += 1
         else:
             start_month = end_month
         start_week_date = date(start_year, start_month, start_day)
