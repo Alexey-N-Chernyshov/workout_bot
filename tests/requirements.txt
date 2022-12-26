@@ -1,2 +1,4 @@
+freezegun
 pytest
+pytest-asyncio
 mock

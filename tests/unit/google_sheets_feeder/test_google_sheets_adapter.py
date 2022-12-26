@@ -1,12 +1,16 @@
 """
 Tests for GoogleSheetsAdapter
 """
-
+import datetime
 import os
+from freezegun import freeze_time
 from workout_bot.google_sheets_feeder.google_sheets_adapter \
     import GoogleSheetsAdapter
 from .data.exercises_data import raw_exercises_data, expected_exercise_data
 from .data.workouts_empty import RAW_TABLE_DATA, EXPECTED_WORKOUTS
+from .data.workouts_one_per_line import (
+    RAW_TABLE_DATA_ONE_EXERCISE_PER_LINE, EXPECTED_ONE_EXERCISE_PER_LINE
+)
 
 FIXTURE_DIR = os.path.dirname(os.path.realpath(__file__))
 EXCERCISES_RAW_FILE = os.path.join(FIXTURE_DIR, "data/exercises_raw.pkl")
@@ -27,6 +31,23 @@ def test_parse_workout_links():
 
     for acutal_item, expected_item in zip(actual, expected_exercise_data):
         assert acutal_item == expected_item
+
+
+@freeze_time("2022-12-25")
+def test_parse_week_begin_new_year():
+    """
+    Checks workout week begin parsing on New Year.
+    """
+
+    string = "26-01.01\n" \
+        "почти легкая неделя;)"
+
+    adapter = GoogleSheetsAdapter()
+
+    workout = adapter.parse_week_begin(string)
+    assert workout.start_date == datetime.date(2022, 12, 26)
+    assert workout.end_date == datetime.date(2023, 1, 1)
+    assert workout.comment == "почти легкая неделя;)"
 
 
 def assert_workouts_equal(actual, expected):
@@ -86,3 +107,17 @@ def test_parse_workouts_with_empy_days():
     parsed = adapter.parse_table_page(merges, values)
 
     assert_workouts_equal(parsed, EXPECTED_WORKOUTS)
+
+
+def test_one_workout_per_line():
+    """
+    Parse table with one exercise per line.
+    """
+
+    adapter = GoogleSheetsAdapter()
+
+    (_, merges, values) = RAW_TABLE_DATA_ONE_EXERCISE_PER_LINE
+
+    parsed = adapter.parse_table_page(merges, values)
+
+    assert_workouts_equal(parsed, EXPECTED_ONE_EXERCISE_PER_LINE)
