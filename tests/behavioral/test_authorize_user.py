@@ -121,14 +121,10 @@ async def test_admin_authorizes_user(test_with_workout_tables):
 
 async def test_admin_cancels_user_authorization(test_with_workout_tables):
     """
-    Given: Alice is a user awaiting authorization. Bob is an admin and
-    authorizing users.
+    Given: Bob is an admin and authorizing users.
     When: Bob sends cancel.
     Then: Bob in user management state.
     """
-
-    # Alice is a user
-    alice = test_with_workout_tables.add_user()
 
     # Bob is an admin
     bob = test_with_workout_tables.add_admin()
