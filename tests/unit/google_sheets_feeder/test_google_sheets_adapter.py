@@ -81,6 +81,7 @@ def assert_workouts_equal(actual, expected):
                         .reps_window
 
 
+@freeze_time("2022-12-25")
 def test_parse_workouts():
     """
     Raw table data is parsed into list of WeekRoutine.
@@ -95,6 +96,7 @@ def test_parse_workouts():
     assert_workouts_equal(parsed, EXPECTED_WORKOUTS)
 
 
+@freeze_time("2022-12-25")
 def test_parse_workouts_with_empy_days():
     """
     Raw table with empty days is parsed.
@@ -109,6 +111,7 @@ def test_parse_workouts_with_empy_days():
     assert_workouts_equal(parsed, EXPECTED_WORKOUTS)
 
 
+@freeze_time("2022-12-25")
 def test_one_workout_per_line():
     """
     Parse table with one exercise per line.
