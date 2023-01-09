@@ -83,7 +83,7 @@ async def test_blocked_start(behavioral_test_fixture):
     alice.assert_user_action(UserAction.BLOCKED)
 
 
-async def test_admin_authorizes_usesr(test_with_workout_tables):
+async def test_admin_authorizes_user(test_with_workout_tables):
     """
     Given: User Alice is waiting for authorization.
     When: Admin Bob authorizes Alice and assignes her a table.
@@ -117,3 +117,25 @@ async def test_admin_authorizes_usesr(test_with_workout_tables):
     alice.expect_answer(expected)
     alice.expect_no_more_answers()
     alice.assert_user_action(UserAction.CHOOSING_PLAN)
+
+
+async def test_admin_cancels_user_authorization(test_with_workout_tables):
+    """
+    Given: Alice is a user awaiting authorization. Bob is an admin and
+    authorizing users.
+    When: Bob sends cancel.
+    Then: Bob in user management state.
+    """
+
+    # Alice is a user
+    alice = test_with_workout_tables.add_user()
+
+    # Bob is an admin
+    bob = test_with_workout_tables.add_admin()
+    bob.set_user_action(UserAction.ADMIN_USER_AUTHORIZATION)
+
+    await bob.send_message("Отмена")
+
+    bob.expect_answer("Управление пользователями")
+    bob.expect_no_more_answers()
+    bob.assert_user_action(UserAction.ADMIN_USER_MANAGEMENT)

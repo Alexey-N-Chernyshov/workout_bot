@@ -59,7 +59,8 @@ async def show_users_authorization(bot, data_model, chat_id, user_context):
         username = user_to_short_text_message(user)
         keyboard.append([
             KeyboardButton(text="Блокировать " + username),
-            KeyboardButton(text="Авторизовать " + username)
+            KeyboardButton(text="Авторизовать " + username),
+            KeyboardButton(text="Отмена")
         ])
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await bot.send_message(
@@ -232,6 +233,38 @@ def handle_go_user_authorization():
             data_model,
             update.effective_chat.id,
             user_context
+        )
+
+    return handler_filter, handler
+
+
+def handle_authorize_user_cancel():
+    """
+    Admin cancels user authorization.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin sends cancels when authorizing the user.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_AUTHORIZATION and
+                message_text.startswith("отмена"))
+
+    async def handler(data_model, update, context):
+        """
+        Admin state is changed to user management.
+        """
+
+        user_context = get_user_context(data_model, update)
+        data_model.users.set_user_action(
+            user_context.user_id, UserAction.ADMIN_USER_MANAGEMENT)
+        await send_with_user_management_panel(
+            context.bot,
+            update.effective_chat.id
         )
 
     return handler_filter, handler
@@ -689,6 +722,7 @@ def handle_add_admin_wrong_input():
 user_management_message_handlers = [
     handle_go_user_management(),
     handle_go_user_authorization(),
+    handle_authorize_user_cancel(),
     handle_assign_table(),
     handle_assign_wrong_table(),
     handle_block_user(),
