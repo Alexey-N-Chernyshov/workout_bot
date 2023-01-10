@@ -11,6 +11,10 @@ from .data.workouts_empty import RAW_TABLE_DATA, EXPECTED_WORKOUTS
 from .data.workouts_one_per_line import (
     RAW_TABLE_DATA_ONE_EXERCISE_PER_LINE, EXPECTED_ONE_EXERCISE_PER_LINE
 )
+from .data.workouts_multicell_set_description import (
+    RAW_TABLE_DATA_MULTICELL_SET_DESCRIPTION,
+    EXPECTED_WORKOUTS_MULTICELL_SET_DESCRIPTION
+)
 
 FIXTURE_DIR = os.path.dirname(os.path.realpath(__file__))
 EXCERCISES_RAW_FILE = os.path.join(FIXTURE_DIR, "data/exercises_raw.pkl")
@@ -124,3 +128,18 @@ def test_one_workout_per_line():
     parsed = adapter.parse_table_page(merges, values)
 
     assert_workouts_equal(parsed, EXPECTED_ONE_EXERCISE_PER_LINE)
+
+
+@freeze_time("2023-01-10")
+def test_workout_multicell_set_description():
+    """
+    Set description on several cell on one line.
+    """
+
+    adapter = GoogleSheetsAdapter()
+
+    (_, merges, values) = RAW_TABLE_DATA_MULTICELL_SET_DESCRIPTION
+
+    parsed = adapter.parse_table_page(merges, values)
+
+    assert_workouts_equal(parsed, EXPECTED_WORKOUTS_MULTICELL_SET_DESCRIPTION)
