@@ -74,6 +74,7 @@ class WorkoutTableNames:
                 self.__workout_tables[table_id].add(page)
         else:
             self.__workout_tables[table_id] = {page}
+        self.__workout_tables.sync()
 
     def get_tables(self):
         """
