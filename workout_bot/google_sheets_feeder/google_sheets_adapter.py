@@ -90,8 +90,9 @@ class GoogleSheetsAdapter:
         Parses description of workout set.
         """
 
+        workout_description = to_parse[2]
         workout_set = Set("", 0, [])
-        number, rest = to_parse.split('\\', 1)
+        number, rest = workout_description.split('\\', 1)
         workout_set.number = int(number)
         # read rounds if present
         if rest[0].isdigit():
@@ -104,6 +105,12 @@ class GoogleSheetsAdapter:
         else:
             workout_set.rounds = 0
         workout_set.description = rest
+
+        # multicell set description
+        if len(to_parse) > 3:
+            workout_set.description += "\n"
+            workout_set.description += to_parse[3]
+
         return workout_set
 
     def parse_workout(self, to_parse):
@@ -147,7 +154,7 @@ class GoogleSheetsAdapter:
                 # it is a set description if starts with set number
                 # if set_number != 0:
                 workout.sets.append(workout_set)
-                workout_set = self.parse_workout_set(row[2])
+                workout_set = self.parse_workout_set(row)
             else:
                 # it is an exercise
                 if len(row) >= 4:
