@@ -83,7 +83,6 @@ def test_table_deleted_when_all_pages_deleted(tmp_path):
     tables = WorkoutTableNames(storage_path)
 
     tables.add_table("tablename", ["page1"])
-    stored_tables = tables.get_tables()
 
     tables.remove_table("tablename", ["page1"])
     stored_tables = tables.get_tables()

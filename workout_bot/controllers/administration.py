@@ -3,8 +3,8 @@ Administration related messages handlers.
 """
 
 from telegram import KeyboardButton, ReplyKeyboardMarkup
-from workout_bot.data_model.users import UserAction
-from workout_bot.telegram_bot.utils import get_user_context
+from data_model.users import UserAction
+from telegram_bot.utils import get_user_context
 
 
 async def show_admin_panel(bot, chat_id, user_context):

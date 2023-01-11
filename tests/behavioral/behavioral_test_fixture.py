@@ -367,14 +367,18 @@ class BehavioralTest:
         self.users.append(user)
         return user
 
-    def add_authorized_user(self, first_name="", last_name="", user_name=""):
+    def add_user_context(self,
+                         first_name="",
+                         last_name="",
+                         user_name="",
+                         action=UserAction.CHOOSING_PLAN):
         """
-        Adds and authorizes user.
+        Adds user to data_model.
         """
 
         user = self.add_user(first_name, last_name, user_name)
 
-        user_context = self.data_model\
+        user_context = self.data_model \
             .users.get_or_create_user_context(user.user.id)
         user_context.user_id = user.user.id
         user_context.first_name = user.user.first_name
@@ -384,7 +388,7 @@ class BehavioralTest:
         user_context.current_page = None
         user_context.current_week = 0
         user_context.current_workout = 0
-        user_context.action = UserAction.CHOOSING_PLAN
+        user_context.action = action
         self.data_model.users.set_user_context(user_context)
 
         return user
@@ -394,7 +398,7 @@ class BehavioralTest:
         Adds user with administrative permissions.
         """
 
-        user = self.add_authorized_user(first_name, last_name, user_name)
+        user = self.add_user_context(first_name, last_name, user_name)
         self.data_model.users.set_administrative_permission(user.user.id)
         self.data_model.users.set_user_action(user.user.id,
                                               UserAction.CHOOSING_PLAN)

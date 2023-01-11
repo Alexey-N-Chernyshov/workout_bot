@@ -33,8 +33,8 @@ def create_workout_table(table_id="table_id", table_name="table_name"):
                          table_name + "plan2": [first_week]})
 
 
-@pytest.fixture
-def behavioral_test_fixture(tmp_path):
+@pytest.fixture(name="behavioral_test_fixture")
+def fixture_behavioral(tmp_path):
     """
     Basic test fixture.
     """
@@ -43,8 +43,8 @@ def behavioral_test_fixture(tmp_path):
     yield test
 
 
-@pytest.fixture
-def test_with_workout_tables(tmp_path):
+@pytest.fixture(name="test_with_workout_tables")
+def fixture_with_workout_tables(tmp_path):
     """
     Test with workout tables.
     """
@@ -61,8 +61,24 @@ def test_with_workout_tables(tmp_path):
     yield test
 
 
-@pytest.fixture
-def test_with_user_with_workouts(tmp_path):
+@pytest.fixture(name="test_alice_training")
+def fixture_alice_training(test_with_workout_tables):
+    """
+    Alice is a user, and she is TRAINING, and table and plan is set.
+    """
+
+    test = test_with_workout_tables
+    test.alice = test.add_user_context()
+    test.alice.set_table(test.table1.table_id)
+    test.plan = list(test.table1.pages)[0]
+    test.alice.set_page(test.plan)
+    test.alice.set_user_action(UserAction.TRAINING)
+
+    yield test
+
+
+@pytest.fixture(name="test_with_user_with_workouts")
+def fixture_with_user_with_workouts(tmp_path):
     """
     Test suite with authorized user with workouts in TRAINING state.
     """
@@ -73,7 +89,7 @@ def test_with_user_with_workouts(tmp_path):
     test.table = create_workout_table("table_id_1", "table_name_1")
     test.add_table(test.table)
 
-    user = test.add_authorized_user()
+    user = test.add_user_context()
     user.set_table(test.table.table_id)
     plan = list(test.table.pages)[0]
     user.set_page(plan)
@@ -82,9 +98,8 @@ def test_with_user_with_workouts(tmp_path):
     yield test
 
 
-@pytest.fixture
-# pylint: disable=redefined-outer-name
-def test_table_management(test_with_workout_tables):
+@pytest.fixture(name="test_table_management")
+def fixture_table_management(test_with_workout_tables):
     """
     Sets up tables and admin in ADMIN_TABLE_MANAGEMENT state.
     """
@@ -95,9 +110,9 @@ def test_table_management(test_with_workout_tables):
     yield test
 
 
-@pytest.fixture
+@pytest.fixture(name="test_user_management")
 # pylint: disable=redefined-outer-name
-def test_user_management(tmp_path):
+def fixture_user_management(tmp_path):
     """
     Sets up test data for user management tests.
     Users:
@@ -107,7 +122,7 @@ def test_user_management(tmp_path):
     """
 
     test = BehavioralTest(tmp_path)
-    test.workout_table = create_workout_table("table_id_1", "table_name_1")
+    test.workout_table = create_workout_table("Table_id_1", "Table_name_1")
     test.add_table(test.workout_table)
     test.table_id = test.workout_table.table_id
     test.table_name = test.workout_table.table_name
@@ -116,14 +131,16 @@ def test_user_management(tmp_path):
     test.admin.set_user_action(UserAction.ADMIN_USER_MANAGEMENT)
     test.admin.set_table(test.table_id)
 
-    test.waiting = test.add_admin(user_name="waiting")
-    test.waiting.set_user_action(UserAction.AWAITING_AUTHORIZATION)
+    test.waiting = test.add_user_context(
+        user_name="waiting",
+        action=UserAction.AWAITING_AUTHORIZATION
+    )
 
-    test.user = test.add_authorized_user(user_name="user")
+    test.user = test.add_user_context(user_name="user")
     test.user.set_user_action(UserAction.TRAINING)
     test.user.set_table(test.table_id)
 
-    test.blocked = test.add_authorized_user(user_name="blocked")
+    test.blocked = test.add_user_context(user_name="blocked")
     test.blocked.set_user_action(UserAction.BLOCKED)
 
     yield test

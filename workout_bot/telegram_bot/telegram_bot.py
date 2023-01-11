@@ -6,9 +6,9 @@ from telegram import Update
 from telegram.ext import (
     filters, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler
 )
-from workout_bot.controllers.controllers import Controllers
-from workout_bot.controllers.training_management import start_training
-from workout_bot.data_model.users import UserAction
+from controllers.controllers import Controllers
+from controllers.training_management import start_training
+from data_model.users import UserAction
 
 
 class TelegramBot:

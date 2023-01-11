@@ -3,14 +3,14 @@ Provides user interaction for user manamegent.
 """
 
 from telegram import KeyboardButton, ReplyKeyboardMarkup
-from workout_bot.data_model.users import UserAction, BlockUserContext
-from workout_bot.data_model.users import AssignTableUserContext
-from workout_bot.view.users import get_user_message
-from workout_bot.view.users import (
+from data_model.users import UserAction, BlockUserContext
+from data_model.users import AssignTableUserContext
+from view.users import get_user_message
+from view.users import (
     user_to_text_message, user_to_short_text_message
 )
-from workout_bot.view.utils import escape_text
-from workout_bot.telegram_bot.utils import get_user_context
+from view.utils import escape_text
+from telegram_bot.utils import get_user_context
 
 
 async def send_with_user_management_panel(
@@ -59,7 +59,8 @@ async def show_users_authorization(bot, data_model, chat_id, user_context):
         username = user_to_short_text_message(user)
         keyboard.append([
             KeyboardButton(text="Блокировать " + username),
-            KeyboardButton(text="Авторизовать " + username)
+            KeyboardButton(text="Авторизовать " + username),
+            KeyboardButton(text="Отмена")
         ])
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await bot.send_message(
@@ -113,17 +114,23 @@ async def show_all_users(bot, chat_id, data_model):
     await send_with_user_management_panel(bot, chat_id, text)
 
 
-async def prompt_assign_table(bot, chat_id, data_model, taget_username):
+async def prompt_assign_table(
+        bot,
+        chat_id,
+        data_model,
+        target_username,
+        text=""):
     """
     Asks to assign a table to the user with user_context.
     """
-
-    text = f"Какую таблицу назначим для {taget_username}?\n\n"
+    if text:
+        text += "\n"
+    text += f"Какую таблицу назначим для {target_username}?\n\n"
     keyboard = []
     for table_name in data_model.workout_plans.get_table_names():
         text += " \\- " + escape_text(table_name) + "\n"
-        key_talbe_name = [KeyboardButton(text=table_name)]
-        keyboard.append(key_talbe_name)
+        key_tale_name = [KeyboardButton(text=table_name)]
+        keyboard.append(key_tale_name)
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await bot.send_message(chat_id, text,
                            reply_markup=reply_markup,
@@ -231,6 +238,38 @@ def handle_go_user_authorization():
     return handler_filter, handler
 
 
+def handle_authorize_user_cancel():
+    """
+    Admin cancels user authorization.
+    """
+
+    def handler_filter(data_model, update):
+        """
+        The admin sends cancels when authorizing the user.
+        """
+
+        user_context = get_user_context(data_model, update)
+        message_text = update.message.text.strip().lower()
+        return (user_context.administrative_permission and
+                user_context.action == UserAction.ADMIN_USER_AUTHORIZATION and
+                message_text.startswith("отмена"))
+
+    async def handler(data_model, update, context):
+        """
+        Admin state is changed to user management.
+        """
+
+        user_context = get_user_context(data_model, update)
+        data_model.users.set_user_action(
+            user_context.user_id, UserAction.ADMIN_USER_MANAGEMENT)
+        await send_with_user_management_panel(
+            context.bot,
+            update.effective_chat.id
+        )
+
+    return handler_filter, handler
+
+
 def handle_authorize_user():
     """
     Admin authorizing user.
@@ -289,7 +328,7 @@ def handle_assign_table():
         """
 
         user_context = get_user_context(data_model, update)
-        table_name = update.message.text.strip().lower()
+        table_name = update.message.text.strip()
         return (user_context.administrative_permission and
                 user_context.action == UserAction.ADMIN_USER_ASSIGNING_TABLE
                 and table_name in data_model.workout_plans.get_table_names())
@@ -300,7 +339,7 @@ def handle_assign_table():
         """
 
         user_context = get_user_context(data_model, update)
-        table_name = update.message.text.strip().lower()
+        table_name = update.message.text
         target_user_id = user_context.user_input_data.user_id
         table_id = data_model.workout_plans.get_table_id_by_name(table_name)
         data_model.users.set_table_for_user(target_user_id, table_id)
@@ -314,13 +353,17 @@ def handle_assign_table():
         text += "\n"
         text += "Для продолжения нажмите \"Перейти к тренировкам\""
         keyboard = [["Перейти к тренировкам"]]
-        reply_markup = ReplyKeyboardMarkup(keyboard,
-                                           resize_keyboard=True)
-        await context.bot.send_message(target_user_context.chat_id,
-                                       text,
-                                       disable_notification=True,
-                                       reply_markup=reply_markup,
-                                       parse_mode="MarkdownV2")
+        reply_markup = ReplyKeyboardMarkup(
+            keyboard,
+            resize_keyboard=True
+        )
+        await context.bot.send_message(
+            target_user_context.chat_id,
+            text,
+            disable_notification=True,
+            reply_markup=reply_markup,
+            parse_mode="MarkdownV2"
+        )
 
         user_context.action = UserAction.ADMIN_USER_MANAGEMENT
         user_context.user_input_data = None
@@ -344,23 +387,28 @@ def handle_assign_wrong_table():
         """
 
         user_context = get_user_context(data_model, update)
+        table_name = update.message.text
         return (user_context.administrative_permission and
-                user_context.action == UserAction.ADMIN_USER_ASSIGNING_TABLE)
+                user_context.action == UserAction.ADMIN_USER_ASSIGNING_TABLE
+                and
+                table_name not in data_model.workout_plans.get_table_names())
 
     async def handler(data_model, update, context):
         """
-        Admin assigns table, the user is notified.
+        Shows assign table message again.
         """
 
         user_context = get_user_context(data_model, update)
         target_user_context = data_model\
             .users.get_user_context(user_context.user_input_data.user_id)
         target_username = user_to_text_message(target_user_context)
+        table_name = update.message.text.strip()
         await prompt_assign_table(
             context.bot,
             user_context.chat_id,
             data_model,
-            target_username
+            target_username,
+            f"Нет таблицы с именем '{table_name}'."
         )
 
     return handler_filter, handler
@@ -674,6 +722,7 @@ def handle_add_admin_wrong_input():
 user_management_message_handlers = [
     handle_go_user_management(),
     handle_go_user_authorization(),
+    handle_authorize_user_cancel(),
     handle_assign_table(),
     handle_assign_wrong_table(),
     handle_block_user(),
