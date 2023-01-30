@@ -197,6 +197,6 @@ def test_exercises_to_text_message_with_links():
         "plank": "http://plank-link"
     }
 
-    expected = "\\- [Squats]\(http://squat\-link\), 15 times\n"
+    expected = "\\- [Squats]\\(http://squat\\-link\\), 15 times\n"
 
     assert exercises_to_text_message(data_model, exercise) == expected
