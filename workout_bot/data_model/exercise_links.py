@@ -22,10 +22,12 @@ class ExerciseLinks:
 
     def load_exercise_links(self):
         """
-        Loads exercise links from google table.
+        Loads exercise links from Google table.
         """
-        self.exercise_links = self.feeder.get_exercise_links(self.table_id,
-                                                             self.pagename)
+        self.exercise_links = self.feeder.get_exercise_links(
+            self.table_id,
+            self.pagename
+        )
 
     def get_exercise_links(self):
         """

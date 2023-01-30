@@ -6,7 +6,7 @@ import os
 from freezegun import freeze_time
 from workout_bot.google_sheets_feeder.google_sheets_adapter \
     import GoogleSheetsAdapter
-from .data.exercises_data import raw_exercises_data, expected_exercise_data
+from .data.exercises_data import RAW_EXERCISE_DATA, EXPECTED_EXERCISE_DATA
 from .data.workouts_empty import RAW_TABLE_DATA, EXPECTED_WORKOUTS
 from .data.workouts_one_per_line import (
     RAW_TABLE_DATA_ONE_EXERCISE_PER_LINE, EXPECTED_ONE_EXERCISE_PER_LINE
@@ -31,10 +31,9 @@ def test_parse_workout_links():
 
     adapter = GoogleSheetsAdapter()
 
-    actual = adapter.parse_exercise_links(raw_exercises_data)
+    actual = adapter.parse_exercise_links(RAW_EXERCISE_DATA)
 
-    for acutal_item, expected_item in zip(actual, expected_exercise_data):
-        assert acutal_item == expected_item
+    assert actual == EXPECTED_EXERCISE_DATA
 
 
 @freeze_time("2022-12-25")

@@ -8,6 +8,7 @@ from workout_bot.data_model.workout_plans import Exercise
 from workout_bot.data_model.workout_plans import Set
 from workout_bot.data_model.workout_plans import Workout
 from workout_bot.data_model.workout_plans import WeekRoutine
+from workout_bot.view.workouts import exercises_to_text_message
 from workout_bot.view.workouts import set_to_text_message
 from workout_bot.view.workouts import workout_to_text_message
 from workout_bot.view.workouts import get_week_routine_text_message
@@ -182,3 +183,20 @@ def test_week_routine_additional_workout_test():
 
     assert expected == get_week_routine_text_message(
         data_model, table_id, page_name, week_number)
+
+
+def test_exercises_to_text_message_with_links():
+    """
+    Tests exercise representation with links.
+    It must be case-insensitive.
+    """
+
+    exercise = Exercise("Squats", "15 times")
+    data_model.exercise_links.exercise_links = {
+        "squats": "http://squat-link",
+        "plank": "http://plank-link"
+    }
+
+    expected = "\\- [Squats]\\(http://squat\\-link\\), 15 times\n"
+
+    assert exercises_to_text_message(data_model, exercise) == expected
