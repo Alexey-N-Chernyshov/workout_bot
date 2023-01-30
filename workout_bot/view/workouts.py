@@ -5,20 +5,21 @@ Representation of workouts.
 from .utils import escape_text
 
 
-def exercises_to_text_message(data_model, exercises):
+def exercises_to_text_message(data_model, exercise):
     """
-    Returns single excersise text representation.
+    Returns single exercise text representation.
     """
 
-    text = f"- {exercises.description}"
-    if exercises.reps_window:
-        text += f", {exercises.reps_window}"
+    exercise_links = data_model.exercise_links.get_exercise_links()
+    if exercise.description.lower() in exercise_links:
+        name = exercise.description.lower()
+        text = f"- [{exercise.description}]({exercise_links[name]})"
+    else:
+        text = f"- {exercise.description}"
+    if exercise.reps_window:
+        text += f", {exercise.reps_window}"
     text += "\n"
     text = escape_text(text)
-    for name, link in data_model.exercise_links.get_exercise_links():
-        if name in text:
-            text = text.replace(name, f"[{name}]({link})")
-            break
     return text
 
 

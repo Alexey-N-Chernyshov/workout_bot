@@ -66,7 +66,8 @@ class GoogleSheetsLoader:
                                         range=range_name).execute()
             values = result.get("values", [])
 
-            return values[1:]
+            # keys to lowercase
+            return dict((k.lower(), v) for k, v in values[1:].iteritems())
 
         except HttpError as err:
             logging.error(err)
