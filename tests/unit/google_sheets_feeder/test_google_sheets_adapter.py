@@ -33,8 +33,7 @@ def test_parse_workout_links():
 
     actual = adapter.parse_exercise_links(raw_exercises_data)
 
-    for acutal_item, expected_item in zip(actual, expected_exercise_data):
-        assert acutal_item == expected_item
+    assert actual == expected_exercise_data
 
 
 @freeze_time("2022-12-25")

@@ -19,11 +19,9 @@ raw_exercises_data = [
 ]
 
 # Expected and sorted exercise links
-expected_exercise_data = [
-    ['гимнастика для плеч с палкой',
-     'https://www.youtube.com/watch?v=x6ZiJrKs8x8'],
-    ['статика на шею лицом вверх',
-     'https://www.youtube.com/watch?v=gI_4QqSIvEc'],
-    ['подтягивания', 'https://youtu.be/J5CYP7MmEGg'],
-    ['пуловер', 'https://www.youtube.com/watch?v=hk8jSyUaNjU']
-]
+expected_exercise_data = {
+    'гимнастика для плеч с палкой': 'https://www.youtube.com/watch?v=x6ZiJrKs8x8',
+    'статика на шею лицом вверх': 'https://www.youtube.com/watch?v=gI_4QqSIvEc',
+    'подтягивания': 'https://youtu.be/J5CYP7MmEGg',
+    'пуловер': 'https://www.youtube.com/watch?v=hk8jSyUaNjU'
+}

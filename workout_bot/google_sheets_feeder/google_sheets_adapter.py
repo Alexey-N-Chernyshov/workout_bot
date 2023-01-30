@@ -21,9 +21,7 @@ class GoogleSheetsAdapter:
         Returns exercise list sorted by length of name in reverse order.
         """
 
-        return sorted(filter(lambda item: (item and len(item) == 2), values),
-                      key=lambda x: len(x[0]),
-                      reverse=True)
+        return dict(filter(lambda item: (item and len(item) == 2), values))
 
     def parse_merges(self, merges, values):
         """
