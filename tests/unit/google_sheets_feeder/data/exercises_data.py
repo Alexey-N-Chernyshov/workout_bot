@@ -6,7 +6,7 @@ Test data
 # flake8: noqa
 
 # Raw exercise data with empty lines and empty links.
-raw_exercises_data = [
+RAW_EXERCISE_DATA = [
     ['подтягивания', 'https://youtu.be/J5CYP7MmEGg'],
     ['рывковая протяжка полная'],
     [],
@@ -19,7 +19,7 @@ raw_exercises_data = [
 ]
 
 # Expected and sorted exercise links
-expected_exercise_data = {
+EXPECTED_EXERCISE_DATA = {
     'гимнастика для плеч с палкой': 'https://www.youtube.com/watch?v=x6ZiJrKs8x8',
     'статика на шею лицом вверх': 'https://www.youtube.com/watch?v=gI_4QqSIvEc',
     'подтягивания': 'https://youtu.be/J5CYP7MmEGg',
