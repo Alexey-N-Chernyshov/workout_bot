@@ -112,6 +112,8 @@ class TableManagementController:
             for page in pages:
                 if page in pages_present:
                     page_text = "✅ " + page
+                elif page.startswith(" ") or page.endswith(" "):
+                    page_text = "🚫 " + page
                 else:
                     page_text = "⏺ " + page
                 data = TableManagementController.InlineKeyboardData(
@@ -123,6 +125,29 @@ class TableManagementController:
                         page_text, callback_data=data.encode())]
                 )
         return InlineKeyboardMarkup(keyboard)
+
+    async def show_change_pages_message(self, data_model, bot, chat_id, table_id, text_header="Редактирование таблицы"):
+        table_name = data_model.workout_plans.get_plan_name(table_id)
+
+        text = text_header + "\n"
+        text += get_table_name_message(table_name, table_id)
+        text += "id: " + escape_text(table_id) + "\n"
+        text += "\n"
+        text += "Отметьте страницы с тренировками\n"
+        text += "🚫 \\- имя страницы имеет пробел в начале или в конце, не может быть добавлена\n"
+        text += "⏺ \\- страница не добавлена\n"
+        text += "✅ \\- страница добавлена"
+
+        reply_markup = self.inline_keyboard_table_pages(
+            data_model,
+            table_id
+        )
+        await bot.send_message(
+            chat_id,
+            text,
+            reply_markup=reply_markup,
+            parse_mode="MarkdownV2"
+        )
 
     def handle_go_table_management(self):
         """
@@ -279,17 +304,13 @@ class TableManagementController:
             table_id = get_table_id_from_link(update.message.text)
 
             try:
-                table_name = data_model.workout_plans.get_plan_name(table_id)
-                text = "Добавление таблицы\n"
-                text += get_table_name_message(table_name, table_id)
-                text += "id: " + escape_text(table_id) + "\n"
-                text += "\n"
-                text += "Отметьте страницы с тренировками"
-                reply_markup = self.inline_keyboard_table_pages(
-                    data_model, table_id)
-                await context.bot.send_message(chat_id, text,
-                                               reply_markup=reply_markup,
-                                               parse_mode="MarkdownV2")
+                await self.show_change_pages_message(
+                    data_model,
+                    context.bot,
+                    chat_id,
+                    table_id,
+                    text_header="Добавление таблицы"
+                )
                 data_model \
                     .users.set_user_action(user_context.user_id,
                                            UserAction.ADMIN_TABLE_MANAGEMENT)
@@ -387,7 +408,7 @@ class TableManagementController:
                 chat_id
             )
 
-        return (handler_filter, handler)
+        return handler_filter, handler
 
     def handle_other_messages(self):
         """
@@ -414,7 +435,7 @@ class TableManagementController:
                 chat_id
             )
 
-        return (handler_filter, handler)
+        return handler_filter, handler
 
     def query_handler_add_page(self):
         """
@@ -435,26 +456,36 @@ class TableManagementController:
                     action is
                     TableManagementController.QUERY_ACTION_SWITCH_PAGE)
 
-        async def handler(data_model, update, _context):
+        async def handler(data_model, update, context):
             """
             Toggles page for workout plan document.
             """
 
             query = update.callback_query
+            user_id = query.from_user.id
+            chat_id = data_model.users.get_user_context(user_id).chat_id
             table_id = query.message.text.splitlines()[2][4:]
             page = TableManagementController.InlineKeyboardData.decode(
                 query.data
             ).data
-            data_model.workout_table_names.switch_pages(table_id, page)
-            reply_keyboard = self.inline_keyboard_table_pages(
-                data_model,
-                table_id
-            )
-            await query.edit_message_text(text=query.message.text,
-                                          reply_markup=reply_keyboard)
+            if page.startswith(" ") or page.endswith(" "):
+                text = f"Имя страницы '{page}' имеет пробел в начале или в "
+                text += "конце, страница не может быть добавлена"
+                await context.bot.send_message(
+                    chat_id,
+                    text,
+                )
+            else:
+                data_model.workout_table_names.switch_pages(table_id, page)
+                reply_keyboard = self.inline_keyboard_table_pages(
+                    data_model,
+                    table_id
+                )
+                await query.edit_message_text(text=query.message.text,
+                                              reply_markup=reply_keyboard)
             await query.answer()
 
-        return (handler_filter, handler)
+        return handler_filter, handler
 
     def query_handler_change_table(self):
         """
@@ -477,7 +508,7 @@ class TableManagementController:
 
         async def handler(data_model, update, context):
             """
-            Shows table editing message.
+            Shows edit table message.
             """
 
             query = update.callback_query
@@ -487,21 +518,13 @@ class TableManagementController:
             table_id = TableManagementController.InlineKeyboardData.decode(
                 update.callback_query.data
             ).data
-            table_name = data_model.workout_plans.get_plan_name(table_id)
 
-            text = "Редактирование таблицы\n"
-            text += get_table_name_message(table_name, table_id)
-            text += "id: " + escape_text(table_id) + "\n"
-            text += "\n"
-            text += "Отметьте страницы с тренировками"
-
-            reply_markup = self.inline_keyboard_table_pages(
+            await self.show_change_pages_message(
                 data_model,
+                context.bot,
+                chat_id,
                 table_id
             )
-            await context.bot.send_message(chat_id, text,
-                                           reply_markup=reply_markup,
-                                           parse_mode="MarkdownV2")
             await query.answer()
 
-        return (handler_filter, handler)
+        return handler_filter, handler

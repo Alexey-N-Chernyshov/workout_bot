@@ -102,7 +102,11 @@ async def test_admin_adds_table_link(test_table_management):
     expected += get_table_name_message(table_id, table_id)
     expected += "id: " + escape_text(table_id) + "\n"
     expected += "\n"
-    expected += "Отметьте страницы с тренировками"
+    expected += "Отметьте страницы с тренировками\n"
+    expected += "🚫 \\- имя страницы имеет пробел в начале или в конце, не может быть добавлена\n"
+    expected += "⏺ \\- страница не добавлена\n"
+    expected += "✅ \\- страница добавлена"
+
     alice.expect_answer(expected)
     alice.expect_answer("Управление таблицами")
     alice.expect_no_more_answers()
@@ -232,6 +236,44 @@ async def test_admin_adds_page(test_table_management):
     alice.expect_no_more_answers()
 
 
+async def test_admin_adds_invalid_page(test_table_management):
+    """
+    Given: Admin in ADMIN_TABLE_MANAGEMENT state and inline keyboard shown.
+    Page has trailing whitespace, page is invalid. Page hasn't been added.
+    When: Admin presses inline keyboard with page.
+    Then: Page is not added, invalid page message is shown.
+    """
+
+    alice = test_table_management.users[0]
+    table = test_table_management.workout_tables[0]
+    table_id = table.table_id
+    assert len(table.pages) == 2
+    pages = list(table.pages.keys())
+    page0 = pages[0]
+    page1 = pages[1]
+
+    page_name = "invalid page with trailing whitespace "
+    data = TableManagementController.InlineKeyboardData(
+        TableManagementController.QUERY_ACTION_SWITCH_PAGE,
+        page_name
+    ).encode()
+    message_text = "Добавление таблицы\n"
+    message_text += "New table\n"
+    message_text += f"id: {table_id}\n"
+    await alice.press_inline_button(message_text, data)
+
+    updated_table = test_table_management.data_model.workout_table_names \
+        .get_tables()[table_id]
+    assert len(updated_table) == 2
+    assert page0 in updated_table
+    assert page1 in updated_table
+    alice.assert_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
+    expected = f"Имя страницы '{page_name}' имеет пробел в начале или в "
+    expected += "конце, страница не может быть добавлена"
+    alice.expect_answer(expected)
+    alice.expect_no_more_answers()
+
+
 async def test_admin_removes_page(test_table_management):
     """
     Given: Admin in ADMIN_TABLE_MANAGEMENT state and inline keyboard shown.
@@ -287,7 +329,11 @@ async def test_admin_chooses_table_to_change(test_table_management):
     expected += get_table_name_message(table_name, table_id)
     expected += "id: " + escape_text(table_id) + "\n"
     expected += "\n"
-    expected += "Отметьте страницы с тренировками"
+    expected += "Отметьте страницы с тренировками\n"
+    expected += "🚫 \\- имя страницы имеет пробел в начале или в конце, не может быть добавлена\n"
+    expected += "⏺ \\- страница не добавлена\n"
+    expected += "✅ \\- страница добавлена"
+
     alice.expect_answer(expected)
     alice.assert_user_action(UserAction.ADMIN_TABLE_MANAGEMENT)
     alice.expect_no_more_answers()

@@ -202,7 +202,7 @@ def handle_need_change_plan():
 
     async def handler(data_model, update, context):
         """
-        If plan is not vlalid, change state to CHOOSING_PLAN and asks to choose
+        If plan is not valid, change state to CHOOSING_PLAN and asks to choose
         correct plan.
         """
 

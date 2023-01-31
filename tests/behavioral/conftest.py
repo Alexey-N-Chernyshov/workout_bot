@@ -28,9 +28,14 @@ def create_workout_table(table_id="table_id", table_name="table_name"):
                               1,
                               [workout1, workout2],
                               "week two comment")
-    return WorkoutTable(table_id, table_name,
-                        {table_name + "plan": [first_week, second_week],
-                         table_name + "plan2": [first_week]})
+    return WorkoutTable(
+        table_id,
+        table_name,
+        {
+            "plan": [first_week, second_week],
+            "plan2": [first_week],
+        }
+    )
 
 
 @pytest.fixture(name="behavioral_test_fixture")
