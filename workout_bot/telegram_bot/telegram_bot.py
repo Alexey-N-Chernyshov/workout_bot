@@ -23,7 +23,7 @@ class TelegramBot:
         self.version = version
 
         # init controllers
-        self.controllers = Controllers(loader)
+        self.controllers = Controllers(loader, data_model)
 
         self.telegram_application.add_handler(
             CommandHandler("start", self.handle_start)

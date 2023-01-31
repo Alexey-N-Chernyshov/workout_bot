@@ -20,8 +20,9 @@ class TableManagementController:
     Table management handlers
     """
 
-    def __init__(self, loader):
+    def __init__(self, loader, data_model):
         self.loader = loader
+        self.data_model = data_model
 
     def message_handlers(self):
         """
@@ -128,13 +129,16 @@ class TableManagementController:
 
     async def show_change_pages_message(
             self,
-            data_model,
             bot,
             chat_id,
             table_id,
             text_header="Редактирование таблицы"
     ):
-        table_name = data_model.workout_plans.get_plan_name(table_id)
+        """
+        Sends change page message.
+        """
+
+        table_name = self.data_model.workout_plans.get_plan_name(table_id)
 
         text = text_header + "\n"
         text += get_table_name_message(table_name, table_id)
@@ -147,7 +151,7 @@ class TableManagementController:
         text += "✅ \\- страница добавлена"
 
         reply_markup = self.inline_keyboard_table_pages(
-            data_model,
+            self.data_model,
             table_id
         )
         await bot.send_message(
@@ -313,7 +317,6 @@ class TableManagementController:
 
             try:
                 await self.show_change_pages_message(
-                    data_model,
                     context.bot,
                     chat_id,
                     table_id,
@@ -520,15 +523,12 @@ class TableManagementController:
             """
 
             query = update.callback_query
-            user_id = update.callback_query.from_user.id
-            user_context = data_model.users.get_user_context(user_id)
-            chat_id = user_context.chat_id
+            chat_id = update.effective_chat.id
             table_id = TableManagementController.InlineKeyboardData.decode(
                 update.callback_query.data
             ).data
 
             await self.show_change_pages_message(
-                data_model,
                 context.bot,
                 chat_id,
                 table_id

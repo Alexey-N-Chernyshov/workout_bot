@@ -19,8 +19,8 @@ class Controllers:
     message_handlers = []
     query_handlers = []
 
-    def __init__(self, loader):
-        table_management = TableManagementController(loader)
+    def __init__(self, loader, data_model):
+        table_management = TableManagementController(loader, data_model)
         self.message_handlers.extend(authorization_handlers)
         self.message_handlers.extend(administration_message_handlers)
         self.message_handlers.extend(training_management_message_handlers)
