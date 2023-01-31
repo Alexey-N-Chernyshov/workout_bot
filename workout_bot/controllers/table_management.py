@@ -517,7 +517,7 @@ class TableManagementController:
                     action is
                     TableManagementController.QUERY_ACTION_CHOOSE_TABLE)
 
-        async def handler(data_model, update, context):
+        async def handler(_data_model, update, context):
             """
             Shows edit table message.
             """
