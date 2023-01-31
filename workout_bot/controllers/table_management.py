@@ -126,7 +126,14 @@ class TableManagementController:
                 )
         return InlineKeyboardMarkup(keyboard)
 
-    async def show_change_pages_message(self, data_model, bot, chat_id, table_id, text_header="Редактирование таблицы"):
+    async def show_change_pages_message(
+            self,
+            data_model,
+            bot,
+            chat_id,
+            table_id,
+            text_header="Редактирование таблицы"
+    ):
         table_name = data_model.workout_plans.get_plan_name(table_id)
 
         text = text_header + "\n"
@@ -134,7 +141,8 @@ class TableManagementController:
         text += "id: " + escape_text(table_id) + "\n"
         text += "\n"
         text += "Отметьте страницы с тренировками\n"
-        text += "🚫 \\- имя страницы имеет пробел в начале или в конце, не может быть добавлена\n"
+        text += "🚫 \\- имя страницы имеет пробел в начале или в конце,"
+        text += "не может быть добавлена\n"
         text += "⏺ \\- страница не добавлена\n"
         text += "✅ \\- страница добавлена"
 
