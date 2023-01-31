@@ -30,7 +30,7 @@ jobs:
           images: alexeynchernyshov/workout_bot
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
           push: true
