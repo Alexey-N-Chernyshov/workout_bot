@@ -11,7 +11,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import Error as GoogleError
-from workout_bot.error import Error
+from workout_bot.notification import Notification
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
@@ -71,7 +71,7 @@ class GoogleSheetsLoader:
 
         except GoogleError as error:
             logging.error(error)
-            raise Error(
+            raise Notification(
                 "Loading values from table error",
                 str(error)
             ) from error
@@ -109,7 +109,7 @@ class GoogleSheetsLoader:
 
         except GoogleError as error:
             logging.error(error)
-            raise Error(
+            raise Notification(
                 "Loading values and merges from table error",
                 str(error)
             ) from error
@@ -137,4 +137,7 @@ class GoogleSheetsLoader:
 
         except GoogleError as error:
             logging.error(error)
-            raise Error("Loading page names error", str(error)) from error
+            raise Notification(
+                "Loading page names error",
+                str(error)
+            ) from error

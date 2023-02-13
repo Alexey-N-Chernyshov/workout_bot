@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from google_sheets_feeder.google_sheets_adapter import GoogleSheetsAdapter
 from google_sheets_feeder.google_sheets_feeder import GoogleSheetsFeeder
 from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
-from workout_bot.error import Error
-from .errors import Errors
+from workout_bot.notification import Notification
+from .notifications import Notifications
 from .exercise_links import ExerciseLinks
 from .statistics import Statistics
 from .users import Users
@@ -37,7 +37,7 @@ class DataModel:
             table_ids_filename,
             exercise_page_reference
     ):
-        self.errors = Errors()
+        self.notifications = Notifications()
         self.feeder = GoogleSheetsFeeder(
             GoogleSheetsLoader(),
             GoogleSheetsAdapter()
@@ -59,15 +59,15 @@ class DataModel:
 
         try:
             self.exercise_links.update_exercise_links()
-        except Error as error:
-            self.errors.add_error(error)
+        except Notification as error:
+            self.notifications.add(error)
         try:
             self.workout_plans.update(
                 self.feeder,
                 self.workout_table_names
             )
-        except Error as error:
-            self.errors.add_error(error)
+        except Notification as error:
+            self.notifications.add(error)
         self.statistics.set_training_plan_update_time()
 
     def next_workout_for_user(self, user_id):

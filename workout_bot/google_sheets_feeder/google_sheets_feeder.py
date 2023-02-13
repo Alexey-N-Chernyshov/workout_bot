@@ -3,7 +3,7 @@ The feeder provides data from Google sheets.
 """
 
 import logging
-from data_model.workout_plans import WorkoutTable, WorkoutPlans
+from data_model.workout_plans import WorkoutTable
 
 
 class GoogleSheetsFeeder:
@@ -47,15 +47,3 @@ class GoogleSheetsFeeder:
             table.pages[page_name] = all_weeks
             logging.info("Loaded %s - %s", table_name, page_name)
         return table
-
-    def get_workouts(self, workout_tables):
-        """
-        Loads workouts.
-        """
-
-        plans = WorkoutPlans()
-        for table_id, page_names in workout_tables.get_tables().items():
-            plans.update_workout_table(self.get_workout_table(table_id,
-                                                              page_names))
-
-        return plans

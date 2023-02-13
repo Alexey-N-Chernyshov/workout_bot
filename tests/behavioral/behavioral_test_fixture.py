@@ -412,9 +412,9 @@ class BehavioralTest:
         plans = self.data_model.workout_table_names.get_plan_names(
             table.table_id
         )
-        text = "Выберите программу из списка:\n"
-        for plan in plans:
-            text += f"\n - {plan}"
+        text = "Выберите программу из списка:\n\n"
+        text += "\n".join(f" - {plan}" for plan in plans)
+
         return text
 
     def add_table(self, table):
