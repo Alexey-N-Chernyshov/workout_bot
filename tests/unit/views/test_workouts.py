@@ -191,12 +191,13 @@ def test_exercises_to_text_message_with_links():
     It must be case-insensitive.
     """
 
-    exercise = Exercise("Squats", "15 times")
+    exercise = Exercise("Goblet Squats", "15 times")
     data_model.exercise_links.exercise_links = {
         "squats": "http://squat-link",
+        "goblet squats": "http://goblet-squat-link",
         "plank": "http://plank-link"
     }
 
-    expected = "\\- [Squats]\\(http://squat\\-link\\), 15 times\n"
+    expected = "\\- [Goblet Squats](http://goblet\\-squat\\-link), 15 times\n"
 
     assert exercises_to_text_message(data_model, exercise) == expected
