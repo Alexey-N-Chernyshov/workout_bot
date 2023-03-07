@@ -67,8 +67,8 @@ async def prompt_change_plan(data_model, update, context):
     if plans:
         keyboard = []
         text = "Выберите программу из списка:\n"
+        text += "\n".join(f"- {plan}" for plan in plans)
         for plan in plans:
-            text += '\n - ' + plan
             keyboard.append([KeyboardButton(plan)])
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await context.bot.send_message(

@@ -61,11 +61,3 @@ def success_callback():
     """
 
     return None
-
-
-def failure_callback():
-    """
-    Raise basic exception.
-    """
-
-    raise Exception("Basic exception")

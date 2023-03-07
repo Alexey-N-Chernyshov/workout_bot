@@ -411,8 +411,7 @@ class BehavioralTest:
             table.table_id
         )
         text = "Выберите программу из списка:\n"
-        for plan in plans:
-            text += f"\n - {plan}"
+        text += "\n".join(f"- {plan}" for plan in plans)
         return text
 
     def add_table(self, table):
