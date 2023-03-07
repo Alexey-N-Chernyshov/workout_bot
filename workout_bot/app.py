@@ -49,10 +49,10 @@ def init_data_model():
         data_model.workout_table_names.add_table(table_id, pagenames)
         for admin in admins:
             user_id = int(admin)
-            data_model.users.get_or_create_user_context(user_id)
+            if not data_model.users.is_present(user_id):
+                data_model.users.get_or_create_user_context(user_id)
+                data_model.users.set_table_for_user(user_id, table_id)
             data_model.users.set_administrative_permission(user_id)
-            data_model.users.set_table_for_user(user_id, table_id)
-
         data_model.update_tables()
 
         return data_model

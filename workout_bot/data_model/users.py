@@ -97,6 +97,13 @@ class Users:
 
         return set(self.__users.values())
 
+    def is_present(self, user_id):
+        """
+        Returns True if user is present.
+        """
+
+        return str(user_id) in self.__users
+
     def set_user_context(self, user_context):
         """
         Stores user_context.

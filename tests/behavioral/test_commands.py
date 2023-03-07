@@ -15,8 +15,9 @@ async def test_command_about(behavioral_test_fixture):
     await alice.send_message("/about")
 
     # she gets message with workout
-    expected = "Бот для тренировок\n"
+    expected = "*Бот для тренировок*\n"
     expected += "Версия: behavioral_test\n"
-    expected += "[Github](https://github.com/Alexey-N-Chernyshov/workout_bot)"
+    expected += \
+        "[Github](https://github\.com/Alexey\-N\-Chernyshov/workout\_bot)"
     alice.expect_answer(expected)
     alice.expect_no_more_answers()

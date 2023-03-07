@@ -9,6 +9,7 @@ from telegram.ext import (
 from controllers.controllers import Controllers
 from controllers.training_management import start_training
 from data_model.users import UserAction
+from view.utils import escape_text
 
 
 class TelegramBot:
@@ -143,7 +144,8 @@ class TelegramBot:
         self.data_model.statistics.record_command()
         text = "*Бот для тренировок*\n"
         text += f"Версия: {self.version}\n"
-        text += "[Github](https://github\.com/Alexey-N-Chernyshov/workout_bot)"
+        link = escape_text("https://github.com/Alexey-N-Chernyshov/workout_bot")
+        text += f"[Github]({link})"
         await self.bot.send_message(
             update.effective_chat.id,
             text,

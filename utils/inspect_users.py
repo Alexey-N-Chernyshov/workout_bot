@@ -19,7 +19,7 @@ def main():
     for user in users.get_all_users():
         print(f"id: {user.user_id} - {user_to_text_message(user)}",
               f", action: {user.action}, week: {user.current_week}",
-              f", data present: {user.user_input_data is not None}")
+              f", user input data present: {user.user_input_data is not None}")
 
 
 if __name__ == "__main__":
