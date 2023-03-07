@@ -41,6 +41,7 @@ def test_user_context_persistent_storage(tmp_path):
     user_context = UserContext(user_id)
     users.set_user_context(user_context)
     users.set_user_input_data(user_id, BlockUserContext(42))
+    assert users.is_present(user_id)
     actual = users.get_user_context(user_id)
     assert actual.user_id == user_id
     assert isinstance(actual.user_input_data, BlockUserContext)
@@ -52,6 +53,7 @@ def test_user_context_persistent_storage(tmp_path):
 
     # load again
     users = Users(storage_path)
+    assert users.is_present(user_id)
     actual = users.get_user_context(user_id)
     assert actual.user_id == user_id
     assert isinstance(actual.user_input_data, BlockUserContext)
