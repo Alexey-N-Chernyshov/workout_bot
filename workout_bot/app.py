@@ -2,6 +2,7 @@
 Telegram bot for workouts app entry point.
 """
 
+import asyncio
 import logging
 import time
 import threading
@@ -101,6 +102,9 @@ def main():
     )
     schedule_thread.daemon = True
     schedule_thread.start()
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(bot.register_commands())
 
     bot.start_bot()
 

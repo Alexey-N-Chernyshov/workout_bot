@@ -45,6 +45,19 @@ class TelegramBot:
             CallbackQueryHandler(self.handle_query)
         )
 
+    async def register_commands(self):
+        """
+        Registers the list of commands.
+        """
+
+        await self.bot.set_my_commands(
+            [
+                ("start", "Starts bot, use for restart in case of trouble."),
+                ("system_stats", "Some runtime statistics."),
+                ("about", "About a bot.")
+            ]
+        )
+
     def start_bot(self):
         """
         Starts telegram bot and enters infinity polling loop.
@@ -128,10 +141,15 @@ class TelegramBot:
         """
 
         self.data_model.statistics.record_command()
-        text = "Бот для тренировок\n"
+        text = "*Бот для тренировок*\n"
         text += f"Версия: {self.version}\n"
-        text += "[Github](https://github.com/Alexey-N-Chernyshov/workout_bot)"
-        await self.bot.send_message(update.effective_chat.id, text)
+        text += "[Github](https://github\.com/Alexey-N-Chernyshov/workout_bot)"
+        await self.bot.send_message(
+            update.effective_chat.id,
+            text,
+            disable_web_page_preview=True,
+            parse_mode="MarkdownV2"
+        )
 
     async def handle_message(self, update: Update,
                              context: ContextTypes.DEFAULT_TYPE):
