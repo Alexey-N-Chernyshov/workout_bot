@@ -9,6 +9,7 @@ from telegram.ext import (
 from controllers.controllers import Controllers
 from controllers.training_management import start_training
 from data_model.users import UserAction
+from view.utils import escape_text
 
 
 class TelegramBot:
@@ -23,7 +24,7 @@ class TelegramBot:
         self.version = version
 
         # init controllers
-        self.controllers = Controllers(loader)
+        self.controllers = Controllers(loader, data_model)
 
         self.telegram_application.add_handler(
             CommandHandler("start", self.handle_start)
@@ -43,6 +44,19 @@ class TelegramBot:
 
         self.telegram_application.add_handler(
             CallbackQueryHandler(self.handle_query)
+        )
+
+    async def register_commands(self):
+        """
+        Registers the list of commands.
+        """
+
+        await self.bot.set_my_commands(
+            [
+                ("start", "Starts bot, use for restart in case of trouble."),
+                ("system_stats", "Some runtime statistics."),
+                ("about", "About a bot.")
+            ]
         )
 
     def start_bot(self):
@@ -128,10 +142,18 @@ class TelegramBot:
         """
 
         self.data_model.statistics.record_command()
-        text = "Бот для тренировок\n"
+        text = "*Бот для тренировок*\n"
         text += f"Версия: {self.version}\n"
-        text += "[Github](https://github.com/Alexey-N-Chernyshov/workout_bot)"
-        await self.bot.send_message(update.effective_chat.id, text)
+        link = escape_text(
+            "https://github.com/Alexey-N-Chernyshov/workout_bot"
+        )
+        text += f"[Github]({link})"
+        await self.bot.send_message(
+            update.effective_chat.id,
+            text,
+            disable_web_page_preview=True,
+            parse_mode="MarkdownV2"
+        )
 
     async def handle_message(self, update: Update,
                              context: ContextTypes.DEFAULT_TYPE):

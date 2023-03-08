@@ -67,8 +67,8 @@ async def prompt_change_plan(data_model, update, context):
     if plans:
         keyboard = []
         text = "Выберите программу из списка:\n"
+        text += "\n".join(f" - {plan}" for plan in plans)
         for plan in plans:
-            text += '\n - ' + plan
             keyboard.append([KeyboardButton(plan)])
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await context.bot.send_message(
@@ -114,11 +114,13 @@ async def send_with_next_or_all_buttons(bot, user_context, message):
         key_admin = [KeyboardButton("Администрирование")]
         keyboard.append(key_admin)
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    await bot.send_message(chat_id,
-                           message,
-                           disable_web_page_preview=True,
-                           reply_markup=reply_markup,
-                           parse_mode="MarkdownV2")
+    await bot.send_message(
+        chat_id,
+        message,
+        disable_web_page_preview=True,
+        reply_markup=reply_markup,
+        parse_mode="MarkdownV2"
+    )
 
 
 async def send_week_schedule(bot, data_model, user_context):
@@ -202,7 +204,7 @@ def handle_need_change_plan():
 
     async def handler(data_model, update, context):
         """
-        If plan is not vlalid, change state to CHOOSING_PLAN and asks to choose
+        If plan is not valid, change state to CHOOSING_PLAN and asks to choose
         correct plan.
         """
 

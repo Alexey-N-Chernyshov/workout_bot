@@ -5,19 +5,31 @@ Representation of workouts.
 from .utils import escape_text
 
 
-def exercises_to_text_message(data_model, exercises):
+def exercises_to_text_message(data_model, exercise):
     """
-    Returns single excersise text representation.
+    Returns single exercise text representation.
     """
 
-    text = f"- {exercises.description}"
-    if exercises.reps_window:
-        text += f", {exercises.reps_window}"
+    text = f"- {exercise.description}"
+    if exercise.reps_window:
+        text += f", {exercise.reps_window}"
     text += "\n"
     text = escape_text(text)
-    for name, link in data_model.exercise_links.get_exercise_links():
-        if name in text:
-            text = text.replace(name, f"[{name}]({link})")
+    # Exercise links ordered by length, the longest first.
+    # Find the longest match.
+    exercise_links = sorted(
+        list(data_model.exercise_links.get_exercise_links().items()),
+        key=lambda key: len(key[0]),
+        reverse=True
+    )
+    for name, link in exercise_links:
+        name = escape_text(name.lower())
+        if name in text.lower():
+            index_name = text.lower().index(name)
+            # preserve actual case in string
+            actual_name = text[index_name:index_name + len(name)]
+            link = f"[{actual_name}]({escape_text(link)})"
+            text = text[:index_name] + link + text[index_name + len(name):]
             break
     return text
 

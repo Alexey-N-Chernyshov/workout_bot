@@ -101,9 +101,11 @@ async def show_all_users(bot, chat_id, data_model):
             plan_name = escape_text(
                 data_model.workout_plans.get_plan_name(user.current_table_id)
             )
-            text += f" \\- {user_to_text_message(user)} \\- {plan_name}"
+            text += f" \\- {user_to_text_message(user)}"
             if user.administrative_permission:
-                text += " \\- администратор"
+                text += " \\- *администратор*"
+            text += f" \\- {plan_name}"
+            text += f" \\- неделя: {user.current_week}"
             text += "\n"
         text += "\n"
     if blocked:
