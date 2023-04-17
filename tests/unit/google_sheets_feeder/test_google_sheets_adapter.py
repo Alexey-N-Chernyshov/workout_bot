@@ -142,3 +142,18 @@ def test_workout_multicell_set_description():
     parsed = adapter.parse_table_page(merges, values)
 
     assert_workouts_equal(parsed, EXPECTED_WORKOUTS_MULTICELL_SET_DESCRIPTION)
+
+
+def test_workout_set_description_without_number():
+    """
+    Parse set description without number with description: "2\\ТА".
+    2 - set number
+    "ТА" - set dscription
+    """
+
+    adapter = GoogleSheetsAdapter()
+    raw_set_description = ("", "", "2\\ТА")
+
+    workout_set = adapter.parse_workout_set(raw_set_description)
+    assert workout_set.number == 2
+    assert workout_set.description == "ТА"

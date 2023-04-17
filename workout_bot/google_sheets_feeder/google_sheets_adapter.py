@@ -93,7 +93,7 @@ class GoogleSheetsAdapter:
         number, rest = workout_description.split('\\', 1)
         workout_set.number = int(number)
         # read rounds if present
-        if rest[0].isdigit():
+        if rest and rest[0].isdigit():
             if '\\' in rest:
                 rounds, rest = rest.split('\\', 1)
                 workout_set.rounds = rounds
