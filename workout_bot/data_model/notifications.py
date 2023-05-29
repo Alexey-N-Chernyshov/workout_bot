@@ -26,6 +26,13 @@ class Notifications:
 
         self.__notifications.discard(notification)
 
+    def len(self):
+        """
+        Returns the number of notifications.
+        """
+
+        return len(self.__notifications)
+
     def list(self):
         """
         Returns all the notifications, ordered by date.
