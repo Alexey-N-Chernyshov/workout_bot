@@ -1,5 +1,5 @@
 """
-The feeder provides data from google sheets.
+The feeder provides data from Google sheets.
 """
 
 import logging

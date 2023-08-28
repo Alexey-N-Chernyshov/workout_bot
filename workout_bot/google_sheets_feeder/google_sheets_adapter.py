@@ -31,7 +31,7 @@ class GoogleSheetsAdapter:
         # list of weeks index pairs (begin, end)
         week_indexes = []
         # list of workout index pairs (begin, end)
-        workout_indexes = []
+        day_indexes = []
 
         for merge in merges:
             if merge["startColumnIndex"] == 0 and merge["endColumnIndex"] == 1:
@@ -39,25 +39,26 @@ class GoogleSheetsAdapter:
                 end_week_index = merge['endRowIndex'] - 1
                 week_indexes.append((start_week_index, end_week_index))
             if merge["startColumnIndex"] == 1 and merge["endColumnIndex"] == 2:
-                start_workout_index = merge["startRowIndex"] - 1
-                end_workout_index = merge["endRowIndex"] - 1
-                workout_indexes.append((start_workout_index,
-                                        end_workout_index))
+                start_day_index = merge["startRowIndex"] - 1
+                end_day_index = merge["endRowIndex"] - 1
+                day_indexes.append((start_day_index,
+                                    end_day_index))
         week_indexes.sort()
-        workout_indexes.sort()
+        day_indexes.sort()
 
         workout_num = 0
         i = 0
         while i < len(values):
-            if i < workout_indexes[workout_num][0]:
-                workout_indexes.append((i, i + 1))
-                workout_indexes.sort()
+            if len(day_indexes) <= workout_num \
+                    or i < day_indexes[workout_num][0]:
+                day_indexes.append((i, i + 1))
+                day_indexes.sort()
                 i += 1
             else:
-                i = workout_indexes[workout_num][1]
+                i = day_indexes[workout_num][1]
             workout_num += 1
 
-        return week_indexes, workout_indexes
+        return week_indexes, day_indexes
 
     def parse_week_begin(self, to_parse):
         """
