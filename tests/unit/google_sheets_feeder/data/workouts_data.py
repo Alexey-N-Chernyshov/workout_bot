@@ -108,7 +108,7 @@ EXPECTED_WORKOUTS = [
                         number=1,
                         exercises=[
                             Exercise(description='подтягивания', reps_window='3-5'),
-                            Exercise(description="приседания со штангой на спине", reps_window='3')
+                            Exercise(description="приседания со штангой на спине", reps_window='3', weight='70%')
                         ],
                         rounds='3'
                     ),
@@ -117,7 +117,7 @@ EXPECTED_WORKOUTS = [
                         number=2,
                         exercises=[
                             Exercise(description='жим штанги лежа', reps_window='3-5'),
-                            Exercise(description='фронтальные приседания', reps_window='3')
+                            Exercise(description='фронтальные приседания', reps_window='3', weight='60%')
                         ],
                         rounds='3'
                     ),

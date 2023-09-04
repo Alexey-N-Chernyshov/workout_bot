@@ -155,13 +155,23 @@ class GoogleSheetsAdapter:
                 workout.sets.append(workout_set)
                 workout_set = self.parse_workout_set(row)
             else:
-                # it is an exercise
-                if len(row) >= 4:
+                # it is an exercise with reps window and weight
+                if len(row) >= 5:
+                    workout_set.exercises.append(
+                        Exercise(
+                            row[2].strip(),
+                            row[3].strip(),
+                            row[4].strip()
+                        )
+                    )
+                # it is an exercise with reps window
+                if len(row) == 4:
                     # exercise reps present
                     workout_set.exercises.append(
                         Exercise(row[2].strip(), row[3].strip())
                     )
-                elif len(row) >= 3:
+                # it is an exercise with reps window only
+                elif len(row) == 3:
                     # exercise reps not present
                     workout_set.exercises.append(Exercise(row[2].strip()))
                 # otherwise empty string - no exercise
