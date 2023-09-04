@@ -13,6 +13,8 @@ def exercises_to_text_message(data_model, exercise):
     text = f"- {exercise.description}"
     if exercise.reps_window:
         text += f", {exercise.reps_window}"
+    if exercise.weight:
+        text += f", вес {exercise.weight}"
     text += "\n"
     text = escape_text(text)
     # Exercise links ordered by length, the longest first.

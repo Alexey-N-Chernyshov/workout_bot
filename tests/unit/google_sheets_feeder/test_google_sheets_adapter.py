@@ -82,6 +82,8 @@ def assert_workouts_equal(actual, expected):
                         .description
                     assert actual_exercise.reps_window == expected_exercise \
                         .reps_window
+                    assert actual_exercise.weight == expected_exercise \
+                        .weight
 
 
 @freeze_time("2022-12-25")

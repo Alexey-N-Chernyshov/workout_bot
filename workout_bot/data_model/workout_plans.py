@@ -12,11 +12,12 @@ from typing import Dict
 @dataclass
 class Exercise:
     """
-    Is a single exercise.
+    It's a single exercise.
     """
 
     description: str
     reps_window: str = ''
+    weight: str = ''
 
 
 @dataclass
