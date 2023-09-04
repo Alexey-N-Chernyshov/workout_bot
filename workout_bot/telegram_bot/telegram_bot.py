@@ -143,7 +143,7 @@ class TelegramBot:
 
         self.data_model.statistics.record_command()
         text = "*Бот для тренировок*\n"
-        text += f"Версия: {self.version}\n"
+        text += f"Версия: {escape_text(self.version)}\n"
         link = escape_text(
             "https://github.com/Alexey-N-Chernyshov/workout_bot"
         )

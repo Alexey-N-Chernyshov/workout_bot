@@ -16,7 +16,7 @@ async def test_command_about(behavioral_test_fixture):
 
     # she gets message with workout
     expected = "*Бот для тренировок*\n"
-    expected += "Версия: behavioral_test\n"
+    expected += "Версия: behavioral\\_test\n"
     expected += \
         "[Github](https://github\\.com/Alexey\\-N\\-Chernyshov/workout\\_bot)"
     alice.expect_answer(expected)
