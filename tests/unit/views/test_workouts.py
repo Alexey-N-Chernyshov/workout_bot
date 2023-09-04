@@ -185,6 +185,17 @@ def test_week_routine_additional_workout_test():
         data_model, table_id, page_name, week_number)
 
 
+def test_exercises_to_text_message():
+    """
+    Tests exercise representation.
+    """
+
+    exercise = Exercise("Goblet Squats", "15 times", "75%")
+    expected = "\\- Goblet Squats, 15 times, вес 75%\n"
+
+    assert exercises_to_text_message(data_model, exercise) == expected
+
+
 def test_exercises_to_text_message_with_links():
     """
     Tests exercise representation with links.
