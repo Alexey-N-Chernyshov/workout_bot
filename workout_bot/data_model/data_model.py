@@ -2,9 +2,12 @@
 Provides business data model objects.
 """
 
+from dataclasses import dataclass
 from google_sheets_feeder.google_sheets_adapter import GoogleSheetsAdapter
 from google_sheets_feeder.google_sheets_feeder import GoogleSheetsFeeder
 from google_sheets_feeder.google_sheets_loader import GoogleSheetsLoader
+from workout_bot.notification import Notification
+from .notifications import Notifications
 from .exercise_links import ExerciseLinks
 from .statistics import Statistics
 from .users import Users
@@ -12,22 +15,38 @@ from .workout_plans import WorkoutPlans
 from .workout_table_names import WorkoutTableNames
 
 
+@dataclass
+class PageReference:
+    """
+    Reference to page in table.
+    """
+
+    def __init__(self, table_id, page_name):
+        self.table_id = table_id
+        self.page_name = page_name
+
+
 class DataModel:
     """
     An interface to all business data model objects.
     """
 
-    def __init__(self,
-                 users_storage_filename,
-                 exercise_links_table_id,
-                 exercise_links_pagename,
-                 table_ids_filename):
-        self.feeder = GoogleSheetsFeeder(GoogleSheetsLoader(),
-                                         GoogleSheetsAdapter())
+    def __init__(
+            self,
+            users_storage_filename,
+            table_ids_filename,
+            exercise_page_reference
+    ):
+        self.notifications = Notifications()
+        self.feeder = GoogleSheetsFeeder(
+            GoogleSheetsLoader(),
+            GoogleSheetsAdapter()
+        )
         self.users = Users(users_storage_filename)
-        self.exercise_links = ExerciseLinks(exercise_links_table_id,
-                                            exercise_links_pagename,
-                                            self.feeder)
+        self.exercise_links = ExerciseLinks(
+            exercise_page_reference,
+            self.feeder
+        )
         self.workout_table_names = WorkoutTableNames(table_ids_filename)
         self.statistics = Statistics()
         # Workouts has been read from tables
@@ -38,8 +57,17 @@ class DataModel:
         Loads the latest workout plans from Google spreadsheets.
         """
 
-        self.exercise_links.load_exercise_links()
-        self.workout_plans = self.feeder.get_workouts(self.workout_table_names)
+        try:
+            self.exercise_links.update_exercise_links()
+        except Notification as error:
+            self.notifications.add(error)
+        try:
+            self.workout_plans.update(
+                self.feeder,
+                self.workout_table_names
+            )
+        except Notification as error:
+            self.notifications.add(error)
         self.statistics.set_training_plan_update_time()
 
     def next_workout_for_user(self, user_id):

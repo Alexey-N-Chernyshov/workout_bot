@@ -5,15 +5,17 @@ Administration related messages handlers.
 from telegram import KeyboardButton, ReplyKeyboardMarkup
 from data_model.users import UserAction
 from telegram_bot.utils import get_user_context
+from workout_bot.view.notifications import get_notifications_button_text
 
 
-async def show_admin_panel(bot, chat_id, user_context):
+async def show_admin_panel(data_model, bot, chat_id, user_context):
     """
     Shows administration panel.
     """
 
     if user_context.administrative_permission:
         keyboard = [
+            [KeyboardButton(get_notifications_button_text(data_model))],
             [KeyboardButton("Управление пользователями")],
             [KeyboardButton("Управление таблицами")],
             [KeyboardButton("Перейти к тренировкам")]
@@ -52,7 +54,7 @@ def handle_go_administration():
         user_context = data_model.users.get_user_context(user_id)
         chat_id = user_context.chat_id
         data_model.users.set_user_action(user_id, UserAction.ADMINISTRATION)
-        await show_admin_panel(context.bot, chat_id, user_context)
+        await show_admin_panel(data_model, context.bot, chat_id, user_context)
 
     return handler_filter, handler
 
