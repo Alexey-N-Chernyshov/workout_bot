@@ -62,13 +62,16 @@ class GoogleSheetsAdapter:
 
     def parse_week_begin(self, to_parse):
         """
-        Parses week description.
+        Parses week date and comment.
         """
 
-        days, rest = to_parse.strip().split('.', 1)
-        start_day, end_day = [int(x) for x in days.split('-')]
-        month, week_comment = re.split(r"(^\d+)", rest, maxsplit=1)[1:]
-        end_month = int(month)
+        dates, week_comment = re.split(r"(^\d{1,2}\.?\d{0,2}-\d{1,2}\.\d{1,2})", to_parse, maxsplit=1)[1:]
+        start_date, end_date = [x for x in dates.split('-')]
+        if '.' in start_date:
+            start_day, start_month = [int(x) for x in start_date.split('.')]
+        else:
+            start_day = int(start_date)
+        end_day, end_month = [int(x) for x in end_date.split('.', 1)]
         start_year = date.today().year
         end_year = date.today().year
         if start_day > end_day:
