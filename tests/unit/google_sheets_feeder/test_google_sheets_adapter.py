@@ -50,7 +50,8 @@ def test_parse_week_begin_new_month():
     workout = adapter.parse_week_begin(string)
     assert workout.start_date == datetime.date(2023, 10, 30)
     assert workout.end_date == datetime.date(2023, 11, 5)
-    assert workout.comment == "3 тренировки, 1 день отдыха, 1 тренировка, 2 дня отдыха"
+    assert workout.comment == \
+           "3 тренировки, 1 день отдыха, 1 тренировка, 2 дня отдыха"
 
 
 @freeze_time("2022-12-25")

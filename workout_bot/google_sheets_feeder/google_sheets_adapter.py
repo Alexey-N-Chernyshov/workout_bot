@@ -65,8 +65,11 @@ class GoogleSheetsAdapter:
         Parses week date and comment.
         """
 
-        dates, week_comment = re.split(r"(^\d{1,2}\.?\d{0,2}-\d{1,2}\.\d{1,2})", to_parse, maxsplit=1)[1:]
-        start_date, end_date = [x for x in dates.split('-')]
+        dates, week_comment = re.split(
+            r"(^\d{1,2}\.?\d{0,2}-\d{1,2}\.\d{1,2})",
+            to_parse,
+            maxsplit=1)[1:]
+        start_date, end_date = dates.split('-')
         if '.' in start_date:
             start_day, start_month = [int(x) for x in start_date.split('.')]
         else:
